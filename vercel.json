@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/expire-listings",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/expire-connections",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

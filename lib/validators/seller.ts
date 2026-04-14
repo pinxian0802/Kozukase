@@ -1,0 +1,16 @@
+import { z } from 'zod'
+
+export const becomeSellerInput = z.object({
+  name: z.string().min(1, '賣家名稱為必填').max(50),
+  phone_number: z.string().min(8, '請輸入有效的手機號碼').max(20),
+  region_ids: z.array(z.string().uuid()).min(1, '請至少選擇一個代購地區'),
+})
+
+export const updateSellerInput = z.object({
+  name: z.string().min(1).max(50).optional(),
+  ig_handle: z.string().max(100).optional(),
+  threads_handle: z.string().max(100).optional(),
+  ig_follower_count: z.number().min(0).optional(),
+  threads_follower_count: z.number().min(0).optional(),
+  region_ids: z.array(z.string().uuid()).min(1).optional(),
+})
