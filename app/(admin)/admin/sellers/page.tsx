@@ -74,7 +74,7 @@ export default function AdminSellersPage() {
                   </Button>
                 ) : (
                   <Dialog open={suspendId === seller.id} onOpenChange={(open) => { if (!open) setSuspendId(null) }}>
-                    <DialogTrigger render={<Button size="sm" variant="destructive" onClick={() => setSuspendId(seller.id)} />}>
+                    <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setSuspendId(seller.id)} />}>
                         <Ban className="mr-1 h-3 w-3" />停權
                     </DialogTrigger>
                     <DialogContent>

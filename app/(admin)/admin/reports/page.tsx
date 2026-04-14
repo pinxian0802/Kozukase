@@ -74,7 +74,7 @@ export default function AdminReportsPage() {
                 {report.status === 'pending' && (
                   <div className="flex gap-2">
                     <Dialog open={resolveId === report.id} onOpenChange={(open) => { if (!open) setResolveId(null) }}>
-                      <DialogTrigger render={<Button size="sm" onClick={() => setResolveId(report.id)} />}>
+                      <DialogTrigger nativeButton render={<Button size="sm" onClick={() => setResolveId(report.id)} />}>
                         處理
                       </DialogTrigger>
                       <DialogContent>

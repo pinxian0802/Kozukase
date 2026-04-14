@@ -84,7 +84,7 @@ export default function AdminProductsPage() {
                 </Select>
                 {!product.is_removed && (
                   <Dialog open={removeId === product.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
-                    <DialogTrigger render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(product.id)} />}>
+                    <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(product.id)} />}>
                         <Trash2 className="h-3 w-3" />
                     </DialogTrigger>
                     <DialogContent>

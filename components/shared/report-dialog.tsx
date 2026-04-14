@@ -37,7 +37,7 @@ export function ReportDialog(props: ReportDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="ghost" size="sm" className="text-muted-foreground" />}>
+      <DialogTrigger nativeButton render={<Button variant="ghost" size="sm" className="text-muted-foreground" />}>
           <Flag className="mr-1 h-4 w-4" />
           檢舉
       </DialogTrigger>

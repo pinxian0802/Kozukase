@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Search, Menu, X, User, Bell, LogOut, Store, Heart, Star, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -58,12 +58,12 @@ export function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" size="sm" render={<Link href="/connections" />}>
+          <Link href="/connections" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
             連線代購
-          </Button>
-          <Button variant="ghost" size="sm" render={<Link href="/wishes" />}>
+          </Link>
+          <Link href="/wishes" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
             許願榜
-          </Button>
+          </Link>
         </nav>
 
         {/* Auth Section */}
@@ -82,11 +82,17 @@ export function Header() {
             <>
               <NotificationBell />
               <DropdownMenu>
-                <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="relative" />}>
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={session.profile.avatar_url ?? undefined} />
-                      <AvatarFallback>{session.profile.display_name?.[0] ?? '?'}</AvatarFallback>
-                    </Avatar>
+                <DropdownMenuTrigger
+                  nativeButton={false}
+                  render={
+                    <span className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })}>
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={session.profile.avatar_url ?? undefined} />
+                        <AvatarFallback>{session.profile.display_name?.[0] ?? '?'}</AvatarFallback>
+                      </Avatar>
+                    </span>
+                  }
+                >
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem render={<Link href="/profile" />}>
@@ -116,27 +122,32 @@ export function Header() {
               </DropdownMenu>
             </>
           ) : (
-            <Button size="sm" render={<Link href="/login" />}>
+            <Link href="/login" className={buttonVariants({ size: 'sm' })}>
               登入
-            </Button>
+            </Link>
           )}
 
           {/* Mobile Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" />}>
-                <Menu className="h-5 w-5" />
-            </SheetTrigger>
+            <SheetTrigger
+              nativeButton={false}
+              render={
+                <span className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'md:hidden' })}>
+                  <Menu className="h-5 w-5" />
+                </span>
+              }
+            />
             <SheetContent side="right" className="w-72">
               <nav className="flex flex-col gap-2 pt-8">
-                <Button variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)} render={<Link href="/search" />}>
+                <Link href="/search" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                   搜尋商品
-                </Button>
-                <Button variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)} render={<Link href="/connections" />}>
+                </Link>
+                <Link href="/connections" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                   連線代購
-                </Button>
-                <Button variant="ghost" className="justify-start" onClick={() => setMobileMenuOpen(false)} render={<Link href="/wishes" />}>
+                </Link>
+                <Link href="/wishes" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                   許願榜
-                </Button>
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>

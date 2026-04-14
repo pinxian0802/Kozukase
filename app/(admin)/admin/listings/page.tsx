@@ -56,7 +56,7 @@ export default function AdminListingsPage() {
                     <Check className="mr-1 h-3 w-3" />通過
                   </Button>
                   <Dialog open={removeId === listing.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
-                    <DialogTrigger render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(listing.id)} />}>
+                    <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(listing.id)} />}>
                         <X className="mr-1 h-3 w-3" />駁回
                     </DialogTrigger>
                     <DialogContent>

@@ -58,7 +58,7 @@ export default function AdminConnectionsPage() {
                     <Check className="mr-1 h-3 w-3" />通過
                   </Button>
                   <Dialog open={removeId === conn.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
-                    <DialogTrigger render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(conn.id)} />}>
+                    <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(conn.id)} />}>
                         <X className="mr-1 h-3 w-3" />駁回
                     </DialogTrigger>
                     <DialogContent>

@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect } from 'react'
 import { SlidersHorizontal, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
@@ -97,9 +97,14 @@ function SearchContent() {
 
           {/* Mobile filter */}
           <Sheet>
-            <SheetTrigger render={<Button variant="outline" size="icon" className="md:hidden" />}>
-                <SlidersHorizontal className="h-4 w-4" />
-            </SheetTrigger>
+            <SheetTrigger
+              nativeButton={false}
+              render={
+                <span className={buttonVariants({ variant: 'outline', size: 'icon', className: 'md:hidden' })}>
+                  <SlidersHorizontal className="h-4 w-4" />
+                </span>
+              }
+            />
             <SheetContent side="left">
               <SheetHeader>
                 <SheetTitle>篩選</SheetTitle>
