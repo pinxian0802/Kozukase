@@ -8,14 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
+import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
 export default function SettingsPage() {
   const router = useRouter()
-  const { data: session, isLoading } = trpc.auth.getSession.useQuery()
+  const session = useSession()
   const { data: regions } = trpc.seller.getRegions.useQuery()
 
   const [sellerName, setSellerName] = useState('')
@@ -29,14 +29,6 @@ export default function SettingsPage() {
     },
     onError: (err) => toast.error(err.message),
   })
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-6">
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </div>
-    )
-  }
 
   if (!session?.profile) return null
 
@@ -80,7 +72,7 @@ export default function SettingsPage() {
             成為賣家
           </CardTitle>
           <CardDescription>
-            填寫以下資料開始在 Daigo 上架代購商品
+            填寫以下資料開始在 Kozukase 上架代購商品
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -12,6 +12,7 @@ import { ListingCard } from '@/components/listing/listing-card'
 import { SellerCard } from '@/components/seller/seller-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { trpc } from '@/lib/trpc/client'
+import { useSession } from '@/lib/context/session-context'
 
 export default function ProfilePage() {
   return (
@@ -24,21 +25,12 @@ export default function ProfilePage() {
 function ProfileContent() {
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') ?? 'bookmarks'
-  const { data: session, isLoading: sessionLoading } = trpc.auth.getSession.useQuery()
+  const session = useSession()
   const { data: productBookmarks } = trpc.bookmark.myProductBookmarks.useQuery({ limit: 50 })
   const { data: listingBookmarks } = trpc.bookmark.myListingBookmarks.useQuery({ limit: 50 })
   const { data: wishes } = trpc.wish.myWishes.useQuery({ limit: 50 })
   const { data: follows } = trpc.follow.myFollows.useQuery({ limit: 50 })
   const { data: reviews } = trpc.review.myReviews.useQuery({ limit: 50 })
-
-  if (sessionLoading) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
-        <Skeleton className="h-20 w-20 rounded-full" />
-        <Skeleton className="h-8 w-48" />
-      </div>
-    )
-  }
 
   if (!session?.profile) return null
 

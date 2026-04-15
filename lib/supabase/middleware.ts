@@ -1,6 +1,16 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Routes that require a logged-in session.
+// Seller / admin role checks are handled in the respective layouts.
+const AUTH_REQUIRED_PREFIXES = [
+  '/profile',
+  '/settings',
+  '/notifications',
+  '/dashboard',
+  '/admin',
+]
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -27,7 +37,17 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { pathname } = request.nextUrl
+  const requiresAuth = AUTH_REQUIRED_PREFIXES.some((p) => pathname.startsWith(p))
+
+  if (requiresAuth && !user) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    loginUrl.searchParams.set('next', pathname)
+    return NextResponse.redirect(loginUrl)
+  }
 
   return supabaseResponse
 }

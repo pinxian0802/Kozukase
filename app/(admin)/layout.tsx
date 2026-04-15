@@ -1,31 +1,19 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { redirect } from 'next/navigation'
+import { getServerSession } from '@/lib/supabase/get-session'
 import { Header } from '@/components/layout/header'
 import { Sidebar } from '@/components/layout/sidebar'
-import { Skeleton } from '@/components/ui/skeleton'
-import { trpc } from '@/lib/trpc/client'
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const { data: session, isLoading } = trpc.auth.getSession.useQuery()
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // getServerSession() 使用 React cache()，與 root layout 共用同一次 DB 查詢
+  const session = await getServerSession()
 
-  useEffect(() => {
-    if (!isLoading && !session?.isAdmin) {
-      router.push('/')
-    }
-  }, [isLoading, session, router])
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Skeleton className="h-32 w-32 rounded-xl" />
-      </div>
-    )
+  if (!session) {
+    redirect('/login?next=/admin')
   }
 
-  if (!session?.isAdmin) return null
+  if (!session.isAdmin) {
+    redirect('/')
+  }
 
   return (
     <>

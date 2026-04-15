@@ -1,4 +1,4 @@
-# Daigo 代購比價平台：完整設計規格
+# Kozukase 代購比價平台：完整設計規格
 
 > **For agentic workers:** This is the master spec for the entire platform. Each Phase below is an independent sub-project with its own implementation plan cycle.
 
@@ -54,7 +54,7 @@
 ## 專案結構
 
 ```
-daigo/
+Kozukase/
 ├── app/
 │   ├── layout.tsx                    # Root layout (fonts, providers, metadata)
 │   ├── page.tsx                      # 首頁

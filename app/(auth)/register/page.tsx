@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Loader2, Mail, KeyRound } from 'lucide-react'
+import { Loader2, Mail, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,41 +13,28 @@ import { Separator } from '@/components/ui/separator'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import {
   buildAuthCallbackUrl,
-  getAuthCallbackErrorMessage,
   getAuthErrorMessage,
   getSafeNextPath,
 } from '@/lib/supabase/auth-error'
 
-type LoginAction = 'google' | 'password' | 'magic-link' | null
+type RegisterAction = 'google' | 'email' | null
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const handledQueryKey = useRef<string | null>(null)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [emailSent, setEmailSent] = useState(false)
-  const [loadingAction, setLoadingAction] = useState<LoginAction>(null)
+  const [loadingAction, setLoadingAction] = useState<RegisterAction>(null)
 
   const safeNext = useMemo(
     () => getSafeNextPath(searchParams.get('next')),
     [searchParams]
   )
 
-  useEffect(() => {
-    const error = searchParams.get('error')
-    if (!error) return
-
-    const description = searchParams.get('error_description')
-    const queryKey = `${error}:${description ?? ''}`
-    if (handledQueryKey.current === queryKey) return
-    handledQueryKey.current = queryKey
-
-    toast.error(getAuthCallbackErrorMessage(error, description))
-  }, [searchParams])
-
-  const handleGoogleLogin = async () => {
+  const handleGoogleRegister = async () => {
     setLoadingAction('google')
     const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signInWithOAuth({
@@ -59,48 +46,34 @@ export default function LoginPage() {
     setLoadingAction(null)
 
     if (error) {
-      toast.error(getAuthErrorMessage(error, 'Google 登入失敗，請稍後再試'))
+      toast.error(getAuthErrorMessage(error, 'Google 註冊失敗，請稍後再試'))
     }
   }
 
-  const handlePasswordLogin = async (e: React.FormEvent) => {
+  const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedEmail = email.trim()
 
-    if (!trimmedEmail || !password) {
-      toast.error('請輸入 Email 與密碼')
+    if (!trimmedEmail || !password || !confirmPassword) {
+      toast.error('請完整填寫註冊資訊')
       return
     }
 
-    setLoadingAction('password')
+    if (password.length < 6) {
+      toast.error('密碼至少需要 6 個字元')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('兩次輸入的密碼不一致')
+      return
+    }
+
+    setLoadingAction('email')
     const supabase = createSupabaseBrowserClient()
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
-    })
-    setLoadingAction(null)
-
-    if (error) {
-      toast.error(getAuthErrorMessage(error, '登入失敗，請稍後再試'))
-      return
-    }
-
-    toast.success('登入成功')
-    router.push(safeNext)
-    router.refresh()
-  }
-
-  const handleMagicLinkLogin = async () => {
-    const trimmedEmail = email.trim()
-    if (!trimmedEmail) {
-      toast.error('請先輸入 Email')
-      return
-    }
-
-    setLoadingAction('magic-link')
-    const supabase = createSupabaseBrowserClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email: trimmedEmail,
       options: {
         emailRedirectTo: buildAuthCallbackUrl(window.location.origin, safeNext),
       },
@@ -108,12 +81,19 @@ export default function LoginPage() {
     setLoadingAction(null)
 
     if (error) {
-      toast.error(getAuthErrorMessage(error, '登入連結寄送失敗，請稍後再試'))
+      toast.error(getAuthErrorMessage(error, '註冊失敗，請稍後再試'))
+      return
+    }
+
+    if (data.session) {
+      toast.success('註冊成功，已自動登入')
+      router.push(safeNext)
+      router.refresh()
       return
     }
 
     setEmailSent(true)
-    toast.success('登入連結已寄出')
+    toast.success('註冊成功，驗證信已寄出')
   }
 
   return (
@@ -123,11 +103,11 @@ export default function LoginPage() {
           <Link href="/" className="font-heading text-3xl font-bold text-primary">
             Kozukase
           </Link>
-          <CardTitle className="text-xl">登入帳號</CardTitle>
+          <CardTitle className="text-xl">建立帳號</CardTitle>
           <CardDescription>
-            還沒有帳號？
-            <Link href={`/register?next=${encodeURIComponent(safeNext)}`} className="ml-1 text-primary underline-offset-4 hover:underline">
-              立即註冊
+            已經有帳號？
+            <Link href={`/login?next=${encodeURIComponent(safeNext)}`} className="ml-1 text-primary underline-offset-4 hover:underline">
+              前往登入
             </Link>
           </CardDescription>
         </CardHeader>
@@ -137,7 +117,7 @@ export default function LoginPage() {
             type="button"
             variant="outline"
             className="w-full"
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleRegister}
             disabled={loadingAction !== null}
           >
             {loadingAction === 'google' ? (
@@ -162,7 +142,7 @@ export default function LoginPage() {
                 />
               </svg>
             )}
-            使用 Google 登入
+            使用 Google 註冊
           </Button>
 
           <div className="relative">
@@ -174,7 +154,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <form onSubmit={handlePasswordLogin} className="space-y-3">
+          <form onSubmit={handleEmailRegister} className="space-y-3">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -193,44 +173,52 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="請輸入密碼"
+                placeholder="至少 6 個字元"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="confirm-password">確認密碼</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="再次輸入密碼"
                 required
               />
             </div>
 
             <Button type="submit" className="w-full" disabled={loadingAction !== null}>
-              {loadingAction === 'password' ? (
+              {loadingAction === 'email' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <KeyRound className="mr-2 h-4 w-4" />
+                <UserPlus className="mr-2 h-4 w-4" />
               )}
-              使用密碼登入
+              使用 Email 註冊
             </Button>
           </form>
+
+          {emailSent && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              驗證信已寄到 <span className="font-medium">{email.trim()}</span>，請完成驗證後再登入。
+            </div>
+          )}
 
           <Button
             type="button"
             variant="ghost"
             className="w-full"
-            onClick={handleMagicLinkLogin}
-            disabled={loadingAction !== null}
+            onClick={() => router.push(`/login?next=${encodeURIComponent(safeNext)}`)}
           >
-            {loadingAction === 'magic-link' ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Mail className="mr-2 h-4 w-4" />
-            )}
-            改用 Magic Link 登入
+            <Mail className="mr-2 h-4 w-4" />
+            我已有帳號，前往登入
           </Button>
-
-          {emailSent && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-              登入連結已寄到 <span className="font-medium">{email.trim()}</span>，請到信箱完成登入。
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

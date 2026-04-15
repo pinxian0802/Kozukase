@@ -4,8 +4,8 @@ import { useState, useRef, useCallback } from 'react'
 import { Upload, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { trpc } from '@/lib/trpc/client'
 import imageCompression from 'browser-image-compression'
+import { toast } from 'sonner'
 
 interface ImageUploadProps {
   purpose: 'product' | 'listing' | 'connection' | 'avatar'
@@ -18,7 +18,6 @@ interface ImageUploadProps {
 export function ImageUpload({ purpose, maxImages = 1, images, onChange, className }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
 
   const handleUpload = useCallback(async (files: FileList) => {
     if (images.length + files.length > maxImages) return
@@ -35,19 +34,29 @@ export function ImageUpload({ purpose, maxImages = 1, images, onChange, classNam
           fileType: 'image/webp',
         })
 
-        // Get presigned URL
-        const { presignedUrl, r2Key, publicUrl } = await getPresignedUrl.mutateAsync({
-          purpose,
-          contentType: compressed.type || 'image/webp',
-          fileSize: compressed.size,
+        // Upload through our own API to avoid browser-to-R2 CORS failures.
+        const uploadFile = new File(
+          [compressed],
+          file.name.replace(/\.[^.]+$/, '.webp'),
+          { type: compressed.type || 'image/webp' }
+        )
+
+        const formData = new FormData()
+        formData.append('purpose', purpose)
+        formData.append('file', uploadFile)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
         })
 
-        // Upload to R2
-        await fetch(presignedUrl, {
-          method: 'PUT',
-          body: compressed,
-          headers: { 'Content-Type': compressed.type || 'image/webp' },
-        })
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null)
+          throw new Error(payload?.error ?? payload?.message ?? '圖片上傳失敗')
+        }
+
+        const { r2Key, publicUrl } = await response.json()
 
         newImages.push({ url: publicUrl, r2Key })
       }
@@ -55,10 +64,11 @@ export function ImageUpload({ purpose, maxImages = 1, images, onChange, classNam
       onChange([...images, ...newImages])
     } catch (error) {
       console.error('Upload failed:', error)
+      toast.error(error instanceof Error ? error.message : '圖片上傳失敗')
     } finally {
       setUploading(false)
     }
-  }, [images, maxImages, purpose, getPresignedUrl, onChange])
+  }, [images, maxImages, purpose, onChange])
 
   const removeImage = (index: number) => {
     onChange(images.filter((_, i) => i !== index))

@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
+import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
 
 export default function SellerProfilePage() {
-  const { data: session, isLoading } = trpc.auth.getSession.useQuery()
+  const session = useSession()
   
   const [name, setName] = useState('')
   const [igHandle, setIgHandle] = useState('')
@@ -44,10 +44,6 @@ export default function SellerProfilePage() {
       threads_handle: threadsHandle || undefined,
       threads_follower_count: threadsFollowers ? Number(threadsFollowers) : undefined,
     })
-  }
-
-  if (isLoading) {
-    return <Skeleton className="h-96 w-full max-w-2xl rounded-xl" />
   }
 
   return (

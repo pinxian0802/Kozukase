@@ -3,14 +3,13 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Search, Menu, X, User, Bell, LogOut, Store, Heart, Star, ChevronDown } from 'lucide-react'
+import { Search, Menu, User, Bell, LogOut, Store, Heart } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
-import { trpc } from '@/lib/trpc/client'
+import { useSession } from '@/lib/context/session-context'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/shared/notification-bell'
 
@@ -19,7 +18,8 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { data: session } = trpc.auth.getSession.useQuery()
+  // Session 直接從 Context 讀取，不打任何 API
+  const session = useSession()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,7 +40,7 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 font-heading text-2xl font-bold text-primary">
-          Daigo
+          Kozukase
         </Link>
 
         {/* Desktop Search */}
@@ -122,9 +122,21 @@ export function Header() {
               </DropdownMenu>
             </>
           ) : (
-            <Link href="/login" className={buttonVariants({ size: 'sm' })}>
-              登入
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/register"
+                className={buttonVariants({
+                  variant: 'outline',
+                  size: 'sm',
+                  className: 'hidden sm:inline-flex',
+                })}
+              >
+                註冊
+              </Link>
+              <Link href="/login" className={buttonVariants({ size: 'sm' })}>
+                登入
+              </Link>
+            </div>
           )}
 
           {/* Mobile Menu */}
