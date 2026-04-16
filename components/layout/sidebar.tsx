@@ -11,14 +11,14 @@ interface SidebarProps {
 
 const sellerLinks = [
   { href: '/dashboard', label: '總覽', icon: LayoutDashboard },
-  { href: '/dashboard/listings', label: 'Listing 管理', icon: Package },
+  { href: '/dashboard/listings', label: '代購管理', icon: Package },
   { href: '/dashboard/connections', label: '連線管理', icon: Globe },
   { href: '/dashboard/profile', label: '賣家資料', icon: UserCog },
 ]
 
 const adminLinks = [
   { href: '/admin/products', label: '商品管理', icon: Package },
-  { href: '/admin/listings', label: 'Listing 審核', icon: Package },
+  { href: '/admin/listings', label: '代購審核', icon: Package },
   { href: '/admin/connections', label: '連線審核', icon: Globe },
   { href: '/admin/reports', label: '檢舉處理', icon: Flag },
   { href: '/admin/sellers', label: '賣家管理', icon: Users },

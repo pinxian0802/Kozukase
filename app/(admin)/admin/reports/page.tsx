@@ -34,7 +34,7 @@ export default function AdminReportsPage() {
   })
 
   const getTargetLabel = (report: any) => {
-    if (report.listing_id) return `Listing`
+    if (report.listing_id) return `商品`
     if (report.review_id) return `評價`
     if (report.connection_id) return `連線`
     if (report.seller_id) return `賣家`

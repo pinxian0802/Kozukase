@@ -11,8 +11,8 @@ import { cn } from '@/lib/utils'
 const notificationLabels: Record<string, string> = {
   review_received: '收到新評價',
   review_liked: '你的評價被按讚',
-  listing_removed_by_admin: 'Listing 已被管理員下架',
-  listing_republish_approved: 'Listing 重新上架已通過審核',
+  listing_removed_by_admin: '商品上架已被管理員下架',
+  listing_republish_approved: '商品重新上架已通過審核',
   connection_removed_by_admin: '連線代購已被管理員結束',
   connection_republish_approved: '連線代購重新上線已通過審核',
   product_removed: '相關商品已被移除',
@@ -80,7 +80,7 @@ export default function NotificationsPage() {
                   </p>
                 </div>
                 {!n.is_read && (
-                  <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
                 )}
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Loader2, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -34,14 +34,16 @@ interface SpecEntry {
 }
 
 interface ListingFormProps {
-  productId: string
+  productId?: string
   mode: 'create' | 'edit'
   initialData?: any
+  onCreateProduct?: () => Promise<string>
 }
 
-export function ListingForm({ productId, mode, initialData }: ListingFormProps) {
+export function ListingForm({ productId, mode, initialData, onCreateProduct }: ListingFormProps) {
   const router = useRouter()
   const utils = trpc.useUtils()
+  const selectedProductImageUrl = initialData?.product?.catalog_image?.url ?? initialData?.product?.product_images?.[0]?.url ?? null
 
   const [price, setPrice] = useState<string>(initialData?.price?.toString() ?? '')
   const [isPriceOnRequest, setIsPriceOnRequest] = useState(initialData?.is_price_on_request ?? false)
@@ -53,8 +55,12 @@ export function ListingForm({ productId, mode, initialData }: ListingFormProps) 
   const [shippingDays, setShippingDays] = useState<string>(initialData?.shipping_days?.toString() ?? '')
   const [expiresAt, setExpiresAt] = useState(initialData?.expires_at?.split('T')[0] ?? '')
   const [images, setImages] = useState<{ url: string; r2Key: string }[]>(
-    initialData?.images?.map((img: any) => ({ url: img.image_url, r2Key: img.r2_key })) ?? []
+    (initialData?.images ?? initialData?.listing_images ?? []).map((img: any) => ({
+      url: img.url ?? img.image_url,
+      r2Key: img.r2_key,
+    })) ?? []
   )
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false)
 
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
@@ -88,10 +94,10 @@ export function ListingForm({ productId, mode, initialData }: ListingFormProps) 
     })
   }
 
-  const buildInput = (status: 'draft' | 'active') => {
+  const buildInput = (status: 'draft' | 'active', resolvedProductId: string) => {
     const specsClean = specs.map(({ _optionInput, ...rest }) => rest)
     return {
-      product_id: productId,
+      product_id: resolvedProductId,
       status,
       price: price ? Number(price) : undefined,
       is_price_on_request: isPriceOnRequest,
@@ -105,8 +111,20 @@ export function ListingForm({ productId, mode, initialData }: ListingFormProps) 
 
   const handleSave = async (status: 'draft' | 'active') => {
     try {
+      let resolvedProductId = productId
+      if (mode === 'create' && !resolvedProductId) {
+        if (!onCreateProduct) {
+          throw new Error('缺少商品建立流程')
+        }
+        setIsCreatingProduct(true)
+        resolvedProductId = await onCreateProduct()
+        if (!resolvedProductId) {
+          throw new Error('商品建立失敗')
+        }
+      }
+
       if (mode === 'create') {
-        const result = await createListing.mutateAsync(buildInput(status))
+        const result = await createListing.mutateAsync(buildInput(status, resolvedProductId ?? productId ?? ''))
         if (images.length > 0) {
           await confirmImages.mutateAsync({
             listing_id: result.id,
@@ -115,7 +133,7 @@ export function ListingForm({ productId, mode, initialData }: ListingFormProps) 
         }
         toast.success(status === 'draft' ? '已儲存草稿' : '已上架')
       } else {
-        const { product_id: _, status: __, ...updateData } = buildInput(status)
+        const { product_id: _, status: __, ...updateData } = buildInput(status, productId ?? initialData.product_id)
         await updateListing.mutateAsync({ id: initialData.id, ...updateData })
         if (images.length > 0) {
           await confirmImages.mutateAsync({
@@ -130,16 +148,42 @@ export function ListingForm({ productId, mode, initialData }: ListingFormProps) 
       router.push('/dashboard/listings')
     } catch (err: any) {
       toast.error(err.message ?? '操作失敗')
+    } finally {
+      setIsCreatingProduct(false)
     }
   }
 
-  const isPending = createListing.isPending || updateListing.isPending
+  const isPending = createListing.isPending || updateListing.isPending || isCreatingProduct
 
   return (
     <div className="space-y-6">
+      {mode === 'edit' && initialData?.product && (
+        <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+            {selectedProductImageUrl ? (
+              <img
+                src={selectedProductImageUrl}
+                alt={initialData.product.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <Package className="h-6 w-6 text-muted-foreground/40" />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium">{initialData.product.name}</p>
+            {initialData.product.brand && (
+              <p className="truncate text-xs text-muted-foreground">{initialData.product.brand}</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Images */}
       <div>
-        <Label>商品圖片（最多 5 張）</Label>
+        <Label>{mode === 'edit' ? '商品圖片（可修改）' : '商品圖片（最多 5 張）'}</Label>
         <ImageUpload
           purpose="listing"
           maxImages={5}
@@ -305,11 +349,11 @@ export function ListingForm({ productId, mode, initialData }: ListingFormProps) 
       <div className="flex gap-3 pt-4">
         <Button variant="outline" onClick={() => handleSave('draft')} disabled={isPending}>
           {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-          儲存草稿
+          {mode === 'edit' ? '儲存變更' : '儲存代購'}
         </Button>
         <Button onClick={() => handleSave('active')} disabled={isPending}>
           {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-          {mode === 'create' ? '直接上架' : '更新'}
+          {mode === 'create' ? '直接上架' : '更新代購'}
         </Button>
       </div>
     </div>

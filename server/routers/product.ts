@@ -28,7 +28,8 @@ export const productRouter = router({
         .from('products')
         .select(`
           id, name, brand, category, wish_count, created_at,
-          catalog_image:product_images!catalog_image_id(url),
+          catalog_image:product_images!fk_catalog_image(url),
+          product_images:product_images!product_images_product_id_fkey(id, url),
           listings!inner(id, price, is_price_on_request, shipping_days, created_at,
             seller:sellers!inner(id, is_social_verified, is_suspended)
           )
@@ -97,8 +98,8 @@ export const productRouter = router({
         .from('products')
         .select(`
           *,
-          catalog_image:product_images!catalog_image_id(id, url),
-          product_images(id, url),
+          catalog_image:product_images!fk_catalog_image(id, url),
+          product_images:product_images!product_images_product_id_fkey(id, url),
           listings(
             id, price, is_price_on_request, specs, note, post_url, 
             shipping_days, expires_at, status, created_at,
@@ -144,6 +145,7 @@ export const productRouter = router({
         .insert({
           name: input.name,
           brand: input.brand || null,
+          model_number: input.model_number || null,
           created_by: ctx.user.id,
         })
         .select()

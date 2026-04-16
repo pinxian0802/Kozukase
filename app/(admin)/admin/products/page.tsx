@@ -40,6 +40,8 @@ export default function AdminProductsPage() {
     onError: (err) => toast.error(err.message),
   })
 
+  const getProductImageUrl = (product: any) => product.catalog_image?.url ?? product.product_images?.[0]?.url ?? null
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold font-heading">商品管理</h1>
@@ -60,12 +62,23 @@ export default function AdminProductsPage() {
         <div className="space-y-2">
           {data.items.map((product: any) => (
             <div key={product.id} className={`flex items-center justify-between rounded-lg border p-4 ${product.is_removed ? 'opacity-50' : ''}`}>
-              <div className="flex-1">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+                  {getProductImageUrl(product) ? (
+                    <img
+                      src={getProductImageUrl(product)}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{product.name}</p>
                   {product.brand && <span className="text-xs text-muted-foreground">{product.brand}</span>}
                   {product.is_removed && <Badge variant="destructive">已移除</Badge>}
                   {product.category && <Badge variant="secondary">{PRODUCT_CATEGORY_LABELS[product.category] ?? product.category}</Badge>}
+                </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -90,7 +103,7 @@ export default function AdminProductsPage() {
                     <DialogContent>
                       <DialogHeader><DialogTitle>移除商品</DialogTitle></DialogHeader>
                       <div className="space-y-3">
-                        <p className="text-sm">確定要移除「{product.name}」？此操作會影響所有相關 Listing、許願和收藏。</p>
+                        <p className="text-sm">確定要移除「{product.name}」？此操作會影響所有相關商品上架、許願和收藏。</p>
                         <div>
                           <Label>移除原因</Label>
                           <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />

@@ -51,14 +51,16 @@ export default function SellerListingsPage() {
     onError: (err) => toast.error(err.message),
   })
 
+  const getListingImageUrl = (listing: any) => listing.product?.catalog_image?.url ?? listing.product?.product_images?.[0]?.url ?? null
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-heading">Listing 管理</h1>
+          <h1 className="text-2xl font-bold font-heading">代購管理</h1>
           <p className="text-sm text-muted-foreground">已使用 {counts?.total ?? 0} / {counts?.max ?? 25}</p>
         </div>
-        <Button render={<Link href="/dashboard/listings/new" />}><Plus className="mr-1 h-4 w-4" />新增</Button>
+        <Button render={<Link href="/dashboard/listings/new" />}><Plus className="mr-1 h-4 w-4" />新增代購</Button>
       </div>
 
       <Tabs value={status} onValueChange={setStatus}>
@@ -76,29 +78,39 @@ export default function SellerListingsPage() {
       ) : data?.items && data.items.length > 0 ? (
         <div className="space-y-3">
           {data.items.map((listing: any) => (
-            <div key={listing.id} className="flex items-center justify-between rounded-lg border p-4">
-              <div className="flex-1">
+            <div key={listing.id} className="flex gap-4 rounded-lg border p-4">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+                {getListingImageUrl(listing) ? (
+                  <img
+                    src={getListingImageUrl(listing)}
+                    alt={listing.product?.name ?? ''}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-muted-foreground">
+                    <Package className="h-6 w-6 opacity-50" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium">{listing.product?.name ?? '未知商品'}</p>
+                  <p className="truncate font-medium">{listing.product?.name ?? '未知商品'}</p>
                   <Badge variant="secondary" className={statusColors[listing.status]}>{statusLabels[listing.status]}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {formatPrice(listing.price, listing.is_price_on_request)} · 建立於 {formatDate(listing.created_at)}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listing.id}/edit`} />}>編輯</Button>
                 {listing.status === 'draft' && (
                   <>
-                    <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listing.id}/edit`} />}>編輯</Button>
-                    <Button size="sm" onClick={() => publish.mutate({ id: listing.id })} disabled={publish.isPending}>發布</Button>
+                    <Button size="sm" onClick={() => publish.mutate({ id: listing.id })} disabled={publish.isPending}>上架</Button>
                     <Button size="sm" variant="destructive" onClick={() => deleteListing.mutate({ id: listing.id })} disabled={deleteListing.isPending}>刪除</Button>
                   </>
                 )}
                 {listing.status === 'active' && (
-                  <>
-                    <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listing.id}/edit`} />}>編輯</Button>
-                    <Button size="sm" variant="destructive" onClick={() => deactivate.mutate({ id: listing.id })} disabled={deactivate.isPending}>下架</Button>
-                  </>
+                  <Button size="sm" variant="destructive" onClick={() => deactivate.mutate({ id: listing.id })} disabled={deactivate.isPending}>下架</Button>
                 )}
                 {listing.status === 'inactive' && (
                   <Button size="sm" onClick={() => reactivate.mutate({ id: listing.id })} disabled={reactivate.isPending}>重新上架</Button>
@@ -111,7 +123,7 @@ export default function SellerListingsPage() {
           ))}
         </div>
       ) : (
-        <EmptyState icon={Package} title="還沒有 Listing" description="建立你的第一個代購上架吧！" />
+        <EmptyState icon={Package} title="還沒有代購" description="建立你的第一個代購商品吧！" />
       )}
     </div>
   )

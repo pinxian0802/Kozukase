@@ -29,7 +29,7 @@ export default function EditListingPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold font-heading">編輯 Listing</h1>
+        <h1 className="text-2xl font-bold font-heading">編輯代購</h1>
       </div>
 
       <ListingForm productId={listing.product_id} mode="edit" initialData={listing} />

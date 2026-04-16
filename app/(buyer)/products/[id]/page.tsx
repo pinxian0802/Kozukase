@@ -44,6 +44,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     )
   }
 
+  const imageUrl = product.catalog_image?.url ?? product.product_images?.[0]?.url ?? null
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       <Button variant="ghost" size="sm" render={<Link href="/search" />}>
@@ -53,10 +55,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       {/* Product Info */}
       <div className="flex flex-col md:flex-row gap-6">
         {/* Catalog Image */}
-        <div className="w-full md:w-80 flex-shrink-0">
+        <div className="w-full md:w-80 shrink-0">
           <div className="aspect-square overflow-hidden rounded-xl bg-muted">
-            {product.catalog_image?.url ? (
-              <img src={product.catalog_image.url} alt={product.name} className="h-full w-full object-cover" />
+            {imageUrl ? (
+              <img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center text-muted-foreground">暫無圖片</div>
             )}

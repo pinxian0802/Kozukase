@@ -186,7 +186,7 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name, brand, category),
+          product:products(id, name, brand, category, catalog_image:product_images!fk_catalog_image(url), product_images:product_images!product_images_product_id_fkey(id, url)),
           seller:sellers(
             id, name, ig_handle, threads_handle, ig_follower_count,
             threads_follower_count, is_social_verified, avg_rating, review_count,
@@ -197,12 +197,18 @@ export const listingRouter = router({
         .eq('id', input.id)
         .single()
 
-      if (error || !data || data.status === 'draft') {
+      if (error || !data) {
+        throw new TRPCError({ code: 'NOT_FOUND' })
+      }
+
+      const isOwner = ctx.user?.id === data.seller_id
+
+      if (data.status === 'draft' && !isOwner) {
         throw new TRPCError({ code: 'NOT_FOUND' })
       }
 
       // Check seller suspension
-      if (data.seller?.is_suspended) {
+      if (data.seller?.is_suspended && !isOwner) {
         throw new TRPCError({ code: 'NOT_FOUND' })
       }
 
@@ -232,7 +238,7 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *, 
-          product:products(id, name, brand),
+          product:products(id, name, brand, catalog_image:product_images!fk_catalog_image(url), product_images:product_images!product_images_product_id_fkey(id, url)),
           listing_images(id, url, sort_order)
         `)
         .eq('seller_id', ctx.seller.id)

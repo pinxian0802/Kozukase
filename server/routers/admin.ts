@@ -356,7 +356,7 @@ export const adminRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name),
+          product:products(id, name, catalog_image:product_images!fk_catalog_image(url), product_images:product_images!product_images_product_id_fkey(id, url)),
           seller:sellers(id, name)
         `, { count: 'exact' })
         .eq('status', 'pending_approval')
@@ -401,8 +401,8 @@ export const adminRouter = router({
         .from('products')
         .select(`
           *,
-          product_images(id, url),
-          catalog_image:product_images!catalog_image_id(id, url)
+          product_images:product_images!product_images_product_id_fkey(id, url),
+          catalog_image:product_images!fk_catalog_image(id, url)
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
 

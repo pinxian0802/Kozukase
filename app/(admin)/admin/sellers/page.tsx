@@ -80,7 +80,7 @@ export default function AdminSellersPage() {
                     <DialogContent>
                       <DialogHeader><DialogTitle>停權賣家</DialogTitle></DialogHeader>
                       <div className="space-y-3">
-                        <p className="text-sm">確定要停權「{seller.name}」？此操作會下架所有 Listing 和結束所有連線。</p>
+                        <p className="text-sm">確定要停權「{seller.name}」？此操作會下架所有商品上架和結束所有連線。</p>
                         <div>
                           <Label>停權原因</Label>
                           <Textarea value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />

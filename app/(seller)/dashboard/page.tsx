@@ -29,7 +29,7 @@ export default function SellerDashboardPage() {
         <h1 className="text-2xl font-bold font-heading">賣家後台</h1>
         <div className="flex gap-2">
           <Button size="sm" render={<Link href="/dashboard/listings/new" />}>
-            <Plus className="mr-1 h-4 w-4" />新增 Listing
+            <Plus className="mr-1 h-4 w-4" />新增代購
           </Button>
           <Button variant="outline" size="sm" render={<Link href="/dashboard/connections/new" />}>
             <Globe className="mr-1 h-4 w-4" />新增連線
@@ -39,7 +39,7 @@ export default function SellerDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">全部 Listing</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">全部代購</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-bold">{counts?.total ?? 0}<span className="text-sm text-muted-foreground font-normal"> / 25</span></p></CardContent>
         </Card>
         <Card>

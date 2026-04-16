@@ -69,6 +69,20 @@ export const uploadRouter = router({
         .single()
 
       if (error) throw error
+
+      const { data: existingProduct } = await ctx.db
+        .from('products')
+        .select('catalog_image_id')
+        .eq('id', input.product_id)
+        .single()
+
+      if (existingProduct && !existingProduct.catalog_image_id) {
+        await ctx.db
+          .from('products')
+          .update({ catalog_image_id: data.id })
+          .eq('id', input.product_id)
+      }
+
       return data
     }),
 

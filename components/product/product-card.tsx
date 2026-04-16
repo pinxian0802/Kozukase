@@ -12,19 +12,22 @@ interface ProductCardProps {
     category: string
     wish_count: number
     catalog_image?: { url: string } | null
+    product_images?: { url: string }[]
     lowest_price?: number | null
     listing_count?: number
   }
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const imageUrl = product.catalog_image?.url ?? product.product_images?.[0]?.url ?? null
+
   return (
     <Link href={`/products/${product.id}`}>
       <Card className="group overflow-hidden transition-shadow hover:shadow-md">
         <div className="aspect-square overflow-hidden bg-muted">
-          {product.catalog_image?.url ? (
+          {imageUrl ? (
             <img
-              src={product.catalog_image.url}
+              src={imageUrl}
               alt={product.name}
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
             />

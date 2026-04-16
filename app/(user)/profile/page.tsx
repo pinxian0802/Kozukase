@@ -72,7 +72,7 @@ function ProfileContent() {
             )}
           </div>
           <div>
-            <h3 className="font-medium mb-3">收藏的 Listing</h3>
+            <h3 className="font-medium mb-3">收藏的上架商品</h3>
             {listingBookmarks?.items && listingBookmarks.items.length > 0 ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {listingBookmarks.items.map((b: any) => (
@@ -80,7 +80,7 @@ function ProfileContent() {
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Bookmark} title="還沒有收藏的 Listing" />
+              <EmptyState icon={Bookmark} title="還沒有收藏的上架商品" />
             )}
           </div>
         </TabsContent>

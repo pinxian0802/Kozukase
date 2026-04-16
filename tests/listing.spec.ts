@@ -28,7 +28,12 @@ test.describe('Listing 上架流程', () => {
     // Click "新增商品" to create new product
     await page.getByRole('button', { name: new RegExp(`新增商品「${productName}」`) }).click()
 
-    // Wait for product selection to complete and listing form to appear
+    // Fill product draft and continue to listing form
+    await expect(page.getByLabel('商品名稱 *')).toBeVisible({ timeout: 30000 })
+    await page.getByLabel('商品名稱 *').fill(productName)
+    await page.getByRole('button', { name: '下一步' }).click()
+
+    // Wait for listing form to appear
     await expect(page.getByText('商品：')).toBeVisible({ timeout: 30000 })
     await expect(page.getByText(productName)).toBeVisible()
 
@@ -56,6 +61,10 @@ test.describe('Listing 上架流程', () => {
     await searchInput.fill(productName)
     await page.waitForTimeout(1000)
     await page.getByRole('button', { name: new RegExp(`新增商品「${productName}」`) }).click()
+
+    await expect(page.getByLabel('商品名稱 *')).toBeVisible({ timeout: 30000 })
+    await page.getByLabel('商品名稱 *').fill(productName)
+    await page.getByRole('button', { name: '下一步' }).click()
 
     await expect(page.getByText('商品：')).toBeVisible({ timeout: 30000 })
 
@@ -85,6 +94,9 @@ test.describe('Listing 上架流程', () => {
     await searchInput.fill(productName)
     await page.waitForTimeout(1000)
     await page.getByRole('button', { name: new RegExp(`新增商品「${productName}」`) }).click()
+    await expect(page.getByLabel('商品名稱 *')).toBeVisible({ timeout: 30000 })
+    await page.getByLabel('商品名稱 *').fill(productName)
+    await page.getByRole('button', { name: '下一步' }).click()
     await expect(page.getByText('商品：')).toBeVisible({ timeout: 30000 })
     await page.getByRole('button', { name: '儲存草稿' }).click()
     await page.waitForURL('**/dashboard/listings', { timeout: 30000 })

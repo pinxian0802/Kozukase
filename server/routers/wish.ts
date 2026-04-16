@@ -48,7 +48,8 @@ export const wishRouter = router({
           id, created_at,
           product:products(
             id, name, brand, category, wish_count,
-            catalog_image:product_images!catalog_image_id(url)
+            catalog_image:product_images!fk_catalog_image(url),
+            product_images:product_images!product_images_product_id_fkey(id, url)
           )
         `)
         .eq('user_id', ctx.user.id)
@@ -76,7 +77,8 @@ export const wishRouter = router({
         .from('products')
         .select(`
           id, name, brand, category, wish_count,
-          catalog_image:product_images!catalog_image_id(url)
+          catalog_image:product_images!fk_catalog_image(url),
+          product_images:product_images!product_images_product_id_fkey(id, url)
         `)
         .eq('is_removed', false)
         .gt('wish_count', 0)
