@@ -129,7 +129,7 @@ export const sellerRouter = router({
         .select(`
           *, 
           product:products(id, name, brand),
-          listing_images(id, url, sort_order)
+          listing_images(id, url, r2_key, sort_order)
         `)
         .eq('seller_id', input.sellerId)
         .eq('status', 'active')

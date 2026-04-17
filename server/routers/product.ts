@@ -28,8 +28,8 @@ export const productRouter = router({
         .from('products')
         .select(`
           id, name, brand, category, wish_count, created_at,
-          catalog_image:product_images!fk_catalog_image(url),
-          product_images:product_images!product_images_product_id_fkey(id, url),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
           listings!inner(id, price, is_price_on_request, shipping_days, created_at,
             seller:sellers!inner(id, is_social_verified, is_suspended)
           )
@@ -98,8 +98,8 @@ export const productRouter = router({
         .from('products')
         .select(`
           *,
-          catalog_image:product_images!fk_catalog_image(id, url),
-          product_images:product_images!product_images_product_id_fkey(id, url),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
           listings(
             id, price, is_price_on_request, specs, note, post_url, 
             shipping_days, expires_at, status, created_at,
@@ -107,7 +107,7 @@ export const productRouter = router({
               id, name, ig_handle, threads_handle, ig_follower_count, 
               threads_follower_count, is_social_verified, avg_rating, review_count
             ),
-            listing_images(id, url, sort_order)
+            listing_images(id, url, r2_key, sort_order)
           )
         `)
         .eq('id', input.id)

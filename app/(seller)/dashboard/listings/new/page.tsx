@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Package } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ImageUpload } from '@/components/shared/image-upload'
+import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
 import { ProductSearch, type ProductSearchResult } from '@/components/product/product-search'
 import { ListingForm } from '@/components/listing/listing-form'
 import { trpc } from '@/lib/trpc/client'
@@ -30,11 +30,16 @@ export default function NewListingPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>({ type: 'select' })
 
+  // Cache the product id after it's been created in DB.
+  // If the user retries after a partial failure, we reuse this id
+  // instead of calling createProduct.mutateAsync again.
+  const createdProductIdRef = useRef<string | null>(null)
+
   // Create product form state
   const [productName, setProductName] = useState('')
   const [productBrand, setProductBrand] = useState('')
   const [productModelNumber, setProductModelNumber] = useState('')
-  const [productImage, setProductImage] = useState<{ url: string; r2Key: string }[]>([])
+  const [productPendingFiles, setProductPendingFiles] = useState<File[]>([])
 
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
   const createProduct = trpc.product.create.useMutation()
@@ -43,7 +48,9 @@ export default function NewListingPage() {
     setProductName(name)
     setProductBrand('')
     setProductModelNumber('')
-    setProductImage([])
+    setProductPendingFiles([])
+    // Reset cached product id — user is starting a brand new product
+    createdProductIdRef.current = null
     setStep({ type: 'create', initialName: name })
   }
 
@@ -58,24 +65,38 @@ export default function NewListingPage() {
         name: productName.trim(),
         brand: productBrand.trim() || null,
         model_number: productModelNumber.trim() || null,
-        catalog_image_url: productImage[0]?.url ?? null,
+        catalog_image_url: productPendingFiles[0]
+          ? URL.createObjectURL(productPendingFiles[0])
+          : null,
       },
     })
   }
 
   const createProductForListing = async () => {
+    // If a previous attempt already created the product in DB, reuse that id
+    // instead of creating a duplicate.
+    if (createdProductIdRef.current) {
+      return createdProductIdRef.current
+    }
+
     const product = await createProduct.mutateAsync({
       name: productName.trim(),
       brand: productBrand.trim() || undefined,
       model_number: productModelNumber.trim() || undefined,
     })
 
-    if (productImage.length > 0) {
-      await confirmProductImage.mutateAsync({
-        product_id: product.id,
-        r2_key: productImage[0].r2Key,
-        url: productImage[0].url,
-      })
+    // Persist the id immediately after DB creation so retries are safe
+    createdProductIdRef.current = product.id
+
+    if (productPendingFiles.length > 0) {
+      const uploaded = await uploadImageFiles('product', productPendingFiles)
+      if (uploaded[0]) {
+        await confirmProductImage.mutateAsync({
+          product_id: product.id,
+          r2_key: uploaded[0].r2Key,
+          url: uploaded[0].url,
+        })
+      }
     }
 
     return product.id
@@ -132,8 +153,10 @@ export default function NewListingPage() {
             <ImageUpload
               purpose="product"
               maxImages={1}
-              images={productImage}
-              onChange={setProductImage}
+              images={[]}
+              onChange={() => {}}
+              pendingFiles={productPendingFiles}
+              onPendingFilesChange={setProductPendingFiles}
             />
           </div>
 

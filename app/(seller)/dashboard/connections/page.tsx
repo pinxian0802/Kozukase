@@ -27,12 +27,12 @@ export default function SellerConnectionsPage() {
   const { data, isLoading } = trpc.connection.myConnections.useQuery({})
 
   const endConnection = trpc.connection.end.useMutation({
-    onSuccess: () => { toast.success('已結束連線'); utils.connection.myConnections.invalidate() },
+    onSuccess: () => { toast.success('已結束連線'); utils.connection.invalidate() },
     onError: (err) => toast.error(err.message),
   })
 
   const reactivate = trpc.connection.reactivate.useMutation({
-    onSuccess: () => { toast.success('已重新申請'); utils.connection.myConnections.invalidate() },
+    onSuccess: () => { toast.success('已重新申請'); utils.connection.invalidate() },
     onError: (err) => toast.error(err.message),
   })
 

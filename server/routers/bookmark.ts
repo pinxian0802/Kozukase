@@ -59,8 +59,8 @@ export const bookmarkRouter = router({
           id, created_at,
           product:products(
             id, name, brand, category, wish_count,
-            catalog_image:product_images!fk_catalog_image(url),
-            product_images:product_images!product_images_product_id_fkey(id, url)
+            catalog_image:product_images!fk_catalog_image(id, url, r2_key),
+            product_images:product_images!product_images_product_id_fkey(id, url, r2_key)
           )
         `)
         .eq('user_id', ctx.user.id)
@@ -89,9 +89,9 @@ export const bookmarkRouter = router({
           id, created_at,
           listing:listings(
             id, price, is_price_on_request, shipping_days, status,
-            product:products(id, name, catalog_image:product_images!fk_catalog_image(url), product_images:product_images!product_images_product_id_fkey(id, url)),
+            product:products(id, name, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
             seller:sellers(id, name),
-            listing_images(url, sort_order)
+            listing_images(url, r2_key, sort_order)
           )
         `)
         .eq('user_id', ctx.user.id)

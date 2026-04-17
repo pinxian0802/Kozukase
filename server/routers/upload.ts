@@ -93,7 +93,7 @@ export const uploadRouter = router({
         r2_key: z.string(),
         url: z.string().url(),
         sort_order: z.number().min(0).max(4),
-      })).min(1).max(5),
+      })).max(5),
     }))
     .mutation(async ({ ctx, input }) => {
       // Verify listing ownership
@@ -114,6 +114,15 @@ export const uploadRouter = router({
 
       if (!seller || listing.seller_id !== seller.id) {
         throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      await ctx.db
+        .from('listing_images')
+        .delete()
+        .eq('listing_id', input.listing_id)
+
+      if (input.images.length === 0) {
+        return []
       }
 
       const rows = input.images.map(img => ({
@@ -139,9 +148,18 @@ export const uploadRouter = router({
         r2_key: z.string(),
         url: z.string().url(),
         sort_order: z.number().min(0).max(4),
-      })).min(1).max(5),
+      })).max(5),
     }))
     .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .from('connection_images')
+        .delete()
+        .eq('connection_id', input.connection_id)
+
+      if (input.images.length === 0) {
+        return []
+      }
+
       const rows = input.images.map(img => ({
         connection_id: input.connection_id,
         r2_key: img.r2_key,

@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ImageUpload } from '@/components/shared/image-upload'
+import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 
@@ -57,9 +57,10 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const [images, setImages] = useState<{ url: string; r2Key: string }[]>(
     (initialData?.images ?? initialData?.listing_images ?? []).map((img: any) => ({
       url: img.url ?? img.image_url,
-      r2Key: img.r2_key,
+      r2Key: img.r2_key ?? img.r2Key,
     })) ?? []
   )
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [isCreatingProduct, setIsCreatingProduct] = useState(false)
 
   const createListing = trpc.listing.create.useMutation()
@@ -110,6 +111,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   }
 
   const handleSave = async (status: 'draft' | 'active') => {
+    const toastId = pendingFiles.length > 0 ? toast.loading('圖片上傳中...') : undefined
     try {
       let resolvedProductId = productId
       if (mode === 'create' && !resolvedProductId) {
@@ -123,30 +125,36 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         }
       }
 
+      const uploadedImages = pendingFiles.length > 0
+        ? await uploadImageFiles('listing', pendingFiles)
+        : []
+      const allImages = [...images, ...uploadedImages]
+
       if (mode === 'create') {
         const result = await createListing.mutateAsync(buildInput(status, resolvedProductId ?? productId ?? ''))
-        if (images.length > 0) {
+        if (allImages.length > 0) {
           await confirmImages.mutateAsync({
             listing_id: result.id,
-            images: images.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+            images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
           })
         }
+        if (toastId) toast.dismiss(toastId)
         toast.success(status === 'draft' ? '已儲存草稿' : '已上架')
       } else {
         const { product_id: _, status: __, ...updateData } = buildInput(status, productId ?? initialData.product_id)
         await updateListing.mutateAsync({ id: initialData.id, ...updateData })
-        if (images.length > 0) {
-          await confirmImages.mutateAsync({
-            listing_id: initialData.id,
-            images: images.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
-          })
-        }
+        await confirmImages.mutateAsync({
+          listing_id: initialData.id,
+          images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+        })
+        if (toastId) toast.dismiss(toastId)
         toast.success('已更新')
       }
       utils.listing.myListings.invalidate()
       utils.listing.myListingCount.invalidate()
       router.push('/dashboard/listings')
     } catch (err: any) {
+      if (toastId) toast.dismiss(toastId)
       toast.error(err.message ?? '操作失敗')
     } finally {
       setIsCreatingProduct(false)
@@ -189,6 +197,8 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           maxImages={5}
           images={images}
           onChange={setImages}
+          pendingFiles={pendingFiles}
+          onPendingFilesChange={setPendingFiles}
           className="mt-2"
         />
       </div>

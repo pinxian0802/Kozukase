@@ -122,7 +122,7 @@ export const connectionRouter = router({
             id, name, ig_handle, threads_handle, is_social_verified,
             profile:profiles(display_name, avatar_url)
           ),
-          connection_images(id, url, sort_order)
+          connection_images(id, url, r2_key, sort_order)
         `)
         .eq('status', 'active')
         .eq('seller.is_suspended', false)
@@ -155,7 +155,7 @@ export const connectionRouter = router({
         .select(`
           *,
           region:regions(id, name),
-          connection_images(id, url, sort_order)
+          connection_images(id, url, r2_key, sort_order)
         `)
         .eq('seller_id', ctx.seller.id)
         .order('created_at', { ascending: false })

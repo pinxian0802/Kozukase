@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Upload, X, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import imageCompression from 'browser-image-compression'
 import { toast } from 'sonner'
@@ -12,73 +11,114 @@ interface ImageUploadProps {
   maxImages?: number
   images: { url: string; r2Key: string }[]
   onChange: (images: { url: string; r2Key: string }[]) => void
+  /** Deferred mode: pending File objects not yet uploaded. Show local previews only. */
+  pendingFiles?: File[]
+  onPendingFilesChange?: (files: File[]) => void
   className?: string
 }
 
-export function ImageUpload({ purpose, maxImages = 1, images, onChange, className }: ImageUploadProps) {
+/** Compress and upload files to R2 via /api/upload. Returns uploaded image info. */
+export async function uploadImageFiles(
+  purpose: 'product' | 'listing' | 'connection' | 'avatar',
+  files: File[]
+): Promise<{ url: string; r2Key: string }[]> {
+  const results: { url: string; r2Key: string }[] = []
+  for (const file of files) {
+    const compressed = await imageCompression(file, {
+      maxSizeMB: 5,
+      maxWidthOrHeight: 1920,
+      fileType: 'image/webp',
+    })
+    const uploadFile = new File(
+      [compressed],
+      file.name.replace(/\.[^.]+$/, '.webp'),
+      { type: compressed.type || 'image/webp' }
+    )
+    const formData = new FormData()
+    formData.append('purpose', purpose)
+    formData.append('file', uploadFile)
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    })
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      throw new Error(payload?.error ?? payload?.message ?? '圖片上傳失敗')
+    }
+    const { r2Key, publicUrl } = await response.json()
+    results.push({ url: publicUrl, r2Key })
+  }
+  return results
+}
+
+export function ImageUpload({
+  purpose,
+  maxImages = 1,
+  images,
+  onChange,
+  pendingFiles,
+  onPendingFilesChange,
+  className,
+}: ImageUploadProps) {
+  const isDeferred = pendingFiles !== undefined && onPendingFilesChange !== undefined
   const [uploading, setUploading] = useState(false)
+  const [pendingPreviews, setPendingPreviews] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleUpload = useCallback(async (files: FileList) => {
-    if (images.length + files.length > maxImages) return
+  // Create/revoke object URLs for pending file previews
+  useEffect(() => {
+    if (!pendingFiles || pendingFiles.length === 0) {
+      setPendingPreviews([])
+      return
+    }
+    const urls = pendingFiles.map((f) => URL.createObjectURL(f))
+    setPendingPreviews(urls)
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u))
+    }
+  }, [pendingFiles])
 
-    setUploading(true)
-    try {
-      const newImages: { url: string; r2Key: string }[] = []
+  const totalCount = images.length + (pendingFiles?.length ?? 0)
 
-      for (const file of Array.from(files)) {
-        // Compress image
-        const compressed = await imageCompression(file, {
-          maxSizeMB: 5,
-          maxWidthOrHeight: 1920,
-          fileType: 'image/webp',
-        })
+  const handleFiles = useCallback(
+    async (files: FileList) => {
+      if (totalCount + files.length > maxImages) return
 
-        // Upload through our own API to avoid browser-to-R2 CORS failures.
-        const uploadFile = new File(
-          [compressed],
-          file.name.replace(/\.[^.]+$/, '.webp'),
-          { type: compressed.type || 'image/webp' }
-        )
-
-        const formData = new FormData()
-        formData.append('purpose', purpose)
-        formData.append('file', uploadFile)
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include',
-        })
-
-        if (!response.ok) {
-          const payload = await response.json().catch(() => null)
-          throw new Error(payload?.error ?? payload?.message ?? '圖片上傳失敗')
-        }
-
-        const { r2Key, publicUrl } = await response.json()
-
-        newImages.push({ url: publicUrl, r2Key })
+      if (isDeferred) {
+        // Deferred mode: just store the File objects, no upload
+        onPendingFilesChange!([...(pendingFiles ?? []), ...Array.from(files)])
+        return
       }
 
-      onChange([...images, ...newImages])
-    } catch (error) {
-      console.error('Upload failed:', error)
-      toast.error(error instanceof Error ? error.message : '圖片上傳失敗')
-    } finally {
-      setUploading(false)
-    }
-  }, [images, maxImages, purpose, onChange])
+      // Immediate upload mode
+      setUploading(true)
+      try {
+        const uploaded = await uploadImageFiles(purpose, Array.from(files))
+        onChange([...images, ...uploaded])
+      } catch (error) {
+        console.error('Upload failed:', error)
+        toast.error(error instanceof Error ? error.message : '圖片上傳失敗')
+      } finally {
+        setUploading(false)
+      }
+    },
+    [images, pendingFiles, maxImages, purpose, onChange, onPendingFilesChange, isDeferred, totalCount]
+  )
 
   const removeImage = (index: number) => {
     onChange(images.filter((_, i) => i !== index))
+  }
+
+  const removePendingFile = (index: number) => {
+    onPendingFilesChange!(pendingFiles!.filter((_, i) => i !== index))
   }
 
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex flex-wrap gap-3">
         {images.map((img, i) => (
-          <div key={i} className="relative h-24 w-24 overflow-hidden rounded-lg border">
+          <div key={`img-${i}`} className="relative h-24 w-24 overflow-hidden rounded-lg border">
             <img src={img.url} alt="" className="h-full w-full object-cover" />
             <button
               type="button"
@@ -89,7 +129,22 @@ export function ImageUpload({ purpose, maxImages = 1, images, onChange, classNam
             </button>
           </div>
         ))}
-        {images.length < maxImages && (
+        {pendingPreviews.map((preview, i) => (
+          <div
+            key={`pending-${i}`}
+            className="relative h-24 w-24 overflow-hidden rounded-lg border border-dashed border-primary/50"
+          >
+            <img src={preview} alt="" className="h-full w-full object-cover opacity-80" />
+            <button
+              type="button"
+              onClick={() => removePendingFile(i)}
+              className="absolute right-1 top-1 rounded-full bg-black/50 p-0.5 text-white hover:bg-black/70"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+        {totalCount < maxImages && (
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
@@ -113,7 +168,7 @@ export function ImageUpload({ purpose, maxImages = 1, images, onChange, classNam
         accept="image/jpeg,image/png,image/webp"
         multiple={maxImages > 1}
         className="hidden"
-        onChange={(e) => e.target.files && handleUpload(e.target.files)}
+        onChange={(e) => e.target.files && handleFiles(e.target.files)}
       />
     </div>
   )

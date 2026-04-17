@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ImageUpload } from '@/components/shared/image-upload'
+import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 
@@ -19,7 +19,6 @@ interface ConnectionFormProps {
 
 export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const router = useRouter()
-  const utils = trpc.useUtils()
 
   const [regionId, setRegionId] = useState(initialData?.region_id ?? '')
   const [subRegion, setSubRegion] = useState(initialData?.sub_region ?? '')
@@ -27,10 +26,15 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [endDate, setEndDate] = useState(initialData?.end_date?.split('T')[0] ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [images, setImages] = useState<{ url: string; r2Key: string }[]>(
-    initialData?.images?.map((img: any) => ({ url: img.image_url, r2Key: img.r2_key })) ?? []
+    (initialData?.images ?? initialData?.connection_images ?? []).map((img: any) => ({
+      url: img.url ?? img.image_url,
+      r2Key: img.r2_key ?? img.r2Key,
+    })) ?? []
   )
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
+  const selectedRegionName = regionsData?.find((region: any) => region.id === regionId)?.name
 
   const createConnection = trpc.connection.create.useMutation()
   const updateConnection = trpc.connection.update.useMutation()
@@ -42,8 +46,13 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       return
     }
 
+    const toastId = pendingFiles.length > 0 ? toast.loading('圖片上傳中...') : undefined
     try {
       if (mode === 'create') {
+        const uploadedImages = pendingFiles.length > 0
+          ? await uploadImageFiles('connection', pendingFiles)
+          : []
+        const allImages = [...images, ...uploadedImages]
         const result = await createConnection.mutateAsync({
           region_id: regionId,
           sub_region: subRegion || undefined,
@@ -51,14 +60,19 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           end_date: endDate,
           description: description || undefined,
         })
-        if (images.length > 0) {
+        if (allImages.length > 0) {
           await confirmImages.mutateAsync({
             connection_id: result.id,
-            images: images.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+            images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
           })
         }
+        if (toastId) toast.dismiss(toastId)
         toast.success('已建立連線公告')
       } else {
+        const uploadedImages = pendingFiles.length > 0
+          ? await uploadImageFiles('connection', pendingFiles)
+          : []
+        const allImages = [...images, ...uploadedImages]
         await updateConnection.mutateAsync({
           id: initialData.id,
           region_id: regionId || undefined,
@@ -67,17 +81,16 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           end_date: endDate || undefined,
           description: description || undefined,
         })
-        if (images.length > 0) {
-          await confirmImages.mutateAsync({
-            connection_id: initialData.id,
-            images: images.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
-          })
-        }
+        await confirmImages.mutateAsync({
+          connection_id: initialData.id,
+          images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+        })
+        if (toastId) toast.dismiss(toastId)
         toast.success('已更新連線公告')
       }
-      utils.connection.myConnections.invalidate()
       router.push('/dashboard/connections')
     } catch (err: any) {
+      if (toastId) toast.dismiss(toastId)
       toast.error(err.message ?? '操作失敗')
     }
   }
@@ -90,7 +103,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         <Label>連線國家 *</Label>
         <Select value={regionId} onValueChange={setRegionId}>
           <SelectTrigger className="mt-1">
-            <SelectValue placeholder="選擇國家" />
+            <SelectValue placeholder="選擇國家">{selectedRegionName}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {(regionsData ?? []).map((r: any) => (
@@ -154,6 +167,8 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           maxImages={5}
           images={images}
           onChange={setImages}
+          pendingFiles={pendingFiles}
+          onPendingFilesChange={setPendingFiles}
           className="mt-2"
         />
       </div>
