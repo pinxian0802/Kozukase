@@ -101,6 +101,34 @@ export const connectionRouter = router({
       return data
     }),
 
+  // Hard-delete a connection owned by this seller.
+  // Used as compensating rollback when the create flow fails after the DB
+  // record was already inserted (e.g. image upload error).
+  // Note: reports.connection_id has NO DELETE CASCADE, so this will fail if
+  // a report already references the connection — which can't happen in the
+  // milliseconds between create and rollback.
+  delete: sellerProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: connection } = await ctx.db
+        .from('connections')
+        .select('seller_id')
+        .eq('id', input.id)
+        .single()
+
+      if (!connection || connection.seller_id !== ctx.seller.id) {
+        throw new TRPCError({ code: 'NOT_FOUND' })
+      }
+
+      const { error } = await ctx.db
+        .from('connections')
+        .delete()
+        .eq('id', input.id)
+
+      if (error) throw error
+      return { success: true }
+    }),
+
   // Public browse page
   browse: publicProcedure
     .input(z.object({

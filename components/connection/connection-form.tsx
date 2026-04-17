@@ -38,21 +38,25 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
   const createConnection = trpc.connection.create.useMutation()
   const updateConnection = trpc.connection.update.useMutation()
+  const deleteConnection = trpc.connection.delete.useMutation()
   const confirmImages = trpc.upload.confirmConnectionImages.useMutation()
+  const deleteObjects = trpc.upload.deleteObjects.useMutation()
 
   const handleSubmit = async () => {
     if (!regionId || !startDate || !endDate) {
-      toast.error('請填寫所有必填欄位')
+      toast.error('\u8acb\u586b\u5beb\u6240\u6709\u5fc5\u586b\u6b04\u4f4d')
       return
     }
 
-    const toastId = pendingFiles.length > 0 ? toast.loading('圖片上傳中...') : undefined
+    const toastId = toast.loading('\u8655\u7406\u4e2d...')
+
+    // Track created resources for compensating rollback
+    let createdConnectionId: string | null = null
+    const uploadedR2Keys: string[] = []
+
     try {
       if (mode === 'create') {
-        const uploadedImages = pendingFiles.length > 0
-          ? await uploadImageFiles('connection', pendingFiles)
-          : []
-        const allImages = [...images, ...uploadedImages]
+        // ── Step 1: Create connection record first ──
         const result = await createConnection.mutateAsync({
           region_id: regionId,
           sub_region: subRegion || undefined,
@@ -60,15 +64,24 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           end_date: endDate,
           description: description || undefined,
         })
-        if (allImages.length > 0) {
+        createdConnectionId = result.id
+
+        // ── Step 2: Upload images to R2, collect keys for rollback ──
+        if (pendingFiles.length > 0) {
+          const uploadedImages = await uploadImageFiles('connection', pendingFiles)
+          uploadedR2Keys.push(...uploadedImages.map(img => img.r2Key))
+          const allImages = [...images, ...uploadedImages]
+          // ── Step 3: Confirm image relations in DB (atomic via RPC) ──
           await confirmImages.mutateAsync({
             connection_id: result.id,
             images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
           })
         }
-        if (toastId) toast.dismiss(toastId)
-        toast.success('已建立連線公告')
+
+        toast.dismiss(toastId)
+        toast.success('\u5df2\u5efa\u7acb\u9023\u7dda\u516c\u544a')
       } else {
+        // ── Edit flow: upload first, then update data, then confirm ──
         const uploadedImages = pendingFiles.length > 0
           ? await uploadImageFiles('connection', pendingFiles)
           : []
@@ -85,17 +98,27 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           connection_id: initialData.id,
           images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
         })
-        if (toastId) toast.dismiss(toastId)
-        toast.success('已更新連線公告')
+        toast.dismiss(toastId)
+        toast.success('\u5df2\u66f4\u65b0\u9023\u7dda\u516c\u544a')
       }
+
       router.push('/dashboard/connections')
     } catch (err: any) {
-      if (toastId) toast.dismiss(toastId)
-      toast.error(err.message ?? '操作失敗')
+      // ── Compensating rollback (create mode only) ─────────────────────────
+      if (mode === 'create') {
+        if (uploadedR2Keys.length > 0) {
+          await deleteObjects.mutateAsync({ r2Keys: uploadedR2Keys }).catch(() => {})
+        }
+        if (createdConnectionId) {
+          await deleteConnection.mutateAsync({ id: createdConnectionId }).catch(() => {})
+        }
+      }
+      toast.dismiss(toastId)
+      toast.error(err.message ?? '\u64cd\u4f5c\u5931\u6557')
     }
   }
 
-  const isPending = createConnection.isPending || updateConnection.isPending
+  const isPending = createConnection.isPending || updateConnection.isPending || confirmImages.isPending
 
   return (
     <div className="space-y-6">

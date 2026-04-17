@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { router, protectedProcedure } from '../trpc'
 
@@ -86,6 +86,38 @@ export const uploadRouter = router({
       return data
     }),
 
+  // deleteObjects: permanently removes R2 files during compensating rollback.
+  // Only keys that belong to the calling user (by path prefix) are accepted.
+  deleteObjects: protectedProcedure
+    .input(z.object({
+      r2Keys: z.array(z.string().min(1)).min(1).max(20),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const allowedPrefixes = [
+        `product/${ctx.user.id}/`,
+        `listing/${ctx.user.id}/`,
+        `connection/${ctx.user.id}/`,
+        `avatar/${ctx.user.id}/`,
+      ]
+
+      for (const key of input.r2Keys) {
+        if (!allowedPrefixes.some(prefix => key.startsWith(prefix))) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: '無法刪除不屬於你的檔案' })
+        }
+      }
+
+      await Promise.all(
+        input.r2Keys.map(key =>
+          s3Client.send(new DeleteObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: key,
+          }))
+        )
+      )
+
+      return { deleted: input.r2Keys.length }
+    }),
+
   confirmListingImages: protectedProcedure
     .input(z.object({
       listing_id: z.string().uuid(),
@@ -105,7 +137,6 @@ export const uploadRouter = router({
 
       if (!listing) throw new TRPCError({ code: 'NOT_FOUND' })
 
-      // Check seller ownership via seller table
       const { data: seller } = await ctx.db
         .from('sellers')
         .select('id')
@@ -116,30 +147,18 @@ export const uploadRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
-      await ctx.db
-        .from('listing_images')
-        .delete()
-        .eq('listing_id', input.listing_id)
-
-      if (input.images.length === 0) {
-        return []
-      }
-
-      const rows = input.images.map(img => ({
-        listing_id: input.listing_id,
-        r2_key: img.r2_key,
-        url: img.url,
-        sort_order: img.sort_order,
-      }))
-
-      const { data, error } = await ctx.db
-        .from('listing_images')
-        .insert(rows)
-        .select()
+      // Atomic replace via PostgreSQL function (migration 00005):
+      // DELETE + INSERT run as one transaction — insert failure automatically
+      // rolls back the delete, so existing images are never lost.
+      const { error } = await ctx.db.rpc('replace_listing_images', {
+        p_listing_id: input.listing_id,
+        p_images: JSON.stringify(input.images),
+      })
 
       if (error) throw error
-      return data
+      return { success: true }
     }),
+
 
   confirmConnectionImages: protectedProcedure
     .input(z.object({
@@ -151,28 +170,32 @@ export const uploadRouter = router({
       })).max(5),
     }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .from('connection_images')
-        .delete()
-        .eq('connection_id', input.connection_id)
+      // Verify connection ownership before modifying images
+      const { data: connection } = await ctx.db
+        .from('connections')
+        .select('seller_id')
+        .eq('id', input.connection_id)
+        .single()
 
-      if (input.images.length === 0) {
-        return []
+      if (!connection) throw new TRPCError({ code: 'NOT_FOUND' })
+
+      const { data: seller } = await ctx.db
+        .from('sellers')
+        .select('id')
+        .eq('id', ctx.user.id)
+        .single()
+
+      if (!seller || connection.seller_id !== seller.id) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
-      const rows = input.images.map(img => ({
-        connection_id: input.connection_id,
-        r2_key: img.r2_key,
-        url: img.url,
-        sort_order: img.sort_order,
-      }))
-
-      const { data, error } = await ctx.db
-        .from('connection_images')
-        .insert(rows)
-        .select()
+      // Atomic replace via PostgreSQL function (migration 00005)
+      const { error } = await ctx.db.rpc('replace_connection_images', {
+        p_connection_id: input.connection_id,
+        p_images: JSON.stringify(input.images),
+      })
 
       if (error) throw error
-      return data
+      return { success: true }
     }),
 })

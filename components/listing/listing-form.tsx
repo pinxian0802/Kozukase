@@ -65,7 +65,10 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
+  const publishListing = trpc.listing.publish.useMutation()
+  const deleteListing = trpc.listing.delete.useMutation()
   const confirmImages = trpc.upload.confirmListingImages.useMutation()
+  const deleteObjects = trpc.upload.deleteObjects.useMutation()
 
   const addSpec = () => {
     setSpecs([...specs, { type: '顏色', is_custom: false, options: [], is_all: false, _optionInput: '' }])
@@ -111,57 +114,101 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   }
 
   const handleSave = async (status: 'draft' | 'active') => {
-    const toastId = pendingFiles.length > 0 ? toast.loading('圖片上傳中...') : undefined
+    // Pre-validate required fields before any expensive operations
+    if (status === 'active') {
+      if (!postUrl) { toast.error('\u8cbc\u6587\u9023\u7d50\u70ba\u5fc5\u586b'); return }
+      if (!shippingDays) { toast.error('\u51fa\u8ca8\u5929\u6578\u70ba\u5fc5\u586b'); return }
+      if (!price && !isPriceOnRequest) { toast.error('\u8acb\u586b\u5beb\u50f9\u683c\u6216\u9078\u64c7\u79c1\u8a0a\u5831\u50f9'); return }
+    }
+
+    const toastId = toast.loading('\u8655\u7406\u4e2d...')
+
+    // Track what was created so we can roll back on failure
+    let createdListingId: string | null = null
+    const uploadedR2Keys: string[] = []
+
     try {
       let resolvedProductId = productId
       if (mode === 'create' && !resolvedProductId) {
         if (!onCreateProduct) {
-          throw new Error('缺少商品建立流程')
+          throw new Error('\u7f3a\u5c11\u5546\u54c1\u5efa\u7acb\u6d41\u7a0b')
         }
         setIsCreatingProduct(true)
         resolvedProductId = await onCreateProduct()
         if (!resolvedProductId) {
-          throw new Error('商品建立失敗')
+          throw new Error('\u5546\u54c1\u5efa\u7acb\u5931\u6557')
         }
       }
 
-      const uploadedImages = pendingFiles.length > 0
-        ? await uploadImageFiles('listing', pendingFiles)
-        : []
-      const allImages = [...images, ...uploadedImages]
-
       if (mode === 'create') {
-        const result = await createListing.mutateAsync(buildInput(status, resolvedProductId ?? productId ?? ''))
-        if (allImages.length > 0) {
+        // ── Step 1: Create listing as draft (no notification side-effects yet) ──
+        const result = await createListing.mutateAsync(buildInput('draft', resolvedProductId ?? ''))
+        createdListingId = result.id
+
+        // ── Step 2: Upload pending images to R2, collect keys for rollback ──
+        if (pendingFiles.length > 0) {
+          const uploadedImages = await uploadImageFiles('listing', pendingFiles)
+          uploadedR2Keys.push(...uploadedImages.map(img => img.r2Key))
+          const allImages = [...images, ...uploadedImages]
+          // ── Step 3: Confirm image relations in DB (atomic via RPC) ──
           await confirmImages.mutateAsync({
             listing_id: result.id,
             images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
           })
+        } else if (images.length > 0) {
+          await confirmImages.mutateAsync({
+            listing_id: result.id,
+            images: images.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+          })
         }
-        if (toastId) toast.dismiss(toastId)
-        toast.success(status === 'draft' ? '已儲存草稿' : '已上架')
+
+        // ── Step 4: Publish (active status + notifications) only after all ──
+        // ──         image steps succeeded                                   ──
+        if (status === 'active') {
+          await publishListing.mutateAsync({ id: result.id })
+        }
+
+        toast.dismiss(toastId)
+        toast.success(status === 'draft' ? '\u5df2\u5132\u5b58\u8349\u7a3f' : '\u5df2\u4e0a\u67b6')
       } else {
+        // ── Edit flow: order unchanged (update data → upload → confirm) ──
+        const uploadedImages = pendingFiles.length > 0
+          ? await uploadImageFiles('listing', pendingFiles)
+          : []
+        const allImages = [...images, ...uploadedImages]
         const { product_id: _, status: __, ...updateData } = buildInput(status, productId ?? initialData.product_id)
         await updateListing.mutateAsync({ id: initialData.id, ...updateData })
         await confirmImages.mutateAsync({
           listing_id: initialData.id,
           images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
         })
-        if (toastId) toast.dismiss(toastId)
-        toast.success('已更新')
+        toast.dismiss(toastId)
+        toast.success('\u5df2\u66f4\u65b0')
       }
+
       utils.listing.myListings.invalidate()
       utils.listing.myListingCount.invalidate()
       router.push('/dashboard/listings')
     } catch (err: any) {
-      if (toastId) toast.dismiss(toastId)
-      toast.error(err.message ?? '操作失敗')
+      // ── Compensating rollback (create mode only) ─────────────────────────
+      // Clean up any R2 objects that were successfully uploaded before the
+      // failure, then delete the draft listing if it was inserted.
+      if (mode === 'create') {
+        if (uploadedR2Keys.length > 0) {
+          await deleteObjects.mutateAsync({ r2Keys: uploadedR2Keys }).catch(() => {})
+        }
+        if (createdListingId) {
+          await deleteListing.mutateAsync({ id: createdListingId }).catch(() => {})
+        }
+      }
+      toast.dismiss(toastId)
+      toast.error(err.message ?? '\u64cd\u4f5c\u5931\u6557')
     } finally {
       setIsCreatingProduct(false)
     }
   }
 
-  const isPending = createListing.isPending || updateListing.isPending || isCreatingProduct
+  const isPending = createListing.isPending || updateListing.isPending || isCreatingProduct || publishListing.isPending
 
   return (
     <div className="space-y-6">

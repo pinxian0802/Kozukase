@@ -43,6 +43,7 @@ export default function NewListingPage() {
 
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
   const createProduct = trpc.product.create.useMutation()
+  const deleteObjects = trpc.upload.deleteObjects.useMutation()
 
   const handleOpenCreate = (name: string) => {
     setProductName(name)
@@ -91,11 +92,19 @@ export default function NewListingPage() {
     if (productPendingFiles.length > 0) {
       const uploaded = await uploadImageFiles('product', productPendingFiles)
       if (uploaded[0]) {
-        await confirmProductImage.mutateAsync({
-          product_id: product.id,
-          r2_key: uploaded[0].r2Key,
-          url: uploaded[0].url,
-        })
+        try {
+          await confirmProductImage.mutateAsync({
+            product_id: product.id,
+            r2_key: uploaded[0].r2Key,
+            url: uploaded[0].url,
+          })
+        } catch (err) {
+          // confirmProductImage failed: clean up the orphan R2 object.
+          // The product record itself stays — it’s a valid catalog entry
+          // and the caller’s rollback will delete it if the whole flow fails.
+          await deleteObjects.mutateAsync({ r2Keys: [uploaded[0].r2Key] }).catch(() => {})
+          throw err
+        }
       }
     }
 
