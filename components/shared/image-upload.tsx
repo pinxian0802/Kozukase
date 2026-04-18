@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Upload, X, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import imageCompression from 'browser-image-compression'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 
 interface ImageUploadProps {
@@ -22,6 +23,7 @@ export async function uploadImageFiles(
   purpose: 'product' | 'listing' | 'connection' | 'avatar',
   files: File[]
 ): Promise<{ url: string; r2Key: string }[]> {
+  const { default: imageCompression } = await import('browser-image-compression')
   const results: { url: string; r2Key: string }[] = []
   for (const file of files) {
     const compressed = await imageCompression(file, {
@@ -118,38 +120,49 @@ export function ImageUpload({
     <div className={cn('space-y-3', className)}>
       <div className="flex flex-wrap gap-3">
         {images.map((img, i) => (
-          <div key={`img-${i}`} className="relative h-24 w-24 overflow-hidden rounded-lg border">
-            <img src={img.url} alt="" className="h-full w-full object-cover" />
-            <button
-              type="button"
-              onClick={() => removeImage(i)}
-              className="absolute right-1 top-1 rounded-full bg-black/50 p-0.5 text-white hover:bg-black/70"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
+          <Card key={`img-${i}`} className="group relative h-24 w-24 overflow-hidden rounded-2xl border-border/70 shadow-sm">
+            <CardContent className="relative h-full w-full p-0">
+              <img src={img.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                onClick={() => removeImage(i)}
+                className="absolute right-2 top-2 rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background"
+              >
+                <X className="h-3 w-3" />
+                <span className="sr-only">移除圖片</span>
+              </Button>
+            </CardContent>
+          </Card>
         ))}
         {pendingPreviews.map((preview, i) => (
-          <div
+          <Card
             key={`pending-${i}`}
-            className="relative h-24 w-24 overflow-hidden rounded-lg border border-dashed border-primary/50"
+            className="group relative h-24 w-24 overflow-hidden rounded-2xl border border-dashed border-primary/50 shadow-sm"
           >
-            <img src={preview} alt="" className="h-full w-full object-cover opacity-80" />
-            <button
-              type="button"
-              onClick={() => removePendingFile(i)}
-              className="absolute right-1 top-1 rounded-full bg-black/50 p-0.5 text-white hover:bg-black/70"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
+            <CardContent className="relative h-full w-full p-0">
+              <img src={preview} alt="" loading="lazy" className="h-full w-full object-cover opacity-80" />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                onClick={() => removePendingFile(i)}
+                className="absolute right-2 top-2 rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background"
+              >
+                <X className="h-3 w-3" />
+                <span className="sr-only">移除待上傳圖片</span>
+              </Button>
+            </CardContent>
+          </Card>
         ))}
         {totalCount < maxImages && (
-          <button
+          <Button
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="flex h-24 w-24 flex-col items-center justify-center rounded-lg border-2 border-dashed text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            variant="outline"
+            className="flex h-24 w-24 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/70 text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
           >
             {uploading ? (
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -159,7 +172,7 @@ export function ImageUpload({
                 <span className="mt-1 text-xs">上傳</span>
               </>
             )}
-          </button>
+          </Button>
         )}
       </div>
       <input

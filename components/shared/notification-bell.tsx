@@ -4,12 +4,14 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { trpc } from '@/lib/trpc/client'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 export function NotificationBell() {
   const utils = trpc.useUtils()
   const { data } = trpc.notification.unreadCount.useQuery()
+  const unreadCount = data?.count ?? 0
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient()
@@ -33,10 +35,13 @@ export function NotificationBell() {
   return (
     <Button variant="ghost" size="icon" render={<Link href="/notifications" />} className="relative">
         <Bell className="h-5 w-5" />
-        {(data?.count ?? 0) > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-white">
-            {data!.count > 99 ? '99+' : data!.count}
-          </span>
+        {unreadCount > 0 && (
+          <Badge
+            variant="destructive"
+            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px]"
+          >
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </Badge>
         )}
     </Button>
   )

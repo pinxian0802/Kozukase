@@ -32,7 +32,7 @@ export function Sidebar({ mode }: SidebarProps) {
   const links = mode === 'seller' ? sellerLinks : adminLinks
 
   return (
-    <aside className="hidden md:flex w-60 flex-col border-r bg-white px-3 py-6">
+    <aside className="hidden md:flex w-60 flex-col border-r bg-background px-3 py-6">
       <h2 className="mb-4 px-3 font-heading text-lg font-semibold text-primary">
         {mode === 'seller' ? '賣家後台' : '管理後台'}
       </h2>

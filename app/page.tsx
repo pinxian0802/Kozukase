@@ -60,10 +60,10 @@ export default function HomePage() {
 
         {/* CTA */}
         <section className="mx-auto max-w-7xl px-4 py-12">
-          <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-8 md:p-12 text-center text-white">
+          <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-8 text-center text-primary-foreground md:p-12">
             <h2 className="font-heading text-2xl font-bold md:text-3xl">成為 Kozukase 代購賣家</h2>
-            <p className="mt-2 text-white/80">讓更多人看到你的代購服務</p>
-            <Button size="lg" className="mt-6 bg-white text-primary hover:bg-white/90" render={<Link href="/settings" />}>
+            <p className="mt-2 text-primary-foreground/80">讓更多人看到你的代購服務</p>
+            <Button size="lg" variant="secondary" className="mt-6" render={<Link href="/settings" />}>
               開始上架
             </Button>
           </div>

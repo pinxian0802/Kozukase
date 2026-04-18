@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
@@ -211,7 +212,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const isPending = createListing.isPending || updateListing.isPending || isCreatingProduct || publishListing.isPending
 
   return (
-    <div className="space-y-6">
+    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }}>
       {mode === 'edit' && initialData?.product && (
         <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -271,6 +272,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="輸入價格"
+            required={!isPriceOnRequest}
           />
         )}
       </div>
@@ -286,6 +288,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           onChange={(e) => setShippingDays(e.target.value)}
           placeholder="預計出貨天數"
           className="mt-1"
+          required
         />
       </div>
 
@@ -352,10 +355,19 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {spec.options.map((opt, oi) => (
-                    <span key={oi} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs">
+                    <Badge key={oi} variant="secondary" className="gap-1">
                       {opt}
-                      <button type="button" onClick={() => removeOption(index, oi)} className="text-muted-foreground hover:text-destructive">×</button>
-                    </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => removeOption(index, oi)}
+                        className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive"
+                        aria-label={`移除選項 ${opt}`}
+                      >
+                        ×
+                      </Button>
+                    </Badge>
                   ))}
                 </div>
               </div>
@@ -387,6 +399,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           onChange={(e) => setPostUrl(e.target.value)}
           placeholder="https://www.instagram.com/p/..."
           className="mt-1"
+          required
         />
       </div>
 
@@ -404,15 +417,15 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Actions */}
       <div className="flex gap-3 pt-4">
-        <Button variant="outline" onClick={() => handleSave('draft')} disabled={isPending}>
+        <Button type="button" variant="outline" onClick={() => handleSave('draft')} disabled={isPending}>
           {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
           {mode === 'edit' ? '儲存變更' : '儲存代購'}
         </Button>
-        <Button onClick={() => handleSave('active')} disabled={isPending}>
+        <Button type="submit" disabled={isPending}>
           {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
           {mode === 'create' ? '直接上架' : '更新代購'}
         </Button>
       </div>
-    </div>
+    </form>
   )
 }

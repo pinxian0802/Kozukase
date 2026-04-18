@@ -83,7 +83,7 @@ export default function AdminProductsPage() {
                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                   {getProductImageUrl(product) ? (
                     <Image
-                      src={getProductImageUrl(product)}
+                      src={getProductImageUrl(product)!}
                       alt={product.name}
                       fill
                       sizes="48px"

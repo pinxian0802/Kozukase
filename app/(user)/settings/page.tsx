@@ -85,6 +85,7 @@ export default function SettingsPage() {
                 onChange={(e) => setSellerName(e.target.value)}
                 placeholder="你的店家名稱"
                 maxLength={50}
+                required
               />
             </div>
 
@@ -96,6 +97,7 @@ export default function SettingsPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="0912345678"
                 type="tel"
+                required
               />
               <p className="mt-1 text-xs text-muted-foreground">不會公開顯示，僅供平台聯繫使用</p>
             </div>

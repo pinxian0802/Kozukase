@@ -59,13 +59,16 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               {images.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto">
                   {images.map((img: any, i: number) => (
-                    <button
+                    <Button
                       key={i}
+                      type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setActiveImage(i)}
-                      className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 ${i === activeImage ? 'border-primary' : 'border-transparent'}`}
+                      className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 p-0 ${i === activeImage ? 'border-primary' : 'border-transparent'}`}
                     >
                       <img src={img.url} alt="" className="h-full w-full object-cover" />
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}

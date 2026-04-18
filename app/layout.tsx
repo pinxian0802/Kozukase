@@ -4,6 +4,7 @@ import { TRPCProvider } from "@/lib/trpc/provider";
 import { SessionProvider } from "@/lib/context/session-context";
 import { getServerSession } from "@/lib/supabase/get-session";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
@@ -41,12 +42,14 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         {/* 點擊連結時頂部立刻出現的進度條，color 對應主色 */}
         <NextTopLoader color="#7040ef" height={3} showSpinner={false} />
-        <TRPCProvider>
-          <SessionProvider value={session}>
-            {children}
-            <Toaster richColors position="top-center" />
-          </SessionProvider>
-        </TRPCProvider>
+        <TooltipProvider>
+          <TRPCProvider>
+            <SessionProvider value={session}>
+              {children}
+              <Toaster richColors position="top-center" />
+            </SessionProvider>
+          </TRPCProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

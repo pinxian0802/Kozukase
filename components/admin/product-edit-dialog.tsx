@@ -73,11 +73,11 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
         </DialogHeader>
 
         {product && (
-          <div className="space-y-4">
+          <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); handleSave() }}>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="admin-product-name">商品名稱</Label>
-                <Input id="admin-product-name" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input id="admin-product-name" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
@@ -125,14 +125,14 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 取消
               </Button>
-              <Button onClick={handleSave} disabled={isPending || !name.trim()}>
+              <Button type="submit" disabled={isPending || !name.trim()}>
                 儲存變更
               </Button>
             </div>
-          </div>
+          </form>
         )}
       </DialogContent>
     </Dialog>

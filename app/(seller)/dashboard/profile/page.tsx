@@ -57,7 +57,7 @@ export default function SellerProfilePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="name">賣家名稱</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={50} className="mt-1" />
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={50} className="mt-1" required />
             </div>
 
             <div className="space-y-4">

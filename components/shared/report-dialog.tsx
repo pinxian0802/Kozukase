@@ -45,25 +45,27 @@ export function ReportDialog(props: ReportDialogProps) {
         <DialogHeader>
           <DialogTitle>檢舉</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); handleSubmit() }}>
           <div>
-            <Label>檢舉原因</Label>
+            <Label htmlFor="report-reason">檢舉原因</Label>
             <Textarea
+              id="report-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="請描述檢舉的原因..."
               maxLength={500}
               rows={4}
+              required
             />
             <p className="mt-1 text-xs text-muted-foreground">{reason.length}/500</p>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>取消</Button>
-          <Button onClick={handleSubmit} disabled={!reason.trim() || report.isPending}>
-            {report.isPending ? '送出中...' : '送出檢舉'}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>取消</Button>
+            <Button type="submit" disabled={report.isPending}>
+              {report.isPending ? '送出中...' : '送出檢舉'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

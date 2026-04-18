@@ -68,7 +68,7 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
             /* Product grid */
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
               {results.map((product: any) => (
-                <button
+                <Button
                   key={product.id}
                   type="button"
                   onClick={() => onSelect({
@@ -78,9 +78,10 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
                     model_number: product.model_number,
                     catalog_image_url: product.catalog_image_url,
                   })}
+                  variant="ghost"
                   className={cn(
-                    'group rounded-xl border bg-card text-left transition-transform duration-150',
-                    'hover:scale-105 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    'group h-auto w-full rounded-xl border bg-card p-0 text-left transition-transform duration-150',
+                    'hover:scale-105 hover:shadow-md focus-visible:outline-none'
                   )}
                 >
                   {/* Image */}
@@ -106,7 +107,7 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
                       <p className="truncate text-[10px] text-muted-foreground">{product.model_number}</p>
                     )}
                   </div>
-                </button>
+                </Button>
               ))}
             </div>
           ) : (

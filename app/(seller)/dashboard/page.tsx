@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Package, Globe, Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 
@@ -73,7 +74,7 @@ export default function SellerDashboardPage() {
                       <p className="font-medium">{c.region?.name}{c.sub_region ? ` - ${c.sub_region}` : ''}</p>
                       <p className="text-xs text-muted-foreground">{c.start_date} ~ {c.end_date}</p>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{c.status}</span>
+                    <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{c.status}</Badge>
                   </div>
                 ))}
               </div>

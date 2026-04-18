@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Star } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface StarRatingProps {
@@ -23,24 +24,26 @@ export function StarRating({ value, onChange, readonly = false, size = 'md' }: S
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
-        <button
+        <Button
           key={star}
           type="button"
+          variant="ghost"
+          size="icon-xs"
           disabled={readonly}
           onClick={() => onChange?.(star)}
           onMouseEnter={() => !readonly && setHovered(star)}
           onMouseLeave={() => setHovered(0)}
-          className={cn('transition-colors', readonly ? 'cursor-default' : 'cursor-pointer')}
+          className={cn('p-0 transition-colors', readonly ? 'cursor-default' : 'cursor-pointer')}
         >
           <Star
             className={cn(
               sizes[size],
               (hovered || value) >= star
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'fill-transparent text-gray-300'
+                ? 'fill-primary text-primary'
+                : 'fill-transparent text-muted-foreground/30'
             )}
           />
-        </button>
+        </Button>
       ))}
     </div>
   )

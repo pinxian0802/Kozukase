@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { Field } from '@base-ui/react/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
@@ -34,7 +36,6 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
-  const selectedRegionName = regionsData?.find((region: any) => region.id === regionId)?.name
 
   const createConnection = trpc.connection.create.useMutation()
   const updateConnection = trpc.connection.update.useMutation()
@@ -44,19 +45,17 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
   const handleSubmit = async () => {
     if (!regionId || !startDate || !endDate) {
-      toast.error('\u8acb\u586b\u5beb\u6240\u6709\u5fc5\u586b\u6b04\u4f4d')
+      toast.error('請填寫所有必填欄位')
       return
     }
 
-    const toastId = toast.loading('\u8655\u7406\u4e2d...')
+    const toastId = toast.loading('處理中...')
 
-    // Track created resources for compensating rollback
     let createdConnectionId: string | null = null
     const uploadedR2Keys: string[] = []
 
     try {
       if (mode === 'create') {
-        // ── Step 1: Create connection record first ──
         const result = await createConnection.mutateAsync({
           region_id: regionId,
           sub_region: subRegion || undefined,
@@ -66,26 +65,22 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         })
         createdConnectionId = result.id
 
-        // ── Step 2: Upload images to R2, collect keys for rollback ──
         if (pendingFiles.length > 0) {
           const uploadedImages = await uploadImageFiles('connection', pendingFiles)
-          uploadedR2Keys.push(...uploadedImages.map(img => img.r2Key))
+          uploadedR2Keys.push(...uploadedImages.map((img) => img.r2Key))
           const allImages = [...images, ...uploadedImages]
-          // ── Step 3: Confirm image relations in DB (atomic via RPC) ──
           await confirmImages.mutateAsync({
             connection_id: result.id,
-            images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+            images: allImages.map((img, index) => ({ r2_key: img.r2Key, url: img.url, sort_order: index })),
           })
         }
 
         toast.dismiss(toastId)
-        toast.success('\u5df2\u5efa\u7acb\u9023\u7dda\u516c\u544a')
+        toast.success('已建立連線公告')
       } else {
-        // ── Edit flow: upload first, then update data, then confirm ──
-        const uploadedImages = pendingFiles.length > 0
-          ? await uploadImageFiles('connection', pendingFiles)
-          : []
+        const uploadedImages = pendingFiles.length > 0 ? await uploadImageFiles('connection', pendingFiles) : []
         const allImages = [...images, ...uploadedImages]
+
         await updateConnection.mutateAsync({
           id: initialData.id,
           region_id: regionId || undefined,
@@ -94,17 +89,18 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           end_date: endDate || undefined,
           description: description || undefined,
         })
+
         await confirmImages.mutateAsync({
           connection_id: initialData.id,
-          images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+          images: allImages.map((img, index) => ({ r2_key: img.r2Key, url: img.url, sort_order: index })),
         })
+
         toast.dismiss(toastId)
-        toast.success('\u5df2\u66f4\u65b0\u9023\u7dda\u516c\u544a')
+        toast.success('已更新連線公告')
       }
 
       router.push('/dashboard/connections')
-    } catch (err: any) {
-      // ── Compensating rollback (create mode only) ─────────────────────────
+    } catch (error: any) {
       if (mode === 'create') {
         if (uploadedR2Keys.length > 0) {
           await deleteObjects.mutateAsync({ r2Keys: uploadedR2Keys }).catch(() => {})
@@ -113,77 +109,67 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           await deleteConnection.mutateAsync({ id: createdConnectionId }).catch(() => {})
         }
       }
+
       toast.dismiss(toastId)
-      toast.error(err.message ?? '\u64cd\u4f5c\u5931\u6557')
+      toast.error(error.message ?? '操作失敗')
     }
   }
 
   const isPending = createConnection.isPending || updateConnection.isPending || confirmImages.isPending
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Label>連線國家 *</Label>
-        <Select value={regionId} onValueChange={setRegionId}>
-          <SelectTrigger className="mt-1">
-            <SelectValue placeholder="選擇國家">{selectedRegionName}</SelectValue>
+    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }}>
+      <Field.Root className="space-y-2" name="region_id" validate={() => (regionId ? null : '請選擇國家')}>
+        <Label className="text-sm font-medium text-foreground">連線國家 *</Label>
+        <Select value={regionId} onValueChange={setRegionId} name="region_id" required>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="選擇國家" />
           </SelectTrigger>
           <SelectContent>
-            {(regionsData ?? []).map((r: any) => (
-              <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+            {(regionsData ?? []).map((region: any) => (
+              <SelectItem key={region.id} value={region.id}>
+                {region.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </Field.Root>
 
-      <div>
-        <Label htmlFor="subRegion">地區（選填）</Label>
+      <div className="space-y-2">
+        <Label htmlFor="subRegion" className="text-sm font-medium text-foreground">地區（選填）</Label>
         <Input
           id="subRegion"
           value={subRegion}
           onChange={(e) => setSubRegion(e.target.value)}
           placeholder="例：東京、大阪"
           maxLength={100}
-          className="mt-1"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="startDate">開始日期 *</Label>
-          <Input
-            id="startDate"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="mt-1"
-          />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="startDate" className="text-sm font-medium text-foreground">開始日期 *</Label>
+          <DatePicker value={startDate} onValueChange={setStartDate} placeholder="選擇開始日期" className="w-full" name="start_date" required />
         </div>
-        <div>
-          <Label htmlFor="endDate">結束日期 *</Label>
-          <Input
-            id="endDate"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="mt-1"
-          />
+        <div className="space-y-2">
+          <Label htmlFor="endDate" className="text-sm font-medium text-foreground">結束日期 *</Label>
+          <DatePicker value={endDate} onValueChange={setEndDate} placeholder="選擇結束日期" className="w-full" name="end_date" required />
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="description">說明（選填）</Label>
+      <div className="space-y-2">
+        <Label htmlFor="description" className="text-sm font-medium text-foreground">說明（選填）</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="補充連線行程說明..."
           maxLength={500}
-          className="mt-1"
+          className="min-h-32 resize-none"
         />
       </div>
 
-      <div>
+      <div className="space-y-2">
         <Label>圖片（最多 5 張）</Label>
         <ImageUpload
           purpose="connection"
@@ -192,14 +178,14 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           onChange={setImages}
           pendingFiles={pendingFiles}
           onPendingFilesChange={setPendingFiles}
-          className="mt-2"
+          className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-4"
         />
       </div>
 
-      <Button onClick={handleSubmit} disabled={isPending} className="w-full">
-        {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+      <Button type="submit" disabled={isPending} size="lg" className="w-full">
+        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {mode === 'create' ? '建立連線公告' : '更新連線公告'}
       </Button>
-    </div>
+    </form>
   )
 }
