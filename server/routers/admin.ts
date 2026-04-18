@@ -1,6 +1,14 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, adminProcedure } from '../trpc'
+import { productCategoryEnum } from '@/lib/validators/product'
+
+function buildAdminDisplayName(user: {
+  email?: string | null
+  user_metadata?: { full_name?: string | null } | null
+}, profile?: { display_name?: string | null } | null) {
+  return profile?.display_name ?? user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'User'
+}
 
 export const adminRouter = router({
   // Product management
@@ -33,10 +41,10 @@ export const adminRouter = router({
 
       // Notify affected sellers
       if (listings?.length) {
-        const sellerNotifications = listings.map((l: any) => ({
-          recipient_id: l.seller_id,
+        const sellerNotifications = listings.map((listing: { id: string; seller_id: string }) => ({
+          recipient_id: listing.seller_id,
           type: 'product_removed' as const,
-          payload: { product_id: input.id, listing_id: l.id },
+          payload: { product_id: input.id, listing_id: listing.id },
         }))
         await ctx.db.from('notifications').insert(sellerNotifications)
       }
@@ -63,8 +71,8 @@ export const adminRouter = router({
         .eq('product_id', input.id)
 
       if (wishes?.length) {
-        const wishNotifications = wishes.map((w: any) => ({
-          recipient_id: w.user_id,
+        const wishNotifications = wishes.map((wish: { user_id: string }) => ({
+          recipient_id: wish.user_id,
           type: 'wish_product_removed' as const,
           payload: { product_id: input.id },
         }))
@@ -79,8 +87,8 @@ export const adminRouter = router({
         .eq('product_id', input.id)
 
       if (bookmarks?.length) {
-        const bookmarkNotifications = bookmarks.map((b: any) => ({
-          recipient_id: b.user_id,
+        const bookmarkNotifications = bookmarks.map((bookmark: { user_id: string }) => ({
+          recipient_id: bookmark.user_id,
           type: 'bookmarked_product_removed' as const,
           payload: { product_id: input.id },
         }))
@@ -421,6 +429,50 @@ export const adminRouter = router({
       return { items: data ?? [], total: count ?? 0 }
     }),
 
+  updateProduct: adminProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).max(200),
+      brand: z.string().max(100).nullable().optional(),
+      model_number: z.string().max(100).nullable().optional(),
+      category: productCategoryEnum,
+      catalog_image_id: z.string().uuid().nullable().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.catalog_image_id) {
+        const { data: catalogImage } = await ctx.db
+          .from('product_images')
+          .select('id, product_id')
+          .eq('id', input.catalog_image_id)
+          .eq('product_id', input.id)
+          .single()
+
+        if (!catalogImage) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: '封面圖片必須屬於此商品' })
+        }
+      }
+
+      const { data, error } = await ctx.db
+        .from('products')
+        .update({
+          name: input.name,
+          brand: input.brand?.trim() ? input.brand.trim() : null,
+          model_number: input.model_number?.trim() ? input.model_number.trim() : null,
+          category: input.category,
+          catalog_image_id: input.catalog_image_id ?? null,
+        })
+        .eq('id', input.id)
+        .select(`
+          *,
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key)
+        `)
+        .single()
+
+      if (error) throw error
+      return data
+    }),
+
   // Seller list for admin
   listSellers: adminProcedure
     .input(z.object({
@@ -451,5 +503,100 @@ export const adminRouter = router({
       const { data, error, count } = await query
       if (error) throw error
       return { items: data ?? [], total: count ?? 0 }
+    }),
+
+  listUsers: adminProcedure
+    .input(z.object({
+      search: z.string().optional(),
+      limit: z.number().min(1).max(1000).default(1000),
+    }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db.auth.admin.listUsers({
+        page: 1,
+        perPage: input.limit,
+      })
+
+      if (error) throw error
+
+      const users = data.users ?? []
+      const userIds = users.map((user) => user.id)
+
+      if (userIds.length === 0) {
+        return { items: [], total: 0 }
+      }
+
+      const [profilesResult, sellersResult] = await Promise.all([
+        ctx.db
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .in('id', userIds),
+        ctx.db
+          .from('sellers')
+          .select('id')
+          .in('id', userIds),
+      ])
+
+      if (profilesResult.error) throw profilesResult.error
+      if (sellersResult.error) throw sellersResult.error
+
+      const profileById = new Map((profilesResult.data ?? []).map((profile) => [profile.id, profile]))
+      const sellerIds = new Set((sellersResult.data ?? []).map((seller) => seller.id))
+
+      const items = users
+        .map((user) => {
+          const profile = profileById.get(user.id)
+          const isAdmin = user.app_metadata?.role === 'admin'
+          return {
+            id: user.id,
+            email: user.email ?? null,
+            display_name: buildAdminDisplayName(user, profile),
+            avatar_url: profile?.avatar_url ?? null,
+            is_seller: sellerIds.has(user.id),
+            is_admin: isAdmin,
+            created_at: user.created_at,
+            last_sign_in_at: user.last_sign_in_at ?? null,
+          }
+        })
+        .filter((user) => {
+          if (!input.search) return true
+          const keyword = input.search.toLowerCase()
+          return (
+            (user.email ?? '').toLowerCase().includes(keyword) ||
+            user.display_name.toLowerCase().includes(keyword) ||
+            (user.is_admin ? 'admin' : '').includes(keyword) ||
+            (user.is_seller ? 'seller' : '').includes(keyword)
+          )
+        })
+        .sort((a, b) => b.created_at.localeCompare(a.created_at))
+
+      return { items, total: items.length }
+    }),
+
+  setUserAdmin: adminProcedure
+    .input(z.object({
+      user_id: z.string().uuid(),
+      is_admin: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db.auth.admin.getUserById(input.user_id)
+      if (error) throw error
+
+      if (!data.user) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: '使用者不存在' })
+      }
+
+      const nextAppMetadata = { ...(data.user.app_metadata ?? {}) } as Record<string, unknown>
+      if (input.is_admin) {
+        nextAppMetadata.role = 'admin'
+      } else {
+        nextAppMetadata.role = 'user'
+      }
+
+      const { data: updatedUser, error: updateError } = await ctx.db.auth.admin.updateUserById(input.user_id, {
+        app_metadata: nextAppMetadata,
+      })
+
+      if (updateError) throw updateError
+      return updatedUser.user
     }),
 })

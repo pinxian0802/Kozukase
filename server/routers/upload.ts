@@ -152,7 +152,7 @@ export const uploadRouter = router({
       // rolls back the delete, so existing images are never lost.
       const { error } = await ctx.db.rpc('replace_listing_images', {
         p_listing_id: input.listing_id,
-        p_images: JSON.stringify(input.images),
+        p_images: input.images,
       })
 
       if (error) throw error
@@ -192,7 +192,7 @@ export const uploadRouter = router({
       // Atomic replace via PostgreSQL function (migration 00005)
       const { error } = await ctx.db.rpc('replace_connection_images', {
         p_connection_id: input.connection_id,
-        p_images: JSON.stringify(input.images),
+        p_images: input.images,
       })
 
       if (error) throw error

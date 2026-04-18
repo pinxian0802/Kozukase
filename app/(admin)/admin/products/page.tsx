@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Search, Trash2, Tags } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -13,17 +14,29 @@ import { Label } from '@/components/ui/label'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { trpc } from '@/lib/trpc/client'
+import { ProductEditDialog, type AdminEditableProduct, type AdminProductEditValues } from '@/components/admin/product-edit-dialog'
 import { toast } from 'sonner'
+import type { ProductCategory } from '@/lib/validators/product'
 
 const CATEGORIES = Object.entries(PRODUCT_CATEGORY_LABELS)
 
 export default function AdminProductsPage() {
   const [search, setSearch] = useState('')
+  const [editingProduct, setEditingProduct] = useState<AdminEditableProduct | null>(null)
   const [removeId, setRemoveId] = useState<string | null>(null)
   const [removeReason, setRemoveReason] = useState('')
   const utils = trpc.useUtils()
 
   const { data, isLoading } = trpc.admin.listProducts.useQuery({ search: search || undefined, limit: 50 })
+
+  const updateProduct = trpc.admin.updateProduct.useMutation({
+    onSuccess: () => {
+      toast.success('已更新商品')
+      setEditingProduct(null)
+      utils.admin.listProducts.invalidate()
+    },
+    onError: (err) => toast.error(err.message),
+  })
 
   const removeProduct = trpc.admin.removeProduct.useMutation({
     onSuccess: () => {
@@ -40,7 +53,11 @@ export default function AdminProductsPage() {
     onError: (err) => toast.error(err.message),
   })
 
-  const getProductImageUrl = (product: any) => product.catalog_image?.url ?? product.product_images?.[0]?.url ?? null
+  const getProductImageUrl = (product: AdminEditableProduct) => product.catalog_image?.url ?? product.product_images?.[0]?.url ?? null
+
+  const handleEditSave = async (values: AdminProductEditValues) => {
+    await updateProduct.mutateAsync(values)
+  }
 
   return (
     <div className="space-y-6">
@@ -60,15 +77,18 @@ export default function AdminProductsPage() {
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 rounded-lg" />)}</div>
       ) : data?.items && data.items.length > 0 ? (
         <div className="space-y-2">
-          {data.items.map((product: any) => (
+          {data.items.map((product) => (
             <div key={product.id} className={`flex items-center justify-between rounded-lg border p-4 ${product.is_removed ? 'opacity-50' : ''}`}>
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                   {getProductImageUrl(product) ? (
-                    <img
+                    <Image
                       src={getProductImageUrl(product)}
                       alt={product.name}
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="48px"
+                      unoptimized
+                      className="object-cover"
                     />
                   ) : null}
                 </div>
@@ -84,7 +104,7 @@ export default function AdminProductsPage() {
               <div className="flex items-center gap-2">
                 <Select
                   value={product.category ?? ''}
-                  onValueChange={(val) => setCategory.mutate({ id: product.id, category: val as any })}
+                  onValueChange={(val) => setCategory.mutate({ id: product.id, category: val as ProductCategory })}
                 >
                   <SelectTrigger className="w-28 h-8 text-xs">
                     <SelectValue placeholder="分類" />
@@ -95,6 +115,9 @@ export default function AdminProductsPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Button size="sm" variant="outline" onClick={() => setEditingProduct(product)}>
+                  編輯
+                </Button>
                 {!product.is_removed && (
                   <Dialog open={removeId === product.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
                     <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(product.id)} />}>
@@ -122,6 +145,17 @@ export default function AdminProductsPage() {
       ) : (
         <EmptyState icon={Tags} title="沒有找到商品" />
       )}
+
+      <ProductEditDialog
+        key={editingProduct?.id ?? 'closed'}
+        product={editingProduct}
+        open={!!editingProduct}
+        onOpenChange={(open) => {
+          if (!open) setEditingProduct(null)
+        }}
+        onSave={handleEditSave}
+        isPending={updateProduct.isPending}
+      />
     </div>
   )
 }

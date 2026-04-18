@@ -17,6 +17,8 @@ const sellerLinks = [
 ]
 
 const adminLinks = [
+  { href: '/admin', label: '總覽', icon: LayoutDashboard },
+  { href: '/admin/users', label: '使用者管理', icon: Shield },
   { href: '/admin/products', label: '商品管理', icon: Package },
   { href: '/admin/listings', label: '代購審核', icon: Package },
   { href: '/admin/connections', label: '連線審核', icon: Globe },
