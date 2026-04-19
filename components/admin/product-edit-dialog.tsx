@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { FormFieldError } from '@/components/shared/form-field-error'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import type { ProductCategory } from '@/lib/validators/product'
 
@@ -51,13 +53,26 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
   const [modelNumber, setModelNumber] = useState(() => product?.model_number ?? '')
   const [category, setCategory] = useState<ProductCategory>(() => product?.category ?? 'other')
   const [catalogImageId, setCatalogImageId] = useState(() => product?.catalog_image_id ?? 'none')
+  const [nameError, setNameError] = useState('')
+  const imageLabelById = new Map([
+    ['none', '不指定'],
+    ...((product?.product_images ?? []).map((image, index) => [image.id, `圖片 ${index + 1}`] as const)),
+  ])
 
   const handleSave = async () => {
     if (!product) return
 
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setNameError('商品名稱為必填')
+      return
+    }
+
+    setNameError('')
+
     await onSave({
       id: product.id,
-      name: name.trim(),
+      name: trimmedName,
       brand: brand.trim() || null,
       model_number: modelNumber.trim() || null,
       category,
@@ -73,11 +88,20 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
         </DialogHeader>
 
         {product && (
-          <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); handleSave() }}>
+          <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); handleSave() }} noValidate>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="admin-product-name">商品名稱</Label>
-                <Input id="admin-product-name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input
+                  id="admin-product-name"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    if (nameError) setNameError('')
+                  }}
+                  aria-invalid={!!nameError}
+                />
+                <FormFieldError message={nameError} />
               </div>
 
               <div className="space-y-2">
@@ -94,7 +118,9 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
                 <Label>分類</Label>
                 <Select value={category} onValueChange={(value) => setCategory(value ?? 'other')}>
                   <SelectTrigger>
-                    <SelectValue placeholder="選擇分類" />
+                    <SelectValue placeholder="選擇分類">
+                      {(value) => (value ? PRODUCT_CATEGORY_LABELS[value as ProductCategory] ?? '選擇分類' : '選擇分類')}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {CATEGORY_OPTIONS.map(([value, label]) => (
@@ -110,7 +136,9 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
                 <Label>封面圖片</Label>
                 <Select value={catalogImageId} onValueChange={(value) => setCatalogImageId(value ?? 'none')}>
                   <SelectTrigger>
-                    <SelectValue placeholder="選擇封面圖片" />
+                    <SelectValue placeholder="選擇封面圖片">
+                      {(value) => (value ? imageLabelById.get(value) ?? '選擇封面圖片' : '選擇封面圖片')}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">不指定</SelectItem>
@@ -128,9 +156,9 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 取消
               </Button>
-              <Button type="submit" disabled={isPending || !name.trim()}>
+              <button type="submit" disabled={isPending || !name.trim()} className={buttonVariants()}>
                 儲存變更
-              </Button>
+              </button>
             </div>
           </form>
         )}

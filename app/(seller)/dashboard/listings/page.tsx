@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Plus, Package } from 'lucide-react'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
+import { ProductCard } from '@/components/product/product-card'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -31,8 +32,10 @@ export default function SellerListingsPage() {
   const utils = trpc.useUtils()
   const { data: counts } = trpc.listing.myListingCount.useQuery()
 
-  const statusFilter = status === 'all' ? undefined : status
-  const { data, isLoading } = trpc.listing.myListings.useQuery({ status: statusFilter as any, limit: 50 })
+  const statusFilter = status === 'all'
+    ? undefined
+    : (status as 'draft' | 'active' | 'inactive' | 'pending_approval')
+  const { data, isLoading } = trpc.listing.myListings.useQuery({ status: statusFilter, limit: 50 })
 
   const deactivate = trpc.listing.deactivate.useMutation({
     onSuccess: () => { toast.success('已下架'); utils.listing.myListings.invalidate(); utils.listing.myListingCount.invalidate() },
@@ -50,8 +53,6 @@ export default function SellerListingsPage() {
     onSuccess: () => { toast.success('已上架'); utils.listing.myListings.invalidate(); utils.listing.myListingCount.invalidate() },
     onError: (err) => toast.error(err.message),
   })
-
-  const getListingImageUrl = (listing: any) => listing.product?.catalog_image?.url ?? listing.product?.product_images?.[0]?.url ?? null
 
   return (
     <div className="space-y-6">
@@ -76,48 +77,51 @@ export default function SellerListingsPage() {
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
       ) : data?.items && data.items.length > 0 ? (
-        <div className="space-y-3">
-          {data.items.map((listing: any) => (
-            <div key={listing.id} className="flex gap-4 rounded-lg border p-4">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-                {getListingImageUrl(listing) ? (
-                  <img
-                    src={getListingImageUrl(listing)}
-                    alt={listing.product?.name ?? ''}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-muted-foreground">
-                    <Package className="h-6 w-6 opacity-50" />
+        <div className="space-y-4">
+          {data.items.map((listing) => (
+            <div key={listing.id} className={`rounded-2xl border bg-white p-4 ${listing.status === 'inactive' ? 'opacity-80' : ''}`}>
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,260px)_1fr]">
+                <ProductCard
+                  product={{
+                    id: listing.product?.id ?? listing.id,
+                    name: listing.product?.name ?? '未知商品',
+                    brand: listing.product?.brand ?? null,
+                    model_number: listing.product?.model_number ?? null,
+                    catalog_image: listing.product?.catalog_image ?? null,
+                    product_images: listing.product?.product_images ?? [],
+                  }}
+                  linkToProduct={false}
+                />
+
+                <div className="flex min-w-0 flex-1 flex-col justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary" className={statusColors[listing.status]}>{statusLabels[listing.status]}</Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {formatPrice(listing.price, listing.is_price_on_request)} · 建立於 {formatDate(listing.created_at)}
+                      </span>
+                    </div>
+                    {listing.status === 'pending_approval' && (
+                      <Badge variant="outline" className="w-fit">審核中</Badge>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="truncate font-medium">{listing.product?.name ?? '未知商品'}</p>
-                  <Badge variant="secondary" className={statusColors[listing.status]}>{statusLabels[listing.status]}</Badge>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listing.id}/edit`} />}>編輯</Button>
+                    {listing.status === 'draft' && (
+                      <>
+                        <Button size="sm" onClick={() => publish.mutate({ id: listing.id })} disabled={publish.isPending}>上架</Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteListing.mutate({ id: listing.id })} disabled={deleteListing.isPending}>刪除</Button>
+                      </>
+                    )}
+                    {listing.status === 'active' && (
+                      <Button size="sm" variant="destructive" onClick={() => deactivate.mutate({ id: listing.id })} disabled={deactivate.isPending}>下架</Button>
+                    )}
+                    {listing.status === 'inactive' && (
+                      <Button size="sm" onClick={() => reactivate.mutate({ id: listing.id })} disabled={reactivate.isPending}>重新上架</Button>
+                    )}
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {formatPrice(listing.price, listing.is_price_on_request)} · 建立於 {formatDate(listing.created_at)}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listing.id}/edit`} />}>編輯</Button>
-                {listing.status === 'draft' && (
-                  <>
-                    <Button size="sm" onClick={() => publish.mutate({ id: listing.id })} disabled={publish.isPending}>上架</Button>
-                    <Button size="sm" variant="destructive" onClick={() => deleteListing.mutate({ id: listing.id })} disabled={deleteListing.isPending}>刪除</Button>
-                  </>
-                )}
-                {listing.status === 'active' && (
-                  <Button size="sm" variant="destructive" onClick={() => deactivate.mutate({ id: listing.id })} disabled={deactivate.isPending}>下架</Button>
-                )}
-                {listing.status === 'inactive' && (
-                  <Button size="sm" onClick={() => reactivate.mutate({ id: listing.id })} disabled={reactivate.isPending}>重新上架</Button>
-                )}
-                {listing.status === 'pending_approval' && (
-                  <Badge variant="outline">審核中</Badge>
-                )}
               </div>
             </div>
           ))}

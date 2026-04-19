@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Search, Trash2, Tags } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -14,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { trpc } from '@/lib/trpc/client'
+import { ProductCard } from '@/components/product/product-card'
 import { ProductEditDialog, type AdminEditableProduct, type AdminProductEditValues } from '@/components/admin/product-edit-dialog'
 import { toast } from 'sonner'
 import type { ProductCategory } from '@/lib/validators/product'
@@ -53,8 +53,6 @@ export default function AdminProductsPage() {
     onError: (err) => toast.error(err.message),
   })
 
-  const getProductImageUrl = (product: AdminEditableProduct) => product.catalog_image?.url ?? product.product_images?.[0]?.url ?? null
-
   const handleEditSave = async (values: AdminProductEditValues) => {
     await updateProduct.mutateAsync(values)
   }
@@ -74,39 +72,24 @@ export default function AdminProductsPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 rounded-lg" />)}</div>
+        <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
       ) : data?.items && data.items.length > 0 ? (
-        <div className="space-y-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {data.items.map((product) => (
-            <div key={product.id} className={`flex items-center justify-between rounded-lg border p-4 ${product.is_removed ? 'opacity-50' : ''}`}>
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
-                  {getProductImageUrl(product) ? (
-                    <Image
-                      src={getProductImageUrl(product)!}
-                      alt={product.name}
-                      fill
-                      sizes="48px"
-                      unoptimized
-                      className="object-cover"
-                    />
-                  ) : null}
-                </div>
-                <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium">{product.name}</p>
-                  {product.brand && <span className="text-xs text-muted-foreground">{product.brand}</span>}
-                  {product.is_removed && <Badge variant="destructive">已移除</Badge>}
-                  {product.category && <Badge variant="secondary">{PRODUCT_CATEGORY_LABELS[product.category] ?? product.category}</Badge>}
-                </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
+            <div key={product.id} className={product.is_removed ? 'opacity-50' : ''}>
+              <ProductCard
+                product={product}
+                linkToProduct={false}
+              />
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {product.is_removed && <Badge variant="destructive">已移除</Badge>}
+                {product.category && <Badge variant="secondary">{PRODUCT_CATEGORY_LABELS[product.category] ?? product.category}</Badge>}
                 <Select
                   value={product.category ?? ''}
                   onValueChange={(val) => setCategory.mutate({ id: product.id, category: val as ProductCategory })}
                 >
-                  <SelectTrigger className="w-28 h-8 text-xs">
+                  <SelectTrigger className="h-9 w-28 text-xs">
                     <SelectValue placeholder="分類" />
                   </SelectTrigger>
                   <SelectContent>

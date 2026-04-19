@@ -128,7 +128,7 @@ export const sellerRouter = router({
         .from('listings')
         .select(`
           *, 
-          product:products(id, name, brand),
+          product:products(id, name, brand, model_number),
           listing_images(id, url, r2_key, sort_order)
         `)
         .eq('seller_id', input.sellerId)

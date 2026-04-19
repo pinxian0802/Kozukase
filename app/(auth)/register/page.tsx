@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Mail, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { FormFieldError } from '@/components/shared/form-field-error'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import {
   buildAuthCallbackUrl,
@@ -19,6 +21,11 @@ import {
 } from '@/lib/supabase/auth-error'
 
 type RegisterAction = 'google' | 'email' | null
+type RegisterErrors = {
+  email?: string
+  password?: string
+  confirmPassword?: string
+}
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -29,6 +36,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [loadingAction, setLoadingAction] = useState<RegisterAction>(null)
+  const [errors, setErrors] = useState<RegisterErrors>({})
 
   const safeNext = useMemo(
     () => getSafeNextPath(searchParams.get('next')),
@@ -54,22 +62,30 @@ export default function RegisterPage() {
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedEmail = email.trim()
+    const nextErrors: RegisterErrors = {}
 
-    if (!trimmedEmail || !password || !confirmPassword) {
-      toast.error('請完整填寫註冊資訊')
+    if (!trimmedEmail) {
+      nextErrors.email = 'Email 為必填'
+    }
+
+    if (!password) {
+      nextErrors.password = '密碼為必填'
+    } else if (password.length < 6) {
+      nextErrors.password = '密碼至少需要 6 個字元'
+    }
+
+    if (!confirmPassword) {
+      nextErrors.confirmPassword = '請再次輸入密碼'
+    } else if (password && password !== confirmPassword) {
+      nextErrors.confirmPassword = '兩次輸入的密碼不一致'
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
       return
     }
 
-    if (password.length < 6) {
-      toast.error('密碼至少需要 6 個字元')
-      return
-    }
-
-    if (password !== confirmPassword) {
-      toast.error('兩次輸入的密碼不一致')
-      return
-    }
-
+    setErrors({})
     setLoadingAction('email')
     const supabase = createSupabaseBrowserClient()
     const { data, error } = await supabase.auth.signUp({
@@ -155,7 +171,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <form onSubmit={handleEmailRegister} className="space-y-3">
+          <form onSubmit={handleEmailRegister} className="space-y-3" noValidate>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -163,10 +179,20 @@ export default function RegisterPage() {
                 type="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  if (errors.email) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.email
+                      return next
+                    })
+                  }
+                }}
                 placeholder="your@email.com"
-                required
+                aria-invalid={!!errors.email}
               />
+              <FormFieldError message={errors.email} />
             </div>
 
             <div>
@@ -176,10 +202,20 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (errors.password) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.password
+                      return next
+                    })
+                  }
+                }}
                 placeholder="至少 6 個字元"
-                required
+                aria-invalid={!!errors.password}
               />
+              <FormFieldError message={errors.password} />
             </div>
 
             <div>
@@ -189,20 +225,30 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value)
+                  if (errors.confirmPassword) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.confirmPassword
+                      return next
+                    })
+                  }
+                }}
                 placeholder="再次輸入密碼"
-                required
+                aria-invalid={!!errors.confirmPassword}
               />
+              <FormFieldError message={errors.confirmPassword} />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loadingAction !== null}>
+            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={loadingAction !== null}>
               {loadingAction === 'email' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <UserPlus className="mr-2 h-4 w-4" />
               )}
               使用 Email 註冊
-            </Button>
+            </button>
           </form>
 
           {emailSent && (

@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { Save, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { FormFieldError } from '@/components/shared/form-field-error'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
@@ -18,6 +20,7 @@ export default function SellerProfilePage() {
   const [igFollowers, setIgFollowers] = useState('')
   const [threadsHandle, setThreadsHandle] = useState('')
   const [threadsFollowers, setThreadsFollowers] = useState('')
+  const [nameError, setNameError] = useState('')
 
   useEffect(() => {
     const seller = session?.profile?.sellers as any
@@ -37,8 +40,15 @@ export default function SellerProfilePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setNameError('賣家名稱為必填')
+      return
+    }
+
+    setNameError('')
     updateSeller.mutate({
-      name: name || undefined,
+      name: trimmedName,
       ig_handle: igHandle || undefined,
       ig_follower_count: igFollowers ? Number(igFollowers) : undefined,
       threads_handle: threadsHandle || undefined,
@@ -54,10 +64,21 @@ export default function SellerProfilePage() {
           <CardDescription>管理你的賣家資訊和社群連結</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <Label htmlFor="name">賣家名稱</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={50} className="mt-1" required />
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  if (nameError) setNameError('')
+                }}
+                maxLength={50}
+                className="mt-1"
+                aria-invalid={!!nameError}
+              />
+              <FormFieldError message={nameError} />
             </div>
 
             <div className="space-y-4">
@@ -83,10 +104,10 @@ export default function SellerProfilePage() {
               <p className="text-xs text-muted-foreground">填寫社群帳號後將獲得認證標章</p>
             </div>
 
-            <Button type="submit" disabled={updateSeller.isPending}>
+            <button type="submit" className={buttonVariants()} disabled={updateSeller.isPending}>
               {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
               儲存變更
-            </Button>
+            </button>
           </form>
         </CardContent>
       </Card>

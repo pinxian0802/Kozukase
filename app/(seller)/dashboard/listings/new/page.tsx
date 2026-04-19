@@ -2,16 +2,16 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Package } from 'lucide-react'
-import Image from 'next/image'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
+import { FormFieldError } from '@/components/shared/form-field-error'
+import { ProductCard } from '@/components/product/product-card'
 import { ProductSearch, type ProductSearchResult } from '@/components/product/product-search'
 import { ListingForm } from '@/components/listing/listing-form'
 import { trpc } from '@/lib/trpc/client'
-import { toast } from 'sonner'
 
 type SelectedProduct = {
   id?: string
@@ -40,6 +40,7 @@ export default function NewListingPage() {
   const [productBrand, setProductBrand] = useState('')
   const [productModelNumber, setProductModelNumber] = useState('')
   const [productPendingFiles, setProductPendingFiles] = useState<File[]>([])
+  const [productNameError, setProductNameError] = useState('')
 
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
   const createProduct = trpc.product.create.useMutation()
@@ -50,20 +51,23 @@ export default function NewListingPage() {
     setProductBrand('')
     setProductModelNumber('')
     setProductPendingFiles([])
+    setProductNameError('')
     // Reset cached product id — user is starting a brand new product
     createdProductIdRef.current = null
     setStep({ type: 'create', initialName: name })
   }
 
   const handleContinueToListing = () => {
-    if (!productName.trim()) {
-      toast.error('請輸入商品名稱')
+    const trimmedName = productName.trim()
+    if (!trimmedName) {
+      setProductNameError('商品名稱為必填')
       return
     }
+    setProductNameError('')
     setStep({
       type: 'listing',
       product: {
-        name: productName.trim(),
+        name: trimmedName,
         brand: productBrand.trim() || null,
         model_number: productModelNumber.trim() || null,
         catalog_image_url: productPendingFiles[0]
@@ -116,7 +120,7 @@ export default function NewListingPage() {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button type="button" variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-2xl font-bold font-heading">新增代購</h1>
@@ -148,7 +152,7 @@ export default function NewListingPage() {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setStep({ type: 'select' })}>
+          <Button type="button" variant="ghost" size="icon" onClick={() => setStep({ type: 'select' })}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
             <h1 className="text-2xl font-bold font-heading">新增商品</h1>
@@ -175,9 +179,14 @@ export default function NewListingPage() {
             <Input
               id="product-name"
               value={productName}
-              onChange={(e) => setProductName(e.target.value)}
+              onChange={(e) => {
+                setProductName(e.target.value)
+                if (productNameError) setProductNameError('')
+              }}
               placeholder="輸入商品名稱"
+              aria-invalid={!!productNameError}
             />
+            <FormFieldError message={productNameError} />
           </div>
 
           {/* Model number (optional) */}
@@ -194,10 +203,10 @@ export default function NewListingPage() {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={() => setStep({ type: 'select' })}>
+            <Button type="button" variant="outline" onClick={() => setStep({ type: 'select' })}>
               取消
             </Button>
-            <Button onClick={handleContinueToListing} disabled={!productName.trim()}>
+            <Button type="button" onClick={handleContinueToListing}>
               下一步
             </Button>
           </div>
@@ -212,44 +221,27 @@ export default function NewListingPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => setStep(product.id ? { type: 'select' } : { type: 'create', initialName: product.name })}>
+        <Button type="button" variant="ghost" size="icon" onClick={() => setStep(product.id ? { type: 'select' } : { type: 'create', initialName: product.name })}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold font-heading">新增代購</h1>
       </div>
       <div className="space-y-4">
-        {/* Selected product card */}
-        <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-            {product.catalog_image_url ? (
-              <Image
-                src={product.catalog_image_url}
-                alt={product.name}
-                fill
-                className="object-cover"
-                sizes="64px"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <Package className="h-6 w-6 text-muted-foreground/40" />
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{product.name}</p>
-            {product.model_number && (
-              <p className="truncate text-xs text-muted-foreground">{product.model_number}</p>
-            )}
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setStep({ type: 'select' })}
-            className="shrink-0 text-xs"
-          >
-            重新選擇
-          </Button>
-        </div>
+        <ProductCard
+          product={{
+            id: product.id ?? 'draft-product',
+            name: product.name,
+            brand: product.brand,
+            model_number: product.model_number,
+            catalog_image_url: product.catalog_image_url,
+          }}
+          linkToProduct={false}
+          variant="compact"
+        />
+
+        <Button type="button" variant="ghost" size="sm" onClick={() => setStep({ type: 'select' })} className="w-full">
+          重新選擇
+        </Button>
 
         <ListingForm
           productId={product.id}

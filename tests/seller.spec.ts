@@ -46,4 +46,49 @@ test.describe('賣家流程', () => {
     // Wait for profile settings card to appear
     await expect(page.getByText('賣家資料設定')).toBeVisible({ timeout: 30000 })
   })
+
+  test('連線日期應禁止今天以前且結束日期必須晚於開始日期', async ({ page }) => {
+    await page.goto('/dashboard/connections/new')
+
+    await expect(page.getByRole('heading', { name: '新增連線公告' })).toBeVisible({ timeout: 30000 })
+
+    const dateLabels = await page.evaluate(() => {
+      const today = new Date()
+      const yesterday = new Date(today)
+      yesterday.setDate(today.getDate() - 1)
+
+      return {
+        today: today.toLocaleDateString(),
+        yesterday: yesterday.toLocaleDateString(),
+      }
+    })
+
+    await page.getByRole('button', { name: '選擇開始日期' }).click()
+    const startCalendar = page.locator('[data-slot="calendar"]')
+    await expect(startCalendar.locator(`button[data-day="${dateLabels.yesterday}"]`)).toBeDisabled()
+    await startCalendar.locator(`button[data-day="${dateLabels.today}"]`).click()
+
+    await page.getByRole('button', { name: '選擇結束日期' }).click()
+    const endCalendar = page.locator('[data-slot="calendar"]')
+    await expect(endCalendar.locator(`button[data-day="${dateLabels.yesterday}"]`)).toBeDisabled()
+    await expect(endCalendar.locator(`button[data-day="${dateLabels.today}"]`)).toBeDisabled()
+  })
+
+  test('連線國家選擇後應顯示地區名稱而不是原始值', async ({ page }) => {
+    await page.goto('/dashboard/connections/new')
+
+    const trigger = page.getByRole('combobox').first()
+    await trigger.click()
+
+    const firstRegionItem = page.locator('[data-slot="select-item"]').first()
+    const regionName = (await firstRegionItem.textContent())?.trim()
+
+    if (!regionName) {
+      throw new Error('找不到可選擇的連線國家')
+    }
+
+    await firstRegionItem.click()
+
+    await expect(trigger).toContainText(regionName, { timeout: 30000 })
+  })
 })

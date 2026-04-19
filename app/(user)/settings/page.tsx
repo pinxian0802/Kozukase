@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Store, Loader2, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { FormFieldError } from '@/components/shared/form-field-error'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
@@ -21,6 +23,7 @@ export default function SettingsPage() {
   const [sellerName, setSellerName] = useState('')
   const [phone, setPhone] = useState('')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [errors, setErrors] = useState<{ sellerName?: string; phone?: string; regions?: string }>({})
 
   const becomeSeller = trpc.seller.becomeSeller.useMutation({
     onSuccess: () => {
@@ -52,10 +55,26 @@ export default function SettingsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!sellerName.trim() || !phone.trim() || selectedRegions.length === 0) {
-      toast.error('請填寫所有必填欄位')
+    const nextErrors: { sellerName?: string; phone?: string; regions?: string } = {}
+
+    if (!sellerName.trim()) {
+      nextErrors.sellerName = '賣家名稱為必填'
+    }
+
+    if (!phone.trim()) {
+      nextErrors.phone = '手機號碼為必填'
+    }
+
+    if (selectedRegions.length === 0) {
+      nextErrors.regions = '請至少選擇一個代購地區'
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
       return
     }
+
+    setErrors({})
     becomeSeller.mutate({
       name: sellerName.trim(),
       phone_number: phone.trim(),
@@ -76,17 +95,27 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <Label htmlFor="sellerName">賣家名稱 *</Label>
               <Input
                 id="sellerName"
                 value={sellerName}
-                onChange={(e) => setSellerName(e.target.value)}
+                onChange={(e) => {
+                  setSellerName(e.target.value)
+                  if (errors.sellerName) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.sellerName
+                      return next
+                    })
+                  }
+                }}
                 placeholder="你的店家名稱"
                 maxLength={50}
-                required
+                aria-invalid={!!errors.sellerName}
               />
+              <FormFieldError message={errors.sellerName} />
             </div>
 
             <div>
@@ -97,7 +126,6 @@ export default function SettingsPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="0912345678"
                 type="tel"
-                required
               />
               <p className="mt-1 text-xs text-muted-foreground">不會公開顯示，僅供平台聯繫使用</p>
             </div>
@@ -114,18 +142,27 @@ export default function SettingsPage() {
                       onCheckedChange={(checked) => {
                         if (checked) setSelectedRegions([...selectedRegions, region.id])
                         else setSelectedRegions(selectedRegions.filter(r => r !== region.id))
+
+                        if (errors.regions) {
+                          setErrors((current) => {
+                            const next = { ...current }
+                            delete next.regions
+                            return next
+                          })
+                        }
                       }}
                     />
                     <Label htmlFor={`region-${region.id}`} className="text-sm">{region.name}</Label>
                   </div>
                 ))}
               </div>
+              <FormFieldError message={errors.regions} />
             </div>
 
-            <Button type="submit" className="w-full" disabled={becomeSeller.isPending}>
+            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={becomeSeller.isPending}>
               {becomeSeller.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Store className="mr-2 h-4 w-4" />}
               開始成為賣家
-            </Button>
+            </button>
           </form>
         </CardContent>
       </Card>

@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test'
 
+const testAccount = process.env.TEST_ACCOUNT ?? 'test@test.com'
+const testPassword = process.env.TEST_PASSWORD ?? 'poiu0987'
+
 test.describe('認證流程', () => {
   // These tests require no auth state (use fresh page)
   test.use({ storageState: { cookies: [], origins: [] } })
@@ -8,8 +11,8 @@ test.describe('認證流程', () => {
     await page.goto('/login')
     await expect(page).toHaveTitle(/.+/)
 
-    await page.locator('#email').fill(process.env.TEST_ACCOUNT!)
-    await page.locator('#password').fill(process.env.TEST_PASSWORD!)
+    await page.locator('#email').fill(testAccount)
+    await page.locator('#password').fill(testPassword)
     await page.getByRole('button', { name: '使用密碼登入' }).click()
 
     await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30000 })
@@ -19,11 +22,21 @@ test.describe('認證流程', () => {
 
   test('錯誤密碼應顯示錯誤訊息', async ({ page }) => {
     await page.goto('/login')
-    await page.locator('#email').fill(process.env.TEST_ACCOUNT!)
+    await page.locator('#email').fill(testAccount)
     await page.locator('#password').fill('wrongpassword123')
     await page.getByRole('button', { name: '使用密碼登入' }).click()
 
     await page.waitForTimeout(3000)
+    expect(page.url()).toContain('/login')
+  })
+
+  test('登入表單空白送出應顯示欄位錯誤', async ({ page }) => {
+    await page.goto('/login')
+
+    await page.getByRole('button', { name: '使用密碼登入' }).click()
+
+    await expect(page.getByText('Email 為必填')).toBeVisible()
+    await expect(page.getByText('密碼為必填')).toBeVisible()
     expect(page.url()).toContain('/login')
   })
 })

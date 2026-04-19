@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { Field } from '@base-ui/react/field'
-import { Button } from '@/components/ui/button'
+import { addDays, isAfter, parseISO, startOfDay } from 'date-fns'
+import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
 import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
+import { FormFieldError } from '@/components/shared/form-field-error'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 
@@ -34,8 +35,15 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string }>({})
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
+  const regionLabelById = new Map((regionsData ?? []).map((region: any) => [region.id, region.name]))
+
+  const today = startOfDay(new Date())
+  const parsedStartDate = startDate ? parseISO(startDate) : null
+  const parsedEndDate = endDate ? parseISO(endDate) : null
+  const endDateMin = parsedStartDate ? addDays(parsedStartDate, 1) : today
 
   const createConnection = trpc.connection.create.useMutation()
   const updateConnection = trpc.connection.update.useMutation()
@@ -43,11 +51,39 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const confirmImages = trpc.upload.confirmConnectionImages.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
 
+  const clearError = (field: keyof typeof errors) => {
+    setErrors((current) => {
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+  }
+
   const handleSubmit = async () => {
-    if (!regionId || !startDate || !endDate) {
-      toast.error('請填寫所有必填欄位')
+    const nextErrors: { regionId?: string; startDate?: string; endDate?: string } = {}
+
+    if (!regionId) {
+      nextErrors.regionId = '連線國家為必填'
+    }
+
+    if (!startDate) {
+      nextErrors.startDate = '開始日期為必填'
+    }
+
+    if (!endDate) {
+      nextErrors.endDate = '結束日期為必填'
+    }
+
+    if (startDate && endDate && parsedStartDate && parsedEndDate && !isAfter(parsedEndDate, parsedStartDate)) {
+      nextErrors.endDate = '結束日期必須晚於開始日期'
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
       return
     }
+
+    setErrors({})
 
     const toastId = toast.loading('處理中...')
 
@@ -118,12 +154,21 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const isPending = createConnection.isPending || updateConnection.isPending || confirmImages.isPending
 
   return (
-    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }}>
-      <Field.Root className="space-y-2" name="region_id" validate={() => (regionId ? null : '請選擇國家')}>
+    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
+      <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground">連線國家 *</Label>
-        <Select value={regionId} onValueChange={setRegionId} name="region_id" required>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="選擇國家" />
+        <Select
+          value={regionId}
+          onValueChange={(value) => {
+            setRegionId(value)
+            if (errors.regionId) clearError('regionId')
+          }}
+          name="region_id"
+        >
+          <SelectTrigger className="w-full" aria-invalid={!!errors.regionId}>
+            <SelectValue placeholder="選擇國家">
+              {(value) => (value ? regionLabelById.get(value) ?? '選擇國家' : '選擇國家')}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {(regionsData ?? []).map((region: any) => (
@@ -133,7 +178,8 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             ))}
           </SelectContent>
         </Select>
-      </Field.Root>
+        <FormFieldError message={errors.regionId} />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="subRegion" className="text-sm font-medium text-foreground">地區（選填）</Label>
@@ -149,11 +195,60 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="startDate" className="text-sm font-medium text-foreground">開始日期 *</Label>
-          <DatePicker value={startDate} onValueChange={setStartDate} placeholder="選擇開始日期" className="w-full" name="start_date" required />
+          <DatePicker
+            value={startDate}
+            onValueChange={(value) => {
+              setStartDate(value)
+              if (errors.startDate) clearError('startDate')
+
+              if (value && endDate) {
+                const nextStartDate = parseISO(value)
+                const currentEndDate = parseISO(endDate)
+
+                if (isAfter(nextStartDate, currentEndDate) || nextStartDate.getTime() === currentEndDate.getTime()) {
+                  setEndDate('')
+                  setErrors((current) => ({
+                    ...current,
+                    endDate: '結束日期必須晚於開始日期',
+                  }))
+                }
+              }
+            }}
+            placeholder="選擇開始日期"
+            className="w-full"
+            name="start_date"
+            invalid={!!errors.startDate}
+            minDate={today}
+          />
+          <FormFieldError message={errors.startDate} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="endDate" className="text-sm font-medium text-foreground">結束日期 *</Label>
-          <DatePicker value={endDate} onValueChange={setEndDate} placeholder="選擇結束日期" className="w-full" name="end_date" required />
+          <DatePicker
+            value={endDate}
+            onValueChange={(value) => {
+              setEndDate(value)
+              if (errors.endDate) clearError('endDate')
+
+              if (value && startDate) {
+                const nextEndDate = parseISO(value)
+                const currentStartDate = parseISO(startDate)
+
+                if (!isAfter(nextEndDate, currentStartDate)) {
+                  setErrors((current) => ({
+                    ...current,
+                    endDate: '結束日期必須晚於開始日期',
+                  }))
+                }
+              }
+            }}
+            placeholder="選擇結束日期"
+            className="w-full"
+            name="end_date"
+            invalid={!!errors.endDate}
+            minDate={endDateMin}
+          />
+          <FormFieldError message={errors.endDate} />
         </div>
       </div>
 
@@ -182,10 +277,10 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         />
       </div>
 
-      <Button type="submit" disabled={isPending} size="lg" className="w-full">
+      <button type="submit" disabled={isPending} className={buttonVariants({ size: 'lg', className: 'w-full' })}>
         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {mode === 'create' ? '建立連線公告' : '更新連線公告'}
-      </Button>
+      </button>
     </form>
   )
 }

@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { FormFieldError } from '@/components/shared/form-field-error'
 import { StarRating } from '@/components/shared/star-rating'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
@@ -15,6 +17,7 @@ interface ReviewFormProps {
 export function ReviewForm({ sellerId, onSuccess }: ReviewFormProps) {
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
+  const [ratingError, setRatingError] = useState('')
   const utils = trpc.useUtils()
 
   const createReview = trpc.review.create.useMutation({
@@ -33,9 +36,11 @@ export function ReviewForm({ sellerId, onSuccess }: ReviewFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (rating === 0) {
-      toast.error('請選擇星等')
+      setRatingError('請選擇星等')
       return
     }
+
+    setRatingError('')
     createReview.mutate({
       seller_id: sellerId,
       rating,
@@ -44,11 +49,19 @@ export function ReviewForm({ sellerId, onSuccess }: ReviewFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border p-4">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border p-4" noValidate>
       <h3 className="font-medium">撰寫評價</h3>
       <div>
         <p className="mb-2 text-sm text-muted-foreground">評分</p>
-        <StarRating value={rating} onChange={setRating} size="lg" />
+        <StarRating
+          value={rating}
+          onChange={(value) => {
+            setRating(value)
+            if (ratingError) setRatingError('')
+          }}
+          size="lg"
+        />
+        <FormFieldError message={ratingError} />
       </div>
       <Textarea
         value={comment}
@@ -57,9 +70,9 @@ export function ReviewForm({ sellerId, onSuccess }: ReviewFormProps) {
         rows={3}
         maxLength={500}
       />
-      <Button type="submit" disabled={rating === 0 || createReview.isPending}>
+      <button type="submit" disabled={createReview.isPending} className={buttonVariants()}>
         {createReview.isPending ? '送出中...' : '送出評價'}
-      </Button>
+      </button>
     </form>
   )
 }

@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Plus, Loader2, Package } from 'lucide-react'
+import { Search, Plus, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 import { shouldTriggerSearch } from '@/lib/utils/search'
-import { cn } from '@/lib/utils'
-import Image from 'next/image'
+import { ProductCard } from '@/components/product/product-card'
 
 export interface ProductSearchResult {
   id: string
@@ -53,24 +52,31 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
         <div className="space-y-3">
           {showLoading ? (
             /* Loading skeleton */
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="animate-pulse rounded-xl border bg-muted">
-                  <div className="aspect-square rounded-t-xl bg-muted-foreground/10" />
-                  <div className="space-y-1.5 p-2">
-                    <div className="h-3 w-3/4 rounded bg-muted-foreground/10" />
-                    <div className="h-2.5 w-1/2 rounded bg-muted-foreground/10" />
+                <div key={i} className="animate-pulse overflow-hidden rounded-2xl border bg-white">
+                  <div className="aspect-square bg-muted-foreground/10" />
+                  <div className="space-y-2 p-3">
+                    <div className="h-3 w-1/2 rounded bg-muted-foreground/10" />
+                    <div className="h-4 w-3/4 rounded bg-muted-foreground/10" />
+                    <div className="h-3 w-1/3 rounded bg-muted-foreground/10" />
                   </div>
                 </div>
               ))}
             </div>
           ) : results && results.length > 0 ? (
             /* Product grid */
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-              {results.map((product: any) => (
-                <Button
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {results.map((product: ProductSearchResult) => (
+                <ProductCard
                   key={product.id}
-                  type="button"
+                  product={{
+                    id: product.id,
+                    name: product.name,
+                    brand: product.brand,
+                    model_number: product.model_number,
+                    catalog_image_url: product.catalog_image_url,
+                  }}
                   onClick={() => onSelect({
                     id: product.id,
                     name: product.name,
@@ -78,36 +84,8 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
                     model_number: product.model_number,
                     catalog_image_url: product.catalog_image_url,
                   })}
-                  variant="ghost"
-                  className={cn(
-                    'group h-auto w-full rounded-xl border bg-card p-0 text-left transition-transform duration-150',
-                    'hover:scale-105 hover:shadow-md focus-visible:outline-none'
-                  )}
-                >
-                  {/* Image */}
-                  <div className="relative aspect-square overflow-hidden rounded-t-xl bg-muted">
-                    {product.catalog_image_url ? (
-                      <Image
-                        src={product.catalog_image_url}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 33vw, 25vw"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <Package className="h-8 w-8 text-muted-foreground/40" />
-                      </div>
-                    )}
-                  </div>
-                  {/* Info */}
-                  <div className="p-2">
-                    <p className="truncate text-xs font-medium leading-snug">{product.name}</p>
-                    {product.model_number && (
-                      <p className="truncate text-[10px] text-muted-foreground">{product.model_number}</p>
-                    )}
-                  </div>
-                </Button>
+                  linkToProduct={false}
+                />
               ))}
             </div>
           ) : (

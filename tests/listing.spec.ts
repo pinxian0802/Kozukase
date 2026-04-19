@@ -50,6 +50,34 @@ test.describe('Listing 上架流程', () => {
     expect(page.url()).toContain('/dashboard/listings')
   })
 
+  test('新增代購流程空白送出應顯示欄位錯誤', async ({ page }) => {
+    await page.goto('/dashboard/listings/new')
+
+    await expect(page.getByText('第一步：搜尋或新增商品')).toBeVisible({ timeout: 30000 })
+
+    const productName = 'test'
+    const searchInput = page.getByPlaceholder('搜尋商品名稱...')
+    await searchInput.fill(productName)
+    await page.waitForTimeout(1000)
+    await expect(page.getByRole('button', { name: '新增商品「test」' })).toBeVisible({ timeout: 30000 })
+    await page.getByRole('button', { name: '新增商品「test」' }).click()
+
+    await expect(page.getByLabel('商品名稱 *')).toBeVisible({ timeout: 30000 })
+    await page.getByLabel('商品名稱 *').fill('')
+    await page.getByRole('button', { name: '下一步' }).click()
+
+    await expect(page.getByText('商品名稱為必填')).toBeVisible({ timeout: 30000 })
+    await page.getByLabel('商品名稱 *').fill(productName)
+    await page.getByRole('button', { name: '下一步' }).click()
+
+    await expect(page.getByRole('button', { name: '直接上架' })).toBeVisible({ timeout: 30000 })
+    await page.getByRole('button', { name: '直接上架' }).click()
+
+    await expect(page.getByText('貼文連結為必填')).toBeVisible({ timeout: 30000 })
+    await expect(page.getByText('出貨天數為必填')).toBeVisible()
+    await expect(page.getByText('價格為必填')).toBeVisible()
+  })
+
   test('應可建立附圖片的 Listing 並直接上架', async ({ page }) => {
     await page.goto('/dashboard/listings/new')
 

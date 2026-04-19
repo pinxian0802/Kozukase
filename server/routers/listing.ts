@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { router, publicProcedure, protectedProcedure, sellerProcedure } from '../trpc'
+import { SupabaseClient } from '@supabase/supabase-js'
+import { router, publicProcedure, sellerProcedure } from '../trpc'
 import { createListingInput, updateListingInput } from '@/lib/validators/listing'
 import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
 
@@ -186,7 +187,7 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name, brand, category, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
+          product:products(id, name, brand, model_number, category, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
           seller:sellers(
             id, name, ig_handle, threads_handle, ig_follower_count,
             threads_follower_count, is_social_verified, avg_rating, review_count,
@@ -238,7 +239,7 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *, 
-          product:products(id, name, brand, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
+          product:products(id, name, brand, model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
           listing_images(id, url, r2_key, sort_order)
         `)
         .eq('seller_id', ctx.seller.id)
@@ -298,7 +299,7 @@ export const listingRouter = router({
 
 // Helper to send notifications when a new listing is published
 async function sendNewListingNotifications(
-  db: any,
+  db: SupabaseClient<any>,
   listingId: string,
   productId: string,
   sellerId: string
@@ -310,7 +311,7 @@ async function sendNewListingNotifications(
     .eq('product_id', productId)
 
   if (wishUsers?.length) {
-    const wishNotifications = wishUsers.map((w: any) => ({
+    const wishNotifications = wishUsers.map((w: { user_id: string }) => ({
       recipient_id: w.user_id,
       type: 'new_listing_for_wish',
       payload: { listing_id: listingId, product_id: productId },
@@ -325,7 +326,7 @@ async function sendNewListingNotifications(
     .eq('seller_id', sellerId)
 
   if (followers?.length) {
-    const followerNotifications = followers.map((f: any) => ({
+    const followerNotifications = followers.map((f: { follower_id: string }) => ({
       recipient_id: f.follower_id,
       type: 'followed_seller_new_listing',
       payload: { listing_id: listingId, seller_id: sellerId },

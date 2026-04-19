@@ -364,7 +364,7 @@ export const adminRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
+          product:products(id, name, brand, model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
           seller:sellers(id, name)
         `, { count: 'exact' })
         .eq('status', 'pending_approval')

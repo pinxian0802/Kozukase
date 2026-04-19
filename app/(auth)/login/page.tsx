@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Mail, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { FormFieldError } from '@/components/shared/form-field-error'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import {
   buildAuthCallbackUrl,
@@ -20,6 +22,10 @@ import {
 } from '@/lib/supabase/auth-error'
 
 type LoginAction = 'google' | 'password' | 'magic-link' | null
+type LoginErrors = {
+  email?: string
+  password?: string
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -30,6 +36,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [loadingAction, setLoadingAction] = useState<LoginAction>(null)
+  const [errors, setErrors] = useState<LoginErrors>({})
 
   const safeNext = useMemo(
     () => getSafeNextPath(searchParams.get('next')),
@@ -67,12 +74,22 @@ export default function LoginPage() {
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedEmail = email.trim()
+    const nextErrors: LoginErrors = {}
 
-    if (!trimmedEmail || !password) {
-      toast.error('請輸入 Email 與密碼')
+    if (!trimmedEmail) {
+      nextErrors.email = 'Email 為必填'
+    }
+
+    if (!password) {
+      nextErrors.password = '密碼為必填'
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
       return
     }
 
+    setErrors({})
     setLoadingAction('password')
     const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signInWithPassword({
@@ -94,10 +111,15 @@ export default function LoginPage() {
   const handleMagicLinkLogin = async () => {
     const trimmedEmail = email.trim()
     if (!trimmedEmail) {
-      toast.error('請先輸入 Email')
+      setErrors((current) => ({ ...current, email: 'Email 為必填' }))
       return
     }
 
+    setErrors((current) => {
+      const next = { ...current }
+      delete next.email
+      return next
+    })
     setLoadingAction('magic-link')
     const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signInWithOtp({
@@ -175,7 +197,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <form onSubmit={handlePasswordLogin} className="space-y-3">
+          <form onSubmit={handlePasswordLogin} className="space-y-3" noValidate>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -183,10 +205,20 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  if (errors.email) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.email
+                      return next
+                    })
+                  }
+                }}
                 placeholder="your@email.com"
-                required
+                aria-invalid={!!errors.email}
               />
+              <FormFieldError message={errors.email} />
             </div>
 
             <div>
@@ -196,20 +228,30 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (errors.password) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.password
+                      return next
+                    })
+                  }
+                }}
                 placeholder="請輸入密碼"
-                required
+                aria-invalid={!!errors.password}
               />
+              <FormFieldError message={errors.password} />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loadingAction !== null}>
+            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={loadingAction !== null}>
               {loadingAction === 'password' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <KeyRound className="mr-2 h-4 w-4" />
               )}
               使用密碼登入
-            </Button>
+            </button>
           </form>
 
           <Button

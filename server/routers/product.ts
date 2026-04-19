@@ -27,7 +27,7 @@ export const productRouter = router({
       let query = ctx.db
         .from('products')
         .select(`
-          id, name, brand, category, wish_count, created_at,
+          id, name, brand, model_number, category, wish_count, created_at,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
           listings!inner(id, price, is_price_on_request, shipping_days, created_at,
@@ -63,7 +63,7 @@ export const productRouter = router({
           .from('seller_regions')
           .select('seller_id')
           .eq('region_id', input.region)
-        const sellerIds = (regionSellers ?? []).map((r: any) => r.seller_id)
+        const sellerIds = (regionSellers ?? []).map((r: { seller_id: string }) => r.seller_id)
         if (sellerIds.length === 0) {
           return { items: [], nextCursor: null }
         }

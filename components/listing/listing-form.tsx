@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2, Loader2, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
+import { FormFieldError } from '@/components/shared/form-field-error'
+import { buttonVariants } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 
@@ -63,6 +65,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [isCreatingProduct, setIsCreatingProduct] = useState(false)
+  const [errors, setErrors] = useState<{ price?: string; shippingDays?: string; postUrl?: string }>({})
 
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
@@ -70,6 +73,14 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const deleteListing = trpc.listing.delete.useMutation()
   const confirmImages = trpc.upload.confirmListingImages.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
+
+  const clearError = (field: keyof typeof errors) => {
+    setErrors((current) => {
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+  }
 
   const addSpec = () => {
     setSpecs([...specs, { type: '顏色', is_custom: false, options: [], is_all: false, _optionInput: '' }])
@@ -115,11 +126,42 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   }
 
   const handleSave = async (status: 'draft' | 'active') => {
-    // Pre-validate required fields before any expensive operations
     if (status === 'active') {
-      if (!postUrl) { toast.error('\u8cbc\u6587\u9023\u7d50\u70ba\u5fc5\u586b'); return }
-      if (!shippingDays) { toast.error('\u51fa\u8ca8\u5929\u6578\u70ba\u5fc5\u586b'); return }
-      if (!price && !isPriceOnRequest) { toast.error('\u8acb\u586b\u5beb\u50f9\u683c\u6216\u9078\u64c7\u79c1\u8a0a\u5831\u50f9'); return }
+      const nextErrors: { price?: string; shippingDays?: string; postUrl?: string } = {}
+      const trimmedPostUrl = postUrl.trim()
+      const trimmedPrice = price.trim()
+      const trimmedShippingDays = shippingDays.trim()
+
+      if (!trimmedPostUrl) {
+        nextErrors.postUrl = '貼文連結為必填'
+      } else {
+        try {
+          new URL(trimmedPostUrl)
+        } catch {
+          nextErrors.postUrl = '請提供有效的貼文連結'
+        }
+      }
+
+      if (!trimmedShippingDays) {
+        nextErrors.shippingDays = '出貨天數為必填'
+      } else if (Number(trimmedShippingDays) < 1) {
+        nextErrors.shippingDays = '出貨天數至少為 1 天'
+      }
+
+      if (!isPriceOnRequest) {
+        if (!trimmedPrice) {
+          nextErrors.price = '價格為必填'
+        } else if (Number(trimmedPrice) < 0) {
+          nextErrors.price = '價格不可小於 0'
+        }
+      }
+
+      if (Object.keys(nextErrors).length > 0) {
+        setErrors(nextErrors)
+        return
+      }
+
+      setErrors({})
     }
 
     const toastId = toast.loading('\u8655\u7406\u4e2d...')
@@ -212,7 +254,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const isPending = createListing.isPending || updateListing.isPending || isCreatingProduct || publishListing.isPending
 
   return (
-    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }}>
+    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
       {mode === 'edit' && initialData?.product && (
         <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -259,21 +301,30 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             <Switch
               id="priceOnRequest"
               checked={isPriceOnRequest}
-              onCheckedChange={setIsPriceOnRequest}
+              onCheckedChange={(checked) => {
+                setIsPriceOnRequest(checked)
+                if (checked && errors.price) clearError('price')
+              }}
             />
             <Label htmlFor="priceOnRequest" className="text-sm">私訊報價</Label>
           </div>
         </div>
         {!isPriceOnRequest && (
-          <Input
-            id="price"
-            type="number"
-            min="0"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="輸入價格"
-            required={!isPriceOnRequest}
-          />
+          <div>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              value={price}
+              onChange={(e) => {
+                setPrice(e.target.value)
+                if (errors.price) clearError('price')
+              }}
+              placeholder="輸入價格"
+              aria-invalid={!!errors.price}
+            />
+            <FormFieldError message={errors.price} />
+          </div>
         )}
       </div>
 
@@ -285,11 +336,15 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           type="number"
           min="1"
           value={shippingDays}
-          onChange={(e) => setShippingDays(e.target.value)}
+          onChange={(e) => {
+            setShippingDays(e.target.value)
+            if (errors.shippingDays) clearError('shippingDays')
+          }}
           placeholder="預計出貨天數"
           className="mt-1"
-          required
+          aria-invalid={!!errors.shippingDays}
         />
+        <FormFieldError message={errors.shippingDays} />
       </div>
 
       {/* Specs */}
@@ -396,11 +451,15 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           id="postUrl"
           type="url"
           value={postUrl}
-          onChange={(e) => setPostUrl(e.target.value)}
+          onChange={(e) => {
+            setPostUrl(e.target.value)
+            if (errors.postUrl) clearError('postUrl')
+          }}
           placeholder="https://www.instagram.com/p/..."
           className="mt-1"
-          required
+          aria-invalid={!!errors.postUrl}
         />
+        <FormFieldError message={errors.postUrl} />
       </div>
 
       {/* Expires */}
@@ -421,10 +480,10 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
           {mode === 'edit' ? '儲存變更' : '儲存代購'}
         </Button>
-        <Button type="submit" disabled={isPending}>
+        <button type="submit" disabled={isPending} className={buttonVariants({ className: 'flex-1' })}>
           {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
           {mode === 'create' ? '直接上架' : '更新代購'}
-        </Button>
+        </button>
       </div>
     </form>
   )

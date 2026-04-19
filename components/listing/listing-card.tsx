@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
+import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { formatPrice, formatShippingDays } from '@/lib/utils/format'
 
@@ -10,7 +10,7 @@ interface ListingCardProps {
     is_price_on_request: boolean
     shipping_days: number
     status: string
-    product?: { id: string; name: string } | null
+    product?: { id: string; name: string; brand?: string | null; model_number?: string | null } | null
     seller?: { id: string; name: string } | null
     listing_images?: { url: string; sort_order: number }[]
   }
@@ -29,42 +29,63 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
 
   return (
     <Link href={`/listings/${listing.id}`}>
-      <Card className="group overflow-hidden transition-shadow hover:shadow-md">
-        <div className="aspect-video overflow-hidden bg-muted">
+      <div className="group overflow-hidden rounded-2xl bg-white shadow-md transition-shadow hover:shadow-lg">
+        <div className="relative aspect-video overflow-hidden bg-white">
           {firstImage ? (
-            <img
+            <Image
               src={firstImage.url}
               alt={listing.product?.name ?? ''}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover transition-transform group-hover:scale-105"
+              unoptimized
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               暫無圖片
             </div>
           )}
         </div>
-        <CardContent className="p-3 space-y-1">
+        <div className="space-y-2 px-3 pb-3 pt-2">
           {listing.product && (
-            <h3 className="line-clamp-1 text-sm font-medium">{listing.product.name}</h3>
+            <div className="grid min-h-[3rem] gap-1">
+              <div className="h-3.5 overflow-hidden">
+                {listing.product.brand ? (
+                  <p className="truncate text-[11px] font-medium leading-none text-muted-foreground">{listing.product.brand}</p>
+                ) : (
+                  <span aria-hidden="true" className="block h-3.5" />
+                )}
+              </div>
+              <div className="h-[1.15rem] overflow-hidden">
+                <h3 className="line-clamp-1 text-sm font-semibold leading-tight">{listing.product.name}</h3>
+              </div>
+              <div className="h-3.5 overflow-hidden">
+                {listing.product.model_number ? (
+                  <p className="truncate text-[11px] leading-none text-muted-foreground">{listing.product.model_number}</p>
+                ) : (
+                  <span aria-hidden="true" className="block h-3.5" />
+                )}
+              </div>
+            </div>
           )}
           {listing.seller && (
             <p className="text-xs text-muted-foreground">{listing.seller.name}</p>
           )}
           <div className="flex items-center justify-between pt-1">
-            <span className="font-bold text-primary">
+            <span className="text-sm font-semibold text-primary">
               {formatPrice(listing.price, listing.is_price_on_request)}
             </span>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-[11px]">
               {formatShippingDays(listing.shipping_days)}
             </Badge>
           </div>
           {showStatus && (
-            <Badge variant={statusLabels[listing.status]?.variant ?? 'secondary'} className="text-xs">
+            <Badge variant={statusLabels[listing.status]?.variant ?? 'secondary'} className="text-[11px]">
               {statusLabels[listing.status]?.label ?? listing.status}
             </Badge>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   )
 }
