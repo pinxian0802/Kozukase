@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ListingComparison } from '@/components/product/listing-comparison'
 import { EmptyState } from '@/components/shared/empty-state'
+import { ImageGallery } from '@/components/shared/image-gallery'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -44,7 +45,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     )
   }
 
-  const imageUrl = product.catalog_image?.url ?? product.product_images?.[0]?.url ?? null
+  const galleryImages = [
+    ...(product.catalog_image ? [{ url: product.catalog_image.url, alt: product.name }] : []),
+    ...(product.product_images ?? [])
+      .filter((image: any) => image.id !== product.catalog_image?.id)
+      .map((image: any) => ({ url: image.url, alt: product.name })),
+  ]
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
@@ -56,13 +62,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       <div className="flex flex-col md:flex-row gap-6">
         {/* Catalog Image */}
         <div className="w-full md:w-80 shrink-0">
-          <div className="aspect-square overflow-hidden rounded-xl bg-muted">
-            {imageUrl ? (
-              <img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">暫無圖片</div>
-            )}
-          </div>
+          <ImageGallery
+            images={galleryImages}
+            title="商品圖片"
+            emptyTitle="暫無商品圖片"
+            emptyDescription="這個商品目前還沒有圖片"
+          />
         </div>
 
         <div className="flex-1 space-y-4">

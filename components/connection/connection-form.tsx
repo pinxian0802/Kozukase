@@ -273,7 +273,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           onChange={setImages}
           pendingFiles={pendingFiles}
           onPendingFilesChange={setPendingFiles}
-          className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-4"
+          className="mt-2"
         />
       </div>
 

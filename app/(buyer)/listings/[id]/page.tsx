@@ -11,18 +11,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { StarRating } from '@/components/shared/star-rating'
 import { CopyButton } from '@/components/shared/copy-button'
 import { ReportDialog } from '@/components/shared/report-dialog'
+import { ImageGallery } from '@/components/shared/image-gallery'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatShippingDays } from '@/lib/utils/format'
 import { toast } from 'sonner'
-import { useState } from 'react'
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const utils = trpc.useUtils()
   const { data: listing, isLoading } = trpc.listing.getById.useQuery({ id })
-  const [activeImage, setActiveImage] = useState(0)
 
   const bookmarkToggle = trpc.bookmark.toggleListingBookmark.useMutation({
     onSuccess: () => utils.listing.getById.invalidate({ id }),
@@ -40,6 +39,10 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   if (!listing) return null
 
   const images = listing.listing_images?.sort((a: any, b: any) => a.sort_order - b.sort_order) ?? []
+  const galleryImages = images.map((image: any) => ({
+    url: image.url,
+    alt: listing.product?.name ?? '刊登圖片',
+  }))
   const inquiryText = `你好，我想詢問 ${listing.product?.name ?? '商品'} 的代購，請問還有在收單嗎？`
 
   return (
@@ -51,33 +54,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       <div className="grid gap-8 md:grid-cols-2">
         {/* Images */}
         <div className="space-y-3">
-          {images.length > 0 ? (
-            <>
-              <div className="aspect-square overflow-hidden rounded-xl bg-muted">
-                <img src={images[activeImage]?.url} alt="" className="h-full w-full object-cover" />
-              </div>
-              {images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto">
-                  {images.map((img: any, i: number) => (
-                    <Button
-                      key={i}
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setActiveImage(i)}
-                      className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 p-0 ${i === activeImage ? 'border-primary' : 'border-transparent'}`}
-                    >
-                      <img src={img.url} alt="" className="h-full w-full object-cover" />
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex aspect-square items-center justify-center rounded-xl bg-muted text-muted-foreground">
-              暫無圖片
-            </div>
-          )}
+          <ImageGallery
+            images={galleryImages}
+            title="刊登圖片"
+            emptyTitle="暫無刊登圖片"
+            emptyDescription="這則刊登目前沒有上傳圖片"
+          />
         </div>
 
         {/* Details */}
