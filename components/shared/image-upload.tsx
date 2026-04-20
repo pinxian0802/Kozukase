@@ -6,10 +6,11 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ImageLightbox } from '@/components/shared/image-lightbox'
+import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 
 interface ImageUploadProps {
-  purpose: 'product' | 'listing' | 'connection' | 'avatar'
+  purpose: Purpose
   maxImages?: number
   images: { url: string; r2Key: string }[]
   onChange: (images: { url: string; r2Key: string }[]) => void
@@ -18,47 +19,50 @@ interface ImageUploadProps {
   className?: string
 }
 
-/** Compress and upload files to R2 via /api/upload. Returns uploaded image info. */
+type Purpose = 'product' | 'listing' | 'connection' | 'avatar'
+type GetPresignedUrl = (params: { purpose: Purpose; contentType: string; fileSize: number }) => Promise<{ presignedUrl: string; r2Key: string; publicUrl: string }>
+
+/** Compress files client-side and upload directly to R2 via presigned URLs. */
 export async function uploadImageFiles(
-  purpose: 'product' | 'listing' | 'connection' | 'avatar',
-  files: File[]
+  purpose: Purpose,
+  files: File[],
+  getPresignedUrl: GetPresignedUrl,
 ): Promise<{ url: string; r2Key: string }[]> {
   const { default: imageCompression } = await import('browser-image-compression')
-  const results: { url: string; r2Key: string }[] = []
 
-  for (const file of files) {
-    const compressed = await imageCompression(file, {
-      maxSizeMB: 5,
-      maxWidthOrHeight: 1920,
-      fileType: 'image/webp',
-    })
+  return Promise.all(
+    files.map(async (file) => {
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 5,
+        maxWidthOrHeight: 1920,
+        fileType: 'image/webp',
+      })
 
-    const uploadFile = new File(
-      [compressed],
-      file.name.replace(/\.[^.]+$/, '.webp'),
-      { type: compressed.type || 'image/webp' }
-    )
+      const uploadFile = new File(
+        [compressed],
+        file.name.replace(/\.[^.]+$/, '.webp'),
+        { type: 'image/webp' },
+      )
 
-    const formData = new FormData()
-    formData.append('purpose', purpose)
-    formData.append('file', uploadFile)
+      const { presignedUrl, r2Key, publicUrl } = await getPresignedUrl({
+        purpose,
+        contentType: 'image/webp',
+        fileSize: uploadFile.size,
+      })
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-    })
+      const response = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: uploadFile,
+        headers: { 'Content-Type': 'image/webp' },
+      })
 
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      throw new Error(payload?.error ?? payload?.message ?? '圖片上傳失敗')
-    }
+      if (!response.ok) {
+        throw new Error('圖片上傳失敗')
+      }
 
-    const { r2Key, publicUrl } = await response.json()
-    results.push({ url: publicUrl, r2Key })
-  }
-
-  return results
+      return { url: publicUrl, r2Key }
+    }),
+  )
 }
 
 export function ImageUpload({
@@ -71,6 +75,7 @@ export function ImageUpload({
   className,
 }: ImageUploadProps) {
   const isDeferred = pendingFiles !== undefined && onPendingFilesChange !== undefined
+  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
   const [uploading, setUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [pendingPreviews, setPendingPreviews] = useState<string[]>([])
@@ -129,7 +134,7 @@ export function ImageUpload({
 
       setUploading(true)
       try {
-        const uploaded = await uploadImageFiles(purpose, accepted)
+        const uploaded = await uploadImageFiles(purpose, accepted, getPresignedUrl.mutateAsync)
         onChange([...images, ...uploaded])
       } catch (error) {
         console.error('Upload failed:', error)

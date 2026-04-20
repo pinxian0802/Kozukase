@@ -45,6 +45,7 @@ export default function NewListingPage() {
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
   const createProduct = trpc.product.create.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
+  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
 
   const handleOpenCreate = (name: string) => {
     setProductName(name)
@@ -94,7 +95,7 @@ export default function NewListingPage() {
     createdProductIdRef.current = product.id
 
     if (productPendingFiles.length > 0) {
-      const uploaded = await uploadImageFiles('product', productPendingFiles)
+      const uploaded = await uploadImageFiles('product', productPendingFiles, getPresignedUrl.mutateAsync)
       if (uploaded[0]) {
         try {
           await confirmProductImage.mutateAsync({

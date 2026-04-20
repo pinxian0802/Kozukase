@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
@@ -32,7 +33,7 @@ export const uploadRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: '圖片大小不可超過 5MB' })
       }
 
-      const r2Key = `${input.purpose}/${ctx.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
+      const r2Key = `images/${input.purpose}/users/${ctx.user.id}/${randomUUID()}.webp`
 
       const command = new PutObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
@@ -57,6 +58,15 @@ export const uploadRouter = router({
       url: z.string().url(),
     }))
     .mutation(async ({ ctx, input }) => {
+      const { data: product } = await ctx.db
+        .from('products')
+        .select('seller_id')
+        .eq('id', input.product_id)
+        .single()
+
+      if (!product) throw new TRPCError({ code: 'NOT_FOUND' })
+      if (product.seller_id !== ctx.user.id) throw new TRPCError({ code: 'FORBIDDEN' })
+
       const { data, error } = await ctx.db
         .from('product_images')
         .insert({
@@ -94,10 +104,10 @@ export const uploadRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       const allowedPrefixes = [
-        `product/${ctx.user.id}/`,
-        `listing/${ctx.user.id}/`,
-        `connection/${ctx.user.id}/`,
-        `avatar/${ctx.user.id}/`,
+        `images/product/users/${ctx.user.id}/`,
+        `images/listing/users/${ctx.user.id}/`,
+        `images/connection/users/${ctx.user.id}/`,
+        `images/avatar/users/${ctx.user.id}/`,
       ]
 
       for (const key of input.r2Keys) {

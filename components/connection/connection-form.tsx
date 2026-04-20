@@ -50,6 +50,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const deleteConnection = trpc.connection.delete.useMutation()
   const confirmImages = trpc.upload.confirmConnectionImages.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
+  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
 
   const clearError = (field: keyof typeof errors) => {
     setErrors((current) => {
@@ -102,7 +103,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         createdConnectionId = result.id
 
         if (pendingFiles.length > 0) {
-          const uploadedImages = await uploadImageFiles('connection', pendingFiles)
+          const uploadedImages = await uploadImageFiles('connection', pendingFiles, getPresignedUrl.mutateAsync)
           uploadedR2Keys.push(...uploadedImages.map((img) => img.r2Key))
           const allImages = [...images, ...uploadedImages]
           await confirmImages.mutateAsync({
@@ -114,7 +115,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         toast.dismiss(toastId)
         toast.success('已建立連線公告')
       } else {
-        const uploadedImages = pendingFiles.length > 0 ? await uploadImageFiles('connection', pendingFiles) : []
+        const uploadedImages = pendingFiles.length > 0 ? await uploadImageFiles('connection', pendingFiles, getPresignedUrl.mutateAsync) : []
         const allImages = [...images, ...uploadedImages]
 
         await updateConnection.mutateAsync({

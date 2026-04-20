@@ -73,6 +73,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const deleteListing = trpc.listing.delete.useMutation()
   const confirmImages = trpc.upload.confirmListingImages.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
+  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
 
   const clearError = (field: keyof typeof errors) => {
     setErrors((current) => {
@@ -190,7 +191,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
         // ── Step 2: Upload pending images to R2, collect keys for rollback ──
         if (pendingFiles.length > 0) {
-          const uploadedImages = await uploadImageFiles('listing', pendingFiles)
+          const uploadedImages = await uploadImageFiles('listing', pendingFiles, getPresignedUrl.mutateAsync)
           uploadedR2Keys.push(...uploadedImages.map(img => img.r2Key))
           const allImages = [...images, ...uploadedImages]
           // ── Step 3: Confirm image relations in DB (atomic via RPC) ──
@@ -216,7 +217,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       } else {
         // ── Edit flow: order unchanged (update data → upload → confirm) ──
         const uploadedImages = pendingFiles.length > 0
-          ? await uploadImageFiles('listing', pendingFiles)
+          ? await uploadImageFiles('listing', pendingFiles, getPresignedUrl.mutateAsync)
           : []
         const allImages = [...images, ...uploadedImages]
         const { product_id: _, status: __, ...updateData } = buildInput(status, productId ?? initialData.product_id)
