@@ -49,18 +49,6 @@ export const sellerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { region_ids, ...sellerData } = input
 
-      // Update social verification status
-      if (sellerData.ig_handle !== undefined || sellerData.threads_handle !== undefined) {
-        const currentSeller = ctx.seller
-        const hasIg = sellerData.ig_handle || currentSeller.ig_handle
-        const hasThreads = sellerData.threads_handle || currentSeller.threads_handle
-
-        Object.assign(sellerData, {
-          is_social_verified: !!(hasIg || hasThreads),
-          social_connected_at: (hasIg || hasThreads) ? new Date().toISOString() : null,
-        })
-      }
-
       const { data, error } = await ctx.db
         .from('sellers')
         .update(sellerData)
@@ -83,6 +71,62 @@ export const sellerRouter = router({
       }
 
       return data
+    }),
+
+  getSelf: sellerProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.db
+      .from('sellers')
+      .select('*')
+      .eq('id', ctx.seller.id)
+      .single()
+
+    if (error) throw error
+    return data
+  }),
+
+  disconnectSocial: sellerProcedure
+    .input(z.object({ platform: z.enum(['instagram', 'threads']) }))
+    .mutation(async ({ ctx, input }) => {
+      const sellerId = ctx.seller.id
+
+      // Delete social token
+      await ctx.db
+        .from('social_tokens')
+        .delete()
+        .eq('seller_id', sellerId)
+        .eq('platform', input.platform)
+
+      // Clear seller fields for this platform
+      const clearData: Record<string, null | boolean> = {}
+      if (input.platform === 'instagram') {
+        clearData.ig_handle = null
+        clearData.ig_follower_count = null
+        clearData.ig_connected_at = null
+      } else {
+        clearData.threads_handle = null
+        clearData.threads_follower_count = null
+        clearData.threads_connected_at = null
+      }
+
+      // Recalculate is_social_verified based on whether the other platform is still connected
+      const otherPlatform = input.platform === 'instagram' ? 'threads' : 'instagram'
+      const { data: otherToken } = await ctx.db
+        .from('social_tokens')
+        .select('id')
+        .eq('seller_id', sellerId)
+        .eq('platform', otherPlatform)
+        .maybeSingle()
+
+      clearData.is_social_verified = !!otherToken
+
+      const { error } = await ctx.db
+        .from('sellers')
+        .update(clearData)
+        .eq('id', sellerId)
+
+      if (error) throw error
+
+      return { success: true }
     }),
 
   getById: publicProcedure
