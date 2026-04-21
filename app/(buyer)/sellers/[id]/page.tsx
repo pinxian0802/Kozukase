@@ -26,6 +26,7 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
   const utils = trpc.useUtils()
   const { data: seller, isLoading } = trpc.seller.getById.useQuery({ id })
   const { data: listings } = trpc.seller.getListings.useQuery({ sellerId: id })
+  const { data: connections } = trpc.connection.getBySeller.useQuery({ sellerId: id })
   const { data: reviews } = trpc.review.getBySeller.useQuery({ seller_id: id })
 
   const followToggle = trpc.follow.toggle.useMutation({
@@ -141,7 +142,15 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
         </TabsContent>
 
         <TabsContent value="connections" className="mt-4">
-          <EmptyState icon={Globe} title="尚無進行中的連線代購" />
+          {connections && connections.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {connections.map((c: any) => (
+                <ConnectionCard key={c.id} connection={c} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={Globe} title="尚無進行中的連線代購" />
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -60,12 +60,12 @@ export const uploadRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data: product } = await ctx.db
         .from('products')
-        .select('seller_id')
+        .select('created_by')
         .eq('id', input.product_id)
         .single()
 
       if (!product) throw new TRPCError({ code: 'NOT_FOUND' })
-      if (product.seller_id !== ctx.user.id) throw new TRPCError({ code: 'FORBIDDEN' })
+      if (product.created_by !== ctx.user.id) throw new TRPCError({ code: 'FORBIDDEN' })
 
       const { data, error } = await ctx.db
         .from('product_images')

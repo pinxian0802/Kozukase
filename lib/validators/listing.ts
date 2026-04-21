@@ -10,7 +10,7 @@ const listingSpecSchema = z.object({
 export const createListingInput = z.object({
   product_id: z.string().uuid(),
   status: z.enum(['draft', 'active']),
-  price: z.number().min(0).optional(),
+  price: z.number().min(1).optional(),
   is_price_on_request: z.boolean().default(false),
   specs: z.array(listingSpecSchema).default([]),
   note: z.string().max(1000).optional(),
@@ -22,7 +22,7 @@ export const createListingInput = z.object({
 export const updateListingInput = z.object({
   id: z.string().uuid(),
   product_id: z.string().uuid().optional(),
-  price: z.number().min(0).optional(),
+  price: z.number().min(1).optional(),
   is_price_on_request: z.boolean().optional(),
   specs: z.array(listingSpecSchema).optional(),
   note: z.string().max(1000).optional(),
@@ -34,7 +34,7 @@ export const updateListingInput = z.object({
 export const publishListingInput = z.object({
   id: z.string().uuid(),
   product_id: z.string().uuid(),
-  price: z.number().min(0).optional(),
+  price: z.number().min(1).optional(),
   is_price_on_request: z.boolean(),
   specs: z.array(listingSpecSchema).default([]),
   note: z.string().max(1000).optional(),

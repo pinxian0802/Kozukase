@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
@@ -65,7 +66,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [isCreatingProduct, setIsCreatingProduct] = useState(false)
-  const [errors, setErrors] = useState<{ price?: string; shippingDays?: string; postUrl?: string }>({})
+  const [errors, setErrors] = useState<{ price?: string; shippingDays?: string; postUrl?: string; specs?: string }>({})
 
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
@@ -128,7 +129,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
   const handleSave = async (status: 'draft' | 'active') => {
     if (status === 'active') {
-      const nextErrors: { price?: string; shippingDays?: string; postUrl?: string } = {}
+      const nextErrors: { price?: string; shippingDays?: string; postUrl?: string; specs?: string } = {}
       const trimmedPostUrl = postUrl.trim()
       const trimmedPrice = price.trim()
       const trimmedShippingDays = shippingDays.trim()
@@ -152,9 +153,14 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       if (!isPriceOnRequest) {
         if (!trimmedPrice) {
           nextErrors.price = '價格為必填'
-        } else if (Number(trimmedPrice) < 0) {
-          nextErrors.price = '價格不可小於 0'
+        } else if (Number(trimmedPrice) < 1) {
+          nextErrors.price = '價格不得為0或負數'
         }
+      }
+
+      const invalidSpec = specs.find(s => !s.is_all && s.options.length === 0)
+      if (invalidSpec) {
+        nextErrors.specs = `規格「${invalidSpec.type}」尚未填寫選項，請新增選項或勾選「都有」`
       }
 
       if (Object.keys(nextErrors).length > 0) {
@@ -297,7 +303,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       {/* Price */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label htmlFor="price">價格 (NT$)</Label>
+          <Label htmlFor="price">價格 (NT$) <span className="text-destructive">*</span></Label>
           <div className="flex items-center gap-2">
             <Switch
               id="priceOnRequest"
@@ -331,7 +337,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Shipping */}
       <div>
-        <Label htmlFor="shipping">出貨天數</Label>
+        <Label htmlFor="shipping">出貨天數 <span className="text-destructive">*</span></Label>
         <Input
           id="shipping"
           type="number"
@@ -356,6 +362,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             <Plus className="mr-1 h-3 w-3" />新增規格
           </Button>
         </div>
+        <FormFieldError message={errors.specs} />
         {specs.map((spec, index) => (
           <div key={index} className="mb-4 rounded-lg border p-4 space-y-3">
             <div className="flex items-center gap-2">
@@ -447,7 +454,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Post URL */}
       <div>
-        <Label htmlFor="postUrl">貼文連結</Label>
+        <Label htmlFor="postUrl">貼文連結 <span className="text-destructive">*</span></Label>
         <Input
           id="postUrl"
           type="url"
@@ -465,13 +472,13 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Expires */}
       <div>
-        <Label htmlFor="expires">截止日期（選填）</Label>
-        <Input
-          id="expires"
-          type="date"
+        <Label>截止日期（選填）</Label>
+        <DatePicker
           value={expiresAt}
-          onChange={(e) => setExpiresAt(e.target.value)}
+          onValueChange={setExpiresAt}
+          placeholder="選擇截止日期"
           className="mt-1"
+          minDate={new Date()}
         />
       </div>
 

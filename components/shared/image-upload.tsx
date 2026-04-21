@@ -17,6 +17,7 @@ interface ImageUploadProps {
   pendingFiles?: File[]
   onPendingFilesChange?: (files: File[]) => void
   className?: string
+  invalid?: boolean
 }
 
 type Purpose = 'product' | 'listing' | 'connection' | 'avatar'
@@ -73,6 +74,7 @@ export function ImageUpload({
   pendingFiles,
   onPendingFilesChange,
   className,
+  invalid,
 }: ImageUploadProps) {
   const isDeferred = pendingFiles !== undefined && onPendingFilesChange !== undefined
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
@@ -203,6 +205,7 @@ export function ImageUpload({
             className={cn(
               'flex min-h-56 items-center justify-center rounded-2xl border-2 border-dashed border-border/70 px-4 py-10 text-center transition-colors',
               isDragging && 'border-primary bg-primary/5',
+              invalid && !isDragging && 'border-destructive',
               remainingSlots > 0 && !uploading ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed opacity-70'
             )}
           >

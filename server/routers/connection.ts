@@ -129,6 +129,24 @@ export const connectionRouter = router({
       return { success: true }
     }),
 
+  getBySeller: publicProcedure
+    .input(z.object({ sellerId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db
+        .from('connections')
+        .select(`
+          *,
+          region:regions(id, name),
+          connection_images(id, url, r2_key, sort_order)
+        `)
+        .eq('seller_id', input.sellerId)
+        .eq('status', 'active')
+        .order('start_date', { ascending: true })
+
+      if (error) throw error
+      return data ?? []
+    }),
+
   // Public browse page
   browse: publicProcedure
     .input(z.object({

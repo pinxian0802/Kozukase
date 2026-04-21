@@ -4,13 +4,11 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
-import { FormFieldError } from '@/components/shared/form-field-error'
 import { ProductCard } from '@/components/product/product-card'
 import { ProductSearch, type ProductSearchResult } from '@/components/product/product-search'
+import { ProductForm, type ProductFormData } from '@/components/product/product-form'
 import { ListingForm } from '@/components/listing/listing-form'
+import { uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 
 type SelectedProduct = {
@@ -35,12 +33,9 @@ export default function NewListingPage() {
   // instead of calling createProduct.mutateAsync again.
   const createdProductIdRef = useRef<string | null>(null)
 
-  // Create product form state
-  const [productName, setProductName] = useState('')
-  const [productBrand, setProductBrand] = useState('')
-  const [productModelNumber, setProductModelNumber] = useState('')
-  const [productPendingFiles, setProductPendingFiles] = useState<File[]>([])
-  const [productNameError, setProductNameError] = useState('')
+  // Stores product form data after the user completes step 2,
+  // so createProductForListing can read it when ListingForm submits.
+  const draftProductRef = useRef<ProductFormData | null>(null)
 
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
   const createProduct = trpc.product.create.useMutation()
@@ -48,31 +43,21 @@ export default function NewListingPage() {
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
 
   const handleOpenCreate = (name: string) => {
-    setProductName(name)
-    setProductBrand('')
-    setProductModelNumber('')
-    setProductPendingFiles([])
-    setProductNameError('')
-    // Reset cached product id — user is starting a brand new product
     createdProductIdRef.current = null
+    draftProductRef.current = null
     setStep({ type: 'create', initialName: name })
   }
 
-  const handleContinueToListing = () => {
-    const trimmedName = productName.trim()
-    if (!trimmedName) {
-      setProductNameError('商品名稱為必填')
-      return
-    }
-    setProductNameError('')
+  const handleProductFormContinue = (data: ProductFormData) => {
+    draftProductRef.current = data
     setStep({
       type: 'listing',
       product: {
-        name: trimmedName,
-        brand: productBrand.trim() || null,
-        model_number: productModelNumber.trim() || null,
-        catalog_image_url: productPendingFiles[0]
-          ? URL.createObjectURL(productPendingFiles[0])
+        name: data.name,
+        brand: data.brand.trim() || null,
+        model_number: data.modelNumber.trim() || null,
+        catalog_image_url: data.pendingFiles[0]
+          ? URL.createObjectURL(data.pendingFiles[0])
           : null,
       },
     })
@@ -85,17 +70,19 @@ export default function NewListingPage() {
       return createdProductIdRef.current
     }
 
+    const draft = draftProductRef.current!
     const product = await createProduct.mutateAsync({
-      name: productName.trim(),
-      brand: productBrand.trim() || undefined,
-      model_number: productModelNumber.trim() || undefined,
+      name: draft.name,
+      brand: draft.brand.trim() || undefined,
+      model_number: draft.modelNumber.trim() || undefined,
+      category: draft.category || undefined,
     })
 
     // Persist the id immediately after DB creation so retries are safe
     createdProductIdRef.current = product.id
 
-    if (productPendingFiles.length > 0) {
-      const uploaded = await uploadImageFiles('product', productPendingFiles, getPresignedUrl.mutateAsync)
+    if (draft.pendingFiles.length > 0) {
+      const uploaded = await uploadImageFiles('product', draft.pendingFiles, getPresignedUrl.mutateAsync)
       if (uploaded[0]) {
         try {
           await confirmProductImage.mutateAsync({
@@ -105,8 +92,8 @@ export default function NewListingPage() {
           })
         } catch (err) {
           // confirmProductImage failed: clean up the orphan R2 object.
-          // The product record itself stays — it’s a valid catalog entry
-          // and the caller’s rollback will delete it if the whole flow fails.
+          // The product record itself stays — it's a valid catalog entry
+          // and the caller's rollback will delete it if the whole flow fails.
           await deleteObjects.mutateAsync({ r2Keys: [uploaded[0].r2Key] }).catch(() => {})
           throw err
         }
@@ -127,7 +114,7 @@ export default function NewListingPage() {
           <h1 className="text-2xl font-bold font-heading">新增代購</h1>
         </div>
         <div className="space-y-2">
-            <p className="text-muted-foreground">第一步：搜尋或新增商品</p>
+          <p className="text-muted-foreground">第一步：搜尋或新增商品</p>
           <ProductSearch
             onSelect={(p: ProductSearchResult) =>
               setStep({
@@ -151,68 +138,11 @@ export default function NewListingPage() {
   // ── Step: create new product ─────────────────────────────────────────────
   if (step.type === 'create') {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center gap-3">
-          <Button type="button" variant="ghost" size="icon" onClick={() => setStep({ type: 'select' })}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-            <h1 className="text-2xl font-bold font-heading">新增商品</h1>
-        </div>
-
-        <div className="space-y-5">
-          {/* Catalog image */}
-          <div>
-            <Label>商品目錄圖片（選填）</Label>
-            <p className="text-xs text-muted-foreground mb-2">此圖片用於商品目錄，與上架圖片不同</p>
-            <ImageUpload
-              purpose="product"
-              maxImages={1}
-              images={[]}
-              onChange={() => {}}
-              pendingFiles={productPendingFiles}
-              onPendingFilesChange={setProductPendingFiles}
-            />
-          </div>
-
-          {/* Name */}
-          <div className="space-y-1.5">
-            <Label htmlFor="product-name">商品名稱 *</Label>
-            <Input
-              id="product-name"
-              value={productName}
-              onChange={(e) => {
-                setProductName(e.target.value)
-                if (productNameError) setProductNameError('')
-              }}
-              placeholder="輸入商品名稱"
-              aria-invalid={!!productNameError}
-            />
-            <FormFieldError message={productNameError} />
-          </div>
-
-          {/* Model number (optional) */}
-          <div className="space-y-1.5">
-            <Label htmlFor="product-model">
-              型號 <span className="text-muted-foreground text-xs">（選填）</span>
-            </Label>
-            <Input
-              id="product-model"
-              value={productModelNumber}
-              onChange={(e) => setProductModelNumber(e.target.value)}
-              placeholder="輸入型號"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => setStep({ type: 'select' })}>
-              取消
-            </Button>
-            <Button type="button" onClick={handleContinueToListing}>
-              下一步
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ProductForm
+        initialName={step.initialName}
+        onBack={() => setStep({ type: 'select' })}
+        onContinue={handleProductFormContinue}
+      />
     )
   }
 
