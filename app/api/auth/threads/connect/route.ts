@@ -28,7 +28,7 @@ export async function GET() {
   const params = new URLSearchParams({
     client_id: process.env.THREADS_CLIENT_ID!,
     redirect_uri: process.env.THREADS_REDIRECT_URI!,
-    scope: 'threads_basic',
+    scope: 'threads_basic,threads_manage_insights',
     response_type: 'code',
     state,
   })

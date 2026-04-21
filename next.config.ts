@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const r2PublicUrl = process.env.R2_PUBLIC_URL ? new URL(process.env.R2_PUBLIC_URL) : null;
 
 const nextConfig: NextConfig = {
+	allowedDevOrigins: ['wisplike-marina-emphasis.ngrok-free.dev'],
 	images: {
 		remotePatterns: [
 			{

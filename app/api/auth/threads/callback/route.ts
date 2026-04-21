@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error')
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-  const profileUrl = `${appUrl}/dashboard/profile`
+  const origin = request.nextUrl.origin
+  const profileUrl = `${origin}/dashboard/profile`
 
   // 用戶在 Meta 頁面取消授權
   if (error === 'access_denied') {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.redirect(`${appUrl}/login?next=/dashboard/profile`)
+    return NextResponse.redirect(`${origin}/login?next=/dashboard/profile`)
   }
 
   try {
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
     let followersCount: number | null = null
     let fetchFailed = false
 
-    // Step 3: 取得帳號資訊（Threads 基本資訊；粉絲數可能不可用）
+    // Step 3: 取得帳號基本資訊
     try {
       const profileResp = await fetch(
         `https://graph.threads.net/me?fields=id,username,threads_profile_picture_url&access_token=${accessToken}`
@@ -89,14 +90,31 @@ export async function GET(request: NextRequest) {
       if (profileResp.ok) {
         const profile = await profileResp.json()
         username = profile.username ?? ''
-        // Threads API 目前未提供 followers_count
-        followersCount = profile.followers_count ?? null
       } else {
+        const errText = await profileResp.text()
+        console.error('[Threads OAuth] Profile fetch failed:', profileResp.status, errText)
         fetchFailed = true
       }
     } catch {
       fetchFailed = true
       console.error('[Threads OAuth] Profile fetch failed')
+    }
+
+    // Step 3b: 嘗試取得粉絲數（需要 threads_manage_insights 權限，失敗不影響主流程）
+    try {
+      const followersResp = await fetch(
+        `https://graph.threads.net/me/threads_insights?metric=followers_count&period=lifetime&access_token=${accessToken}`
+      )
+      if (followersResp.ok) {
+        const data = await followersResp.json()
+        const metric = data.data?.[0]?.total_value?.value
+        followersCount = typeof metric === 'number' ? metric : null
+      } else {
+        const errText = await followersResp.text()
+        console.warn('[Threads OAuth] followers_count fetch failed:', followersResp.status, errText)
+      }
+    } catch {
+      console.warn('[Threads OAuth] followers_count fetch exception')
     }
 
     // Step 4: 加密儲存 token

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ngrok version *)",
+      "Bash(winget install *)",
+      "Bash(\"/c/Users/Panda/AppData/Local/Microsoft/WinGet/Packages/Ngrok.Ngrok_Microsoft.Winget.Source_8wekyb3d8bbwe/ngrok.exe\" version *)",
+      "Bash(ngrok config *)",
+      "Bash(/c/Users/Panda/AppData/Local/Microsoft/WinGet/Packages/Ngrok.Ngrok_Microsoft.Winget.Source_8wekyb3d8bbwe/ngrok.exe config *)",
+      "Bash(netstat -ano)",
+      "Bash(\"/c/Users/Panda/AppData/Local/Microsoft/WinGet/Packages/Ngrok.Ngrok_Microsoft.Winget.Source_8wekyb3d8bbwe/ngrok.exe\" http *)",
+      "Bash(curl -s http://localhost:4040/api/tunnels)",
+      "Bash(/c/Users/Panda/AppData/Local/Microsoft/WinGet/Packages/Ngrok.Ngrok_Microsoft.Winget.Source_8wekyb3d8bbwe/ngrok.exe update *)",
+      "Bash(xargs grep *)",
+      "Bash(openssl rand *)",
+      "Bash(awk '{print $5}')",
+      "Bash(taskkill //PID 37988 //F)",
+      "Bash(npm run *)",
+      "Bash(taskkill //PID 25548 //F)",
+      "Bash(curl *)",
+      "Bash(taskkill //PID 11040 //F)"
+    ]
+  }
+}
