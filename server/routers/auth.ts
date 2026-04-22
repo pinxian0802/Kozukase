@@ -1,3 +1,5 @@
+import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { router, publicProcedure, protectedProcedure } from '../trpc'
 
 export function buildProfilePayload(user: {
@@ -31,6 +33,7 @@ export const authRouter = router({
         profile,
         isSeller: !!profile.sellers,
         isAdmin: ctx.user.app_metadata?.role === 'admin',
+        needsOnboarding: !profile.username,
       }
     }
 
@@ -49,12 +52,13 @@ export const authRouter = router({
       .single()
 
     if (fetchError) throw fetchError
-    
+
     return {
       user: ctx.user,
       profile: createdProfile,
       isSeller: !!createdProfile?.sellers,
       isAdmin: ctx.user.app_metadata?.role === 'admin',
+      needsOnboarding: !createdProfile?.username,
     }
   }),
 
@@ -76,4 +80,51 @@ export const authRouter = router({
     if (error) throw error
     return profile
   }),
+
+  checkUsername: publicProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { data } = await ctx.db
+        .from('profiles')
+        .select('id')
+        .eq('username', input.username)
+        .maybeSingle()
+      return { available: !data }
+    }),
+
+  completeOnboarding: protectedProcedure
+    .input(z.object({
+      username: z.string().regex(/^[a-z0-9]{3,20}$/, 'username 只能包含小寫英文和數字，長度 3-20'),
+      display_name: z.string().min(1, '顯示名稱為必填').max(50),
+      avatar_url: z.string().url().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: existing } = await ctx.db
+        .from('profiles')
+        .select('username')
+        .eq('id', ctx.user.id)
+        .single()
+
+      if (existing?.username) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '個人資料已設定完成' })
+      }
+
+      const { error } = await ctx.db
+        .from('profiles')
+        .update({
+          username: input.username,
+          display_name: input.display_name,
+          avatar_url: input.avatar_url ?? null,
+        })
+        .eq('id', ctx.user.id)
+
+      if (error) {
+        if (error.code === '23505') {
+          throw new TRPCError({ code: 'CONFLICT', message: '此 username 已被使用' })
+        }
+        throw error
+      }
+
+      return { success: true }
+    }),
 })

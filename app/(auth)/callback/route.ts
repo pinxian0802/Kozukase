@@ -31,6 +31,18 @@ export async function GET(request: NextRequest) {
         if (profileError && profileError.code !== '23505') {
           throw profileError
         }
+
+        const { data: profile } = await getDb()
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile?.username) {
+          const onboardingUrl = new URL(`${origin}/onboarding`)
+          if (next !== '/') onboardingUrl.searchParams.set('next', next)
+          return NextResponse.redirect(onboardingUrl.toString())
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`)

@@ -10,6 +10,7 @@ export type ServerSession = {
   }
   profile: {
     id: string
+    username: string | null
     display_name: string | null
     avatar_url: string | null
     sellers: Record<string, unknown> | null
@@ -17,6 +18,7 @@ export type ServerSession = {
   }
   isSeller: boolean
   isAdmin: boolean
+  needsOnboarding: boolean
 } | null
 
 /**
@@ -52,5 +54,6 @@ export const getServerSession = cache(async (): Promise<ServerSession> => {
     },
     isSeller: !!profile.sellers,
     isAdmin: user.app_metadata?.role === 'admin',
+    needsOnboarding: !profile.username,
   }
 })

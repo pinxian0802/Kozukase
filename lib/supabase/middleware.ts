@@ -9,6 +9,7 @@ const AUTH_REQUIRED_PREFIXES = [
   '/notifications',
   '/dashboard',
   '/admin',
+  '/onboarding',
 ]
 
 export async function updateSession(request: NextRequest) {

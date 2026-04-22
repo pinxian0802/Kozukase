@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Loader2, Mail, KeyRound } from 'lucide-react'
+import { Loader2, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button'
@@ -21,7 +21,7 @@ import {
   getSafeNextPath,
 } from '@/lib/supabase/auth-error'
 
-type LoginAction = 'google' | 'password' | 'magic-link' | null
+type LoginAction = 'google' | 'password' | null
 type LoginErrors = {
   email?: string
   password?: string
@@ -34,7 +34,6 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [emailSent, setEmailSent] = useState(false)
   const [loadingAction, setLoadingAction] = useState<LoginAction>(null)
   const [errors, setErrors] = useState<LoginErrors>({})
 
@@ -106,37 +105,6 @@ export default function LoginPage() {
     toast.success('登入成功')
     router.push(safeNext)
     router.refresh()
-  }
-
-  const handleMagicLinkLogin = async () => {
-    const trimmedEmail = email.trim()
-    if (!trimmedEmail) {
-      setErrors((current) => ({ ...current, email: 'Email 為必填' }))
-      return
-    }
-
-    setErrors((current) => {
-      const next = { ...current }
-      delete next.email
-      return next
-    })
-    setLoadingAction('magic-link')
-    const supabase = createSupabaseBrowserClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email: trimmedEmail,
-      options: {
-        emailRedirectTo: buildAuthCallbackUrl(window.location.origin, safeNext),
-      },
-    })
-    setLoadingAction(null)
-
-    if (error) {
-      toast.error(getAuthErrorMessage(error, '登入連結寄送失敗，請稍後再試'))
-      return
-    }
-
-    setEmailSent(true)
-    toast.success('登入連結已寄出')
   }
 
   return (
@@ -254,26 +222,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={handleMagicLinkLogin}
-            disabled={loadingAction !== null}
-          >
-            {loadingAction === 'magic-link' ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Mail className="mr-2 h-4 w-4" />
-            )}
-            改用 Magic Link 登入
-          </Button>
-
-          {emailSent && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-              登入連結已寄到 <span className="font-medium">{email.trim()}</span>，請到信箱完成登入。
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
