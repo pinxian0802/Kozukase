@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { AvatarUpload } from '@/components/shared/avatar-upload'
+import { uploadImageFiles } from '@/components/shared/image-upload'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { getAuthErrorMessage, getSafeNextPath } from '@/lib/supabase/auth-error'
 import { trpc } from '@/lib/trpc/client'
@@ -30,11 +31,13 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
 
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const completeOnboarding = trpc.auth.completeOnboarding.useMutation()
+  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
   const usernameCheck = trpc.auth.checkUsername.useQuery(
     { username: debouncedUsername },
     { enabled: USERNAME_REGEX.test(debouncedUsername), staleTime: 10000 }
@@ -110,10 +113,16 @@ export default function OnboardingPage() {
         }
       }
 
+      let finalAvatarUrl = avatarImage?.url
+      if (pendingFile) {
+        const [uploaded] = await uploadImageFiles('avatar', [pendingFile], getPresignedUrl.mutateAsync)
+        finalAvatarUrl = uploaded.url
+      }
+
       await completeOnboarding.mutateAsync({
         username,
         display_name: displayName.trim(),
-        avatar_url: avatarImage?.url,
+        avatar_url: finalAvatarUrl,
       })
 
       toast.success('歡迎加入！')
@@ -150,6 +159,8 @@ export default function OnboardingPage() {
               <AvatarUpload
                 value={avatarImage}
                 onChange={setAvatarImage}
+                pendingFile={pendingFile}
+                onPendingFileChange={setPendingFile}
                 className="mt-1"
               />
             </div>
