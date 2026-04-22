@@ -127,4 +127,23 @@ export const authRouter = router({
 
       return { success: true }
     }),
+
+  updateProfile: protectedProcedure
+    .input(z.object({
+      display_name: z.string().min(1, '顯示名稱為必填').max(50).optional(),
+      avatar_url: z.string().url().nullable().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const updates: Record<string, unknown> = {}
+      if (input.display_name !== undefined) updates.display_name = input.display_name
+      if (input.avatar_url !== undefined) updates.avatar_url = input.avatar_url
+
+      const { error } = await ctx.db
+        .from('profiles')
+        .update(updates)
+        .eq('id', ctx.user.id)
+
+      if (error) throw error
+      return { success: true }
+    }),
 })
