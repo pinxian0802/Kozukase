@@ -98,7 +98,6 @@ function SearchContent() {
           {/* Mobile filter */}
           <Sheet>
             <SheetTrigger
-              nativeButton={false}
               render={<Button variant="outline" size="icon" className="md:hidden"><SlidersHorizontal className="h-4 w-4" /></Button>}
             />
             <SheetContent side="left">
