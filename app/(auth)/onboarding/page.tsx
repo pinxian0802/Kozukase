@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormFieldError } from '@/components/shared/form-field-error'
-import { ImageUpload } from '@/components/shared/image-upload'
+import { AvatarUpload } from '@/components/shared/avatar-upload'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { getAuthErrorMessage, getSafeNextPath } from '@/lib/supabase/auth-error'
 import { trpc } from '@/lib/trpc/client'
@@ -29,7 +29,7 @@ export default function OnboardingPage() {
   const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [avatarImages, setAvatarImages] = useState<{ url: string; r2Key: string }[]>([])
+  const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
 
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
       await completeOnboarding.mutateAsync({
         username,
         display_name: displayName.trim(),
-        avatar_url: avatarImages[0]?.url,
+        avatar_url: avatarImage?.url,
       })
 
       toast.success('歡迎加入！')
@@ -147,11 +147,9 @@ export default function OnboardingPage() {
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
               <Label>頭貼（選填）</Label>
-              <ImageUpload
-                purpose="avatar"
-                maxImages={1}
-                images={avatarImages}
-                onChange={setAvatarImages}
+              <AvatarUpload
+                value={avatarImage}
+                onChange={setAvatarImage}
                 className="mt-1"
               />
             </div>
