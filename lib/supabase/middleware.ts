@@ -19,6 +19,8 @@ const ONBOARDING_BYPASS_PREFIXES = [
   '/login',
   '/register',
   '/callback',
+  '/forgot-password',
+  '/reset-password',
   '/api',
 ]
 

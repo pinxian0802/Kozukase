@@ -15,7 +15,7 @@ export function getSafeNextPath(nextPath: string | null | undefined) {
     return '/'
   }
 
-  const blockedPrefixes = ['/onboarding', '/login', '/register', '/callback']
+  const blockedPrefixes = ['/onboarding', '/login', '/register', '/callback', '/forgot-password', '/reset-password']
   if (blockedPrefixes.some((prefix) => nextPath === prefix || nextPath.startsWith(`${prefix}/`) || nextPath.startsWith(`${prefix}?`))) {
     return '/'
   }
@@ -61,6 +61,10 @@ export function getAuthErrorMessage(
 
   if (normalized.includes('user already registered')) {
     return '此 Email 已註冊，請直接登入'
+  }
+
+  if (normalized.includes('user not found')) {
+    return '找不到此 Email 帳號'
   }
 
   if (normalized.includes('signup is disabled')) {

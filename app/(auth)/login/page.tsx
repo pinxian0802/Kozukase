@@ -224,6 +224,9 @@ export default function LoginPage() {
                 aria-invalid={!!errors.password}
               />
               <FormFieldError message={errors.password} />
+              <Link href="/forgot-password" className="mt-1 block text-right text-sm text-primary underline-offset-4 hover:underline">
+                忘記密碼？
+              </Link>
             </div>
 
             <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={loadingAction !== null}>
