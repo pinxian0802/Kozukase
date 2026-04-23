@@ -102,6 +102,20 @@ export default function LoginPage() {
       return
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single()
+      if (!profile?.username) {
+        router.push(`/onboarding${safeNext !== '/' ? `?next=${encodeURIComponent(safeNext)}` : ''}`)
+        router.refresh()
+        return
+      }
+    }
+
     toast.success('登入成功')
     router.push(safeNext)
     router.refresh()

@@ -45,9 +45,18 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) {
         router.replace('/login')
+        return
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single()
+      if (profile?.username) {
+        router.replace('/')
         return
       }
       setIsEmailUser(user.app_metadata?.provider === 'email')
@@ -134,6 +143,7 @@ export default function OnboardingPage() {
         setErrors(prev => ({ ...prev, username: '此 username 已被使用' }))
       } else if (message.includes('已設定完成')) {
         router.push(safeNext)
+        router.refresh()
       } else {
         toast.error('設定失敗，請稍後再試')
       }
@@ -145,7 +155,7 @@ export default function OnboardingPage() {
   if (!ready) return null
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary/5 to-background px-4 py-10">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-primary/5 to-background px-4 py-10">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2 text-center">
           <CardTitle className="text-xl">設定個人資料</CardTitle>

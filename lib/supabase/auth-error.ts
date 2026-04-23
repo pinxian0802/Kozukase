@@ -14,6 +14,12 @@ export function getSafeNextPath(nextPath: string | null | undefined) {
   if (!nextPath || !nextPath.startsWith('/') || nextPath.startsWith('//')) {
     return '/'
   }
+
+  const blockedPrefixes = ['/onboarding', '/login', '/register', '/callback']
+  if (blockedPrefixes.some((prefix) => nextPath === prefix || nextPath.startsWith(`${prefix}/`) || nextPath.startsWith(`${prefix}?`))) {
+    return '/'
+  }
+
   return nextPath
 }
 
