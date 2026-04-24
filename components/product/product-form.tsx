@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ImageUpload } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
+import { trpc } from '@/lib/trpc/client'
 import type { ProductCategory } from '@/lib/validators/product'
 
 export interface ProductFormData {
@@ -16,6 +17,7 @@ export interface ProductFormData {
   brand: string
   modelNumber: string
   category: ProductCategory | ''
+  regionId: string
   pendingFiles: File[]
 }
 
@@ -30,9 +32,13 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
   const [brand, setBrand] = useState('')
   const [modelNumber, setModelNumber] = useState('')
   const [category, setCategory] = useState<ProductCategory | ''>('')
+  const [regionId, setRegionId] = useState('')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [nameError, setNameError] = useState('')
   const [imageError, setImageError] = useState('')
+
+  const { data: regions } = trpc.seller.getRegions.useQuery()
+  const regionLabelById = new Map((regions ?? []).map((r: { id: string; name: string }) => [r.id, r.name]))
 
   const handleContinue = () => {
     const trimmedName = name.trim()
@@ -54,7 +60,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
 
     if (hasError) return
 
-    onContinue({ name: trimmedName, brand, modelNumber, category, pendingFiles })
+    onContinue({ name: trimmedName, brand, modelNumber, category, regionId, pendingFiles })
   }
 
   return (
@@ -135,6 +141,24 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
             <SelectContent>
               {Object.entries(PRODUCT_CATEGORY_LABELS).map(([key, label]) => (
                 <SelectItem key={key} value={key}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>
+            商品國家 <span className="text-muted-foreground text-xs">（選填）</span>
+          </Label>
+          <Select value={regionId} onValueChange={setRegionId}>
+            <SelectTrigger>
+              <SelectValue placeholder="選擇國家">
+                {(value: string) => (value ? regionLabelById.get(value) ?? '選擇國家' : '選擇國家')}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {(regions ?? []).map((r: { id: string; name: string }) => (
+                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>

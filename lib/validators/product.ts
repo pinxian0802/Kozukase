@@ -10,6 +10,7 @@ export const createProductInput = z.object({
   brand: z.string().max(100).optional(),
   model_number: z.string().max(100).optional(),
   category: productCategoryEnum.optional(),
+  region_id: z.string().uuid().optional(),
 })
 
 export const searchProductsInput = z.object({

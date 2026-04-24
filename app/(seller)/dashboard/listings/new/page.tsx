@@ -76,6 +76,7 @@ export default function NewListingPage() {
       brand: draft.brand.trim() || undefined,
       model_number: draft.modelNumber.trim() || undefined,
       category: draft.category || undefined,
+      region_id: draft.regionId || undefined,
     })
 
     // Persist the id immediately after DB creation so retries are safe

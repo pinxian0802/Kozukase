@@ -147,6 +147,7 @@ export const productRouter = router({
           brand: input.brand || null,
           model_number: input.model_number || null,
           category: input.category || null,
+          region_id: input.region_id || null,
           created_by: ctx.user.id,
         })
         .select()
