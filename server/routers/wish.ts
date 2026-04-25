@@ -47,7 +47,7 @@ export const wishRouter = router({
         .select(`
           id, created_at,
           product:products(
-            id, name, brand, model_number, category, wish_count,
+            id, name, brand:brands(name), model_number, category, wish_count,
             catalog_image:product_images!fk_catalog_image(id, url, r2_key),
             product_images:product_images!product_images_product_id_fkey(id, url, r2_key)
           )
@@ -76,7 +76,7 @@ export const wishRouter = router({
       let query = ctx.db
         .from('products')
         .select(`
-          id, name, brand, model_number, category, wish_count,
+          id, name, brand:brands(name), model_number, category, wish_count,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key)
         `)

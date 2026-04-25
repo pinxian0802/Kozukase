@@ -27,7 +27,7 @@ export const productRouter = router({
       let query = ctx.db
         .from('products')
         .select(`
-          id, name, brand, model_number, category, wish_count, created_at,
+          id, name, brand:brands(name), model_number, category, wish_count, created_at,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
           listings!inner(id, price, is_price_on_request, shipping_days, created_at,
@@ -98,6 +98,7 @@ export const productRouter = router({
         .from('products')
         .select(`
           *,
+          brand:brands(name),
           catalog_image:product_images!fk_catalog_image(id, url, r2_key),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
           listings(
@@ -144,7 +145,7 @@ export const productRouter = router({
         .from('products')
         .insert({
           name: input.name,
-          brand: input.brand || null,
+          brand_id: input.brand_id || null,
           model_number: input.model_number || null,
           category: input.category || null,
           region_id: input.region_id || null,

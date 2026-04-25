@@ -6,15 +6,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SearchableSelect } from '@/components/ui/searchable-select'
 import { ImageUpload } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { BrandSelect } from '@/components/shared/brand-select'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { trpc } from '@/lib/trpc/client'
 import type { ProductCategory } from '@/lib/validators/product'
 
 export interface ProductFormData {
   name: string
-  brand: string
+  brand_id: string
   modelNumber: string
   category: ProductCategory | ''
   regionId: string
@@ -29,7 +31,7 @@ interface ProductFormProps {
 
 export function ProductForm({ initialName, onBack, onContinue }: ProductFormProps) {
   const [name, setName] = useState(initialName)
-  const [brand, setBrand] = useState('')
+  const [brandId, setBrandId] = useState('none')
   const [modelNumber, setModelNumber] = useState('')
   const [category, setCategory] = useState<ProductCategory | ''>('')
   const [regionId, setRegionId] = useState('')
@@ -38,7 +40,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
   const [imageError, setImageError] = useState('')
 
   const { data: regions } = trpc.seller.getRegions.useQuery()
-  const regionLabelById = new Map((regions ?? []).map((r: { id: string; name: string }) => [r.id, r.name]))
+
 
   const handleContinue = () => {
     const trimmedName = name.trim()
@@ -60,7 +62,14 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
 
     if (hasError) return
 
-    onContinue({ name: trimmedName, brand, modelNumber, category, regionId, pendingFiles })
+    onContinue({
+      name: trimmedName,
+      brand_id: brandId === 'none' ? undefined : brandId,
+      modelNumber,
+      category,
+      regionId,
+      pendingFiles,
+    })
   }
 
   return (
@@ -107,14 +116,13 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="product-brand">
+          <Label>
             品牌 <span className="text-muted-foreground text-xs">（選填）</span>
           </Label>
-          <Input
-            id="product-brand"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-            placeholder="輸入品牌名稱"
+          <BrandSelect
+            value={brandId}
+            onValueChange={setBrandId}
+            placeholder="選擇或新增品牌"
           />
         </div>
 
@@ -150,18 +158,14 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
           <Label>
             商品國家 <span className="text-muted-foreground text-xs">（選填）</span>
           </Label>
-          <Select value={regionId} onValueChange={setRegionId}>
-            <SelectTrigger>
-              <SelectValue placeholder="選擇國家">
-                {(value: string) => (value ? regionLabelById.get(value) ?? '選擇國家' : '選擇國家')}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {(regions ?? []).map((r: { id: string; name: string }) => (
-                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={regionId}
+            onValueChange={setRegionId}
+            options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
+            placeholder="選擇國家"
+            searchPlaceholder="搜尋國家..."
+            emptyText="找不到相符的國家"
+          />
         </div>
 
         <div className="flex gap-3 pt-2">

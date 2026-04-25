@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 export type ProductCardProduct = {
   id: string
   name: string
-  brand?: string | null
+  brand?: string | { name: string } | null
   model_number?: string | null
   catalog_image?: { url: string } | null
   catalog_image_url?: string | null
@@ -24,6 +24,7 @@ type ProductCardProps = {
 
 export function ProductCard({ product, href, linkToProduct = true, onClick, className, variant = 'default' }: ProductCardProps) {
   const imageUrl = product.catalog_image?.url ?? product.catalog_image_url ?? product.product_images?.[0]?.url ?? null
+  const brandLabel = typeof product.brand === 'string' ? product.brand : product.brand?.name ?? null
 
   const card = (
     <div
@@ -75,8 +76,8 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       <div className={variant === 'compact' ? 'min-w-0 flex-1 py-0.5' : 'pt-2'}>
         <div className={variant === 'compact' ? 'grid min-h-[4.25rem] gap-1' : 'grid min-h-[3.5rem] gap-1'}>
           <div className={variant === 'compact' ? 'h-4 overflow-hidden' : 'h-4 overflow-hidden'}>
-            {product.brand ? (
-              <p className={variant === 'compact' ? 'truncate text-[11px] font-medium leading-none text-muted-foreground' : 'truncate text-xs font-medium leading-none text-muted-foreground'}>{product.brand}</p>
+            {brandLabel ? (
+              <p className={variant === 'compact' ? 'truncate text-[11px] font-medium leading-none text-muted-foreground' : 'truncate text-xs font-medium leading-none text-muted-foreground'}>{brandLabel}</p>
             ) : (
               <span aria-hidden="true" className={variant === 'compact' ? 'block h-4' : 'block h-4'} />
             )}

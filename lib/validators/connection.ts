@@ -6,6 +6,7 @@ export const createConnectionInput = z.object({
   start_date: z.string(),
   end_date: z.string(),
   description: z.string().max(500).optional(),
+  brand_ids: z.array(z.string().uuid()).optional(),
 })
 
 export const updateConnectionInput = z.object({
@@ -15,4 +16,5 @@ export const updateConnectionInput = z.object({
   start_date: z.string().optional(),
   end_date: z.string().optional(),
   description: z.string().max(500).nullable().optional(),
+  brand_ids: z.array(z.string().uuid()).optional(),
 })

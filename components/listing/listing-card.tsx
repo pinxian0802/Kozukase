@@ -10,7 +10,7 @@ interface ListingCardProps {
     is_price_on_request: boolean
     shipping_days: number
     status: string
-    product?: { id: string; name: string; brand?: string | null; model_number?: string | null } | null
+    product?: { id: string; name: string; brand?: string | { name: string } | null; model_number?: string | null } | null
     seller?: { id: string; name: string } | null
     listing_images?: { url: string; sort_order: number }[]
   }
@@ -19,6 +19,7 @@ interface ListingCardProps {
 
 export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
   const firstImage = listing.listing_images?.sort((a, b) => a.sort_order - b.sort_order)[0]
+  const brandLabel = typeof listing.product?.brand === 'string' ? listing.product.brand : listing.product?.brand?.name ?? null
 
   const statusLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
     draft: { label: '草稿', variant: 'secondary' },
@@ -50,8 +51,8 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
           {listing.product && (
             <div className="grid min-h-[3rem] gap-1">
               <div className="h-3.5 overflow-hidden">
-                {listing.product.brand ? (
-                  <p className="truncate text-[11px] font-medium leading-none text-muted-foreground">{listing.product.brand}</p>
+                {brandLabel ? (
+                  <p className="truncate text-[11px] font-medium leading-none text-muted-foreground">{brandLabel}</p>
                 ) : (
                   <span aria-hidden="true" className="block h-3.5" />
                 )}

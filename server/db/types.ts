@@ -88,7 +88,8 @@ export type SellerRegion = {
 export type Product = {
   id: string
   name: string
-  brand: string | null
+  brand_id: string | null
+  brand?: { name: string } | null
   category: ProductCategory | null
   catalog_image_id: string | null
   is_removed: boolean

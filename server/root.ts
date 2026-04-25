@@ -12,6 +12,7 @@ import { notificationRouter } from './routers/notification'
 import { reportRouter } from './routers/report'
 import { uploadRouter } from './routers/upload'
 import { adminRouter } from './routers/admin'
+import { brandRouter } from './routers/brand'
 
 export const appRouter = router({
   auth: authRouter,
@@ -23,6 +24,7 @@ export const appRouter = router({
   follow: followRouter,
   wish: wishRouter,
   connection: connectionRouter,
+  brand: brandRouter,
   notification: notificationRouter,
   report: reportRouter,
   upload: uploadRouter,

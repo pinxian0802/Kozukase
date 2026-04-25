@@ -14,7 +14,8 @@ import { trpc } from '@/lib/trpc/client'
 type SelectedProduct = {
   id?: string
   name: string
-  brand?: string | null
+  brand_id?: string | null
+  brand_name?: string | null
   model_number?: string | null
   catalog_image_url?: string | null
 }
@@ -38,6 +39,7 @@ export default function NewListingPage() {
   const draftProductRef = useRef<ProductFormData | null>(null)
 
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
+  const { data: brands } = trpc.brand.list.useQuery()
   const createProduct = trpc.product.create.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
@@ -49,12 +51,14 @@ export default function NewListingPage() {
   }
 
   const handleProductFormContinue = (data: ProductFormData) => {
+    const brandName = brands?.find((brand) => brand.id === data.brand_id)?.name ?? null
     draftProductRef.current = data
     setStep({
       type: 'listing',
       product: {
         name: data.name,
-        brand: data.brand.trim() || null,
+        brand_id: data.brand_id || null,
+        brand_name: brandName,
         model_number: data.modelNumber.trim() || null,
         catalog_image_url: data.pendingFiles[0]
           ? URL.createObjectURL(data.pendingFiles[0])
@@ -73,7 +77,7 @@ export default function NewListingPage() {
     const draft = draftProductRef.current!
     const product = await createProduct.mutateAsync({
       name: draft.name,
-      brand: draft.brand.trim() || undefined,
+      brand_id: draft.brand_id || undefined,
       model_number: draft.modelNumber.trim() || undefined,
       category: draft.category || undefined,
       region_id: draft.regionId || undefined,
@@ -123,7 +127,7 @@ export default function NewListingPage() {
                 product: {
                   id: p.id,
                   name: p.name,
-                  brand: p.brand,
+                  brand_name: p.brand ?? null,
                   model_number: p.model_number,
                   catalog_image_url: p.catalog_image_url,
                 },
@@ -163,7 +167,7 @@ export default function NewListingPage() {
           product={{
             id: product.id ?? 'draft-product',
             name: product.name,
-            brand: product.brand,
+            brand: product.brand_name,
             model_number: product.model_number,
             catalog_image_url: product.catalog_image_url,
           }}

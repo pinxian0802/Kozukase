@@ -7,7 +7,7 @@ export const productCategoryEnum = z.enum([
 
 export const createProductInput = z.object({
   name: z.string().min(1, '商品名稱為必填').max(200),
-  brand: z.string().max(100).optional(),
+  brand_id: z.string().uuid().optional(),
   model_number: z.string().max(100).optional(),
   category: productCategoryEnum.optional(),
   region_id: z.string().uuid().optional(),

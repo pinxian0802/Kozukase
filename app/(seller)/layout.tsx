@@ -12,7 +12,7 @@ export default async function SellerLayout({ children }: { children: React.React
   }
 
   if (!session.isSeller) {
-    redirect('/settings')
+    redirect('/become-seller')
   }
 
   return (

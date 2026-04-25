@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { BrandSelect } from '@/components/shared/brand-select'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import type { ProductCategory } from '@/lib/validators/product'
 
@@ -22,7 +23,8 @@ type AdminProductImage = {
 export type AdminEditableProduct = {
   id: string
   name: string
-  brand: string | null
+  brand_id: string | null
+  brand?: { name: string } | null
   model_number: string | null
   category: ProductCategory | null
   catalog_image_id: string | null
@@ -33,7 +35,7 @@ export type AdminEditableProduct = {
 export type AdminProductEditValues = {
   id: string
   name: string
-  brand: string | null
+  brand_id: string | null
   model_number: string | null
   category: ProductCategory
   catalog_image_id: string | null
@@ -49,7 +51,7 @@ type ProductEditDialogProps = {
 
 export function ProductEditDialog({ product, open, onOpenChange, onSave, isPending = false }: ProductEditDialogProps) {
   const [name, setName] = useState(() => product?.name ?? '')
-  const [brand, setBrand] = useState(() => product?.brand ?? '')
+  const [brandId, setBrandId] = useState(() => product?.brand_id ?? 'none')
   const [modelNumber, setModelNumber] = useState(() => product?.model_number ?? '')
   const [category, setCategory] = useState<ProductCategory>(() => product?.category ?? 'other')
   const [catalogImageId, setCatalogImageId] = useState(() => product?.catalog_image_id ?? 'none')
@@ -73,7 +75,7 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
     await onSave({
       id: product.id,
       name: trimmedName,
-      brand: brand.trim() || null,
+      brand_id: brandId === 'none' ? null : brandId,
       model_number: modelNumber.trim() || null,
       category,
       catalog_image_id: catalogImageId === 'none' ? null : catalogImageId,
@@ -105,8 +107,12 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="admin-product-brand">品牌</Label>
-                <Input id="admin-product-brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="可留空" />
+                <Label>品牌</Label>
+                <BrandSelect
+                  value={brandId}
+                  onValueChange={setBrandId}
+                  placeholder="選擇或新增品牌"
+                />
               </div>
 
               <div className="space-y-2">

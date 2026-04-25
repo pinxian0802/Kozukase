@@ -8,10 +8,11 @@ import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SearchableSelect } from '@/components/ui/searchable-select'
 import { DatePicker } from '@/components/ui/date-picker'
 import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { BrandMultiSelect } from '@/components/shared/brand-select'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 
@@ -24,6 +25,9 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const router = useRouter()
 
   const [regionId, setRegionId] = useState(initialData?.region_id ?? '')
+  const [brandIds, setBrandIds] = useState<string[]>(
+    (initialData?.connection_brands ?? []).map((cb: { brand_id: string }) => cb.brand_id)
+  )
   const [subRegion, setSubRegion] = useState(initialData?.sub_region ?? '')
   const [startDate, setStartDate] = useState(initialData?.start_date?.split('T')[0] ?? '')
   const [endDate, setEndDate] = useState(initialData?.end_date?.split('T')[0] ?? '')
@@ -38,7 +42,6 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string }>({})
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
-  const regionLabelById = new Map((regionsData ?? []).map((region: any) => [region.id, region.name]))
 
   const today = startOfDay(new Date())
   const parsedStartDate = startDate ? parseISO(startDate) : null
@@ -99,6 +102,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           start_date: startDate,
           end_date: endDate,
           description: description || undefined,
+          brand_ids: brandIds.length > 0 ? brandIds : undefined,
         })
         createdConnectionId = result.id
 
@@ -125,6 +129,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           start_date: startDate || undefined,
           end_date: endDate || undefined,
           description: description || undefined,
+          brand_ids: brandIds,
         })
 
         await confirmImages.mutateAsync({
@@ -158,28 +163,28 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
       <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground">連線國家 *</Label>
-        <Select
+        <SearchableSelect
           value={regionId}
           onValueChange={(value) => {
             setRegionId(value)
             if (errors.regionId) clearError('regionId')
           }}
-          name="region_id"
-        >
-          <SelectTrigger className="w-full" aria-invalid={!!errors.regionId}>
-            <SelectValue placeholder="選擇國家">
-              {(value) => (value ? regionLabelById.get(value) ?? '選擇國家' : '選擇國家')}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {(regionsData ?? []).map((region: any) => (
-              <SelectItem key={region.id} value={region.id}>
-                {region.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          options={(regionsData ?? []).map((r: any) => ({ value: r.id, label: r.name }))}
+          placeholder="選擇國家"
+          searchPlaceholder="搜尋國家..."
+          emptyText="找不到相符的國家"
+          invalid={!!errors.regionId}
+        />
         <FormFieldError message={errors.regionId} />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">品牌（選填）</Label>
+        <BrandMultiSelect
+          value={brandIds}
+          onValueChange={setBrandIds}
+          placeholder="選擇或新增品牌"
+        />
       </div>
 
       <div className="space-y-2">

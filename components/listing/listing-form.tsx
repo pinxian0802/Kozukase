@@ -48,6 +48,9 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const router = useRouter()
   const utils = trpc.useUtils()
   const selectedProductImageUrl = initialData?.product?.catalog_image?.url ?? initialData?.product?.product_images?.[0]?.url ?? null
+  const selectedProductBrandLabel = typeof initialData?.product?.brand === 'string'
+    ? initialData.product.brand
+    : initialData?.product?.brand?.name ?? null
 
   const [price, setPrice] = useState<string>(initialData?.price?.toString() ?? '')
   const [isPriceOnRequest, setIsPriceOnRequest] = useState(initialData?.is_price_on_request ?? false)
@@ -279,8 +282,8 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium">{initialData.product.name}</p>
-            {initialData.product.brand && (
-              <p className="truncate text-xs text-muted-foreground">{initialData.product.brand}</p>
+            {selectedProductBrandLabel && (
+              <p className="truncate text-xs text-muted-foreground">{selectedProductBrandLabel}</p>
             )}
           </div>
         </div>

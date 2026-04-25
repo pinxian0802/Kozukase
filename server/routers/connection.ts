@@ -33,13 +33,20 @@ export const connectionRouter = router({
         .single()
 
       if (error) throw error
+
+      if (input.brand_ids && input.brand_ids.length > 0) {
+        await ctx.db.from('connection_brands').insert(
+          input.brand_ids.map((brand_id) => ({ connection_id: data.id, brand_id }))
+        )
+      }
+
       return data
     }),
 
   update: sellerProcedure
     .input(updateConnectionInput)
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input
+      const { id, brand_ids, ...updateData } = input
 
       const { data, error } = await ctx.db
         .from('connections')
@@ -52,6 +59,16 @@ export const connectionRouter = router({
       if (error || !data) {
         throw new TRPCError({ code: 'NOT_FOUND', message: '連線公告不存在' })
       }
+
+      if (brand_ids !== undefined) {
+        await ctx.db.from('connection_brands').delete().eq('connection_id', id)
+        if (brand_ids.length > 0) {
+          await ctx.db.from('connection_brands').insert(
+            brand_ids.map((brand_id) => ({ connection_id: id, brand_id }))
+          )
+        }
+      }
+
       return data
     }),
 
@@ -201,7 +218,8 @@ export const connectionRouter = router({
         .select(`
           *,
           region:regions(id, name),
-          connection_images(id, url, r2_key, sort_order)
+          connection_images(id, url, r2_key, sort_order),
+          connection_brands(brand_id)
         `)
         .eq('seller_id', ctx.seller.id)
         .order('created_at', { ascending: false })

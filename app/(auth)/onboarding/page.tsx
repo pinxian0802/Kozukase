@@ -176,8 +176,9 @@ export default function OnboardingPage() {
             </div>
 
             <div>
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">ID</Label>
               <div className="relative mt-1">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">@</span>
                 <Input
                   id="username"
                   value={username}
@@ -187,7 +188,7 @@ export default function OnboardingPage() {
                   }}
                   placeholder="只能使用小寫英文和數字"
                   aria-invalid={!!errors.username}
-                  className="pr-16"
+                  className="pl-7 pr-16"
                 />
                 {USERNAME_REGEX.test(username) && debouncedUsername === username && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs">

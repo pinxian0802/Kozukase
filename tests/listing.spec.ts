@@ -50,6 +50,23 @@ test.describe('Listing 上架流程', () => {
     expect(page.url()).toContain('/dashboard/listings')
   })
 
+  test('新增商品表單的品牌欄位應使用下拉選單', async ({ page }) => {
+    await page.goto('/dashboard/listings/new')
+
+    await expect(page.getByText('第一步：搜尋或新增商品')).toBeVisible({ timeout: 30000 })
+
+    const productName = `品牌測試_${Date.now()}`
+    const searchInput = page.getByPlaceholder('搜尋商品名稱...')
+    await searchInput.fill(productName)
+    await page.waitForTimeout(1000)
+    await page.getByRole('button', { name: new RegExp(`新增商品「${productName}」`) }).click()
+
+    await expect(page.getByLabel('商品名稱 *')).toBeVisible({ timeout: 30000 })
+    await page.getByLabel('商品名稱 *').fill(productName)
+
+    await expect(page.getByRole('combobox', { name: '品牌' })).toBeVisible({ timeout: 30000 })
+  })
+
   test('新增代購流程空白送出應顯示欄位錯誤', async ({ page }) => {
     await page.goto('/dashboard/listings/new')
 

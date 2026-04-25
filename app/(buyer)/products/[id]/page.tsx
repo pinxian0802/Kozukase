@@ -18,6 +18,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { id } = use(params)
   const utils = trpc.useUtils()
   const { data: product, isLoading } = trpc.product.getById.useQuery({ id })
+  const brandLabel = product && (typeof product.brand === 'string' ? product.brand : product.brand?.name ?? null)
 
   const wishToggle = trpc.wish.toggle.useMutation({
     onSuccess: () => utils.product.getById.invalidate({ id }),
@@ -73,7 +74,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         <div className="flex-1 space-y-4">
           <Badge variant="secondary">{PRODUCT_CATEGORY_LABELS[product.category] ?? product.category}</Badge>
           <h1 className="text-3xl font-bold font-heading">{product.name}</h1>
-          {product.brand && <p className="text-muted-foreground">{product.brand}</p>}
+          {brandLabel && <p className="text-muted-foreground">{brandLabel}</p>}
 
           <div className="flex gap-3">
             <Button

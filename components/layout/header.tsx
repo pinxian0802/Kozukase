@@ -113,7 +113,7 @@ export function Header() {
                       <Store className="mr-2 h-4 w-4" />賣家後台
                     </DropdownMenuItem>
                   ) : (
-                    <DropdownMenuItem render={<Link href="/settings" />}>
+                    <DropdownMenuItem render={<Link href="/become-seller" />}>
                       <Store className="mr-2 h-4 w-4" />成為賣家
                     </DropdownMenuItem>
                   )}

@@ -8,7 +8,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
+import { MultiSelect } from '@/components/ui/multi-select'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
@@ -133,29 +133,24 @@ export default function SettingsPage() {
             <div>
               <Label>代購地區 *</Label>
               <p className="text-xs text-muted-foreground mb-2">選擇你提供代購服務的地區</p>
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-                {(regions ?? []).map((region: any) => (
-                  <div key={region.id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`region-${region.id}`}
-                      checked={selectedRegions.includes(region.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) setSelectedRegions([...selectedRegions, region.id])
-                        else setSelectedRegions(selectedRegions.filter(r => r !== region.id))
-
-                        if (errors.regions) {
-                          setErrors((current) => {
-                            const next = { ...current }
-                            delete next.regions
-                            return next
-                          })
-                        }
-                      }}
-                    />
-                    <Label htmlFor={`region-${region.id}`} className="text-sm">{region.name}</Label>
-                  </div>
-                ))}
-              </div>
+              <MultiSelect
+                value={selectedRegions}
+                onValueChange={(ids) => {
+                  setSelectedRegions(ids)
+                  if (errors.regions) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.regions
+                      return next
+                    })
+                  }
+                }}
+                options={(regions ?? []).map((r: any) => ({ value: r.id, label: r.name }))}
+                placeholder="選擇代購地區"
+                searchPlaceholder="搜尋地區..."
+                emptyText="找不到相符的地區"
+                invalid={!!errors.regions}
+              />
               <FormFieldError message={errors.regions} />
             </div>
 

@@ -364,7 +364,7 @@ export const adminRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name, brand, model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
+          product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
           seller:sellers(id, name)
         `, { count: 'exact' })
         .eq('status', 'pending_approval')
@@ -409,6 +409,7 @@ export const adminRouter = router({
         .from('products')
         .select(`
           *,
+          brand:brands(name),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
           catalog_image:product_images!fk_catalog_image(id, url, r2_key)
         `, { count: 'exact' })
@@ -433,7 +434,7 @@ export const adminRouter = router({
     .input(z.object({
       id: z.string().uuid(),
       name: z.string().min(1).max(200),
-      brand: z.string().max(100).nullable().optional(),
+      brand_id: z.string().uuid().nullable().optional(),
       model_number: z.string().max(100).nullable().optional(),
       category: productCategoryEnum,
       catalog_image_id: z.string().uuid().nullable().optional(),
@@ -456,7 +457,7 @@ export const adminRouter = router({
         .from('products')
         .update({
           name: input.name,
-          brand: input.brand?.trim() ? input.brand.trim() : null,
+          brand_id: input.brand_id ?? null,
           model_number: input.model_number?.trim() ? input.model_number.trim() : null,
           category: input.category,
           catalog_image_id: input.catalog_image_id ?? null,
