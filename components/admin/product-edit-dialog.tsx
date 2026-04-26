@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { BrandSelect } from '@/components/shared/brand-select'
+import { X } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import type { ProductCategory } from '@/lib/validators/product'
 
@@ -30,6 +32,7 @@ export type AdminEditableProduct = {
   catalog_image_id: string | null
   catalog_image?: { url: string | null } | null
   product_images?: AdminProductImage[] | null
+  aliases?: string[] | null
 }
 
 export type AdminProductEditValues = {
@@ -39,6 +42,7 @@ export type AdminProductEditValues = {
   model_number: string | null
   category: ProductCategory
   catalog_image_id: string | null
+  aliases: string[]
 }
 
 type ProductEditDialogProps = {
@@ -55,11 +59,24 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
   const [modelNumber, setModelNumber] = useState(() => product?.model_number ?? '')
   const [category, setCategory] = useState<ProductCategory>(() => product?.category ?? 'other')
   const [catalogImageId, setCatalogImageId] = useState(() => product?.catalog_image_id ?? 'none')
+  const [aliases, setAliases] = useState<string[]>(() => product?.aliases ?? [])
+  const [aliasInput, setAliasInput] = useState('')
   const [nameError, setNameError] = useState('')
   const imageLabelById = new Map([
     ['none', '不指定'],
     ...((product?.product_images ?? []).map((image, index) => [image.id, `圖片 ${index + 1}`] as const)),
   ])
+
+  const addAlias = () => {
+    const trimmed = aliasInput.trim()
+    if (!trimmed || aliases.includes(trimmed)) return
+    setAliases([...aliases, trimmed])
+    setAliasInput('')
+  }
+
+  const removeAlias = (alias: string) => {
+    setAliases(aliases.filter((a) => a !== alias))
+  }
 
   const handleSave = async () => {
     if (!product) return
@@ -79,6 +96,7 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
       model_number: modelNumber.trim() || null,
       category,
       catalog_image_id: catalogImageId === 'none' ? null : catalogImageId,
+      aliases,
     })
   }
 
@@ -155,6 +173,39 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>搜尋別名</Label>
+                <p className="text-xs text-muted-foreground">輸入其他語言的名稱（如英文、日文），讓買家更容易搜尋到此商品</p>
+                <div className="flex gap-2">
+                  <Input
+                    value={aliasInput}
+                    onChange={(e) => setAliasInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addAlias() } }}
+                    placeholder="輸入別名後按 Enter"
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="outline" onClick={addAlias} disabled={!aliasInput.trim()}>
+                    新增
+                  </Button>
+                </div>
+                {aliases.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {aliases.map((alias) => (
+                      <Badge key={alias} variant="secondary" className="gap-1 pr-1">
+                        {alias}
+                        <button
+                          type="button"
+                          onClick={() => removeAlias(alias)}
+                          className="ml-1 rounded-full hover:bg-muted"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

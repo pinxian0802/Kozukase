@@ -190,7 +190,7 @@ export function BrandMultiSelect({
         )}
       >
         {selectedBrands.length === 0 ? (
-          <span className="flex-1 text-muted-foreground">{placeholder}</span>
+          <span className="flex-1 text-left text-muted-foreground">{placeholder}</span>
         ) : (
           selectedBrands.map((brand) => (
             <span

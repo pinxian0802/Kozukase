@@ -2,14 +2,17 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Store, Loader2, Phone } from 'lucide-react'
+import { Store, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { AvatarUpload } from '@/components/shared/avatar-upload'
+import { uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
@@ -23,15 +26,14 @@ export default function SettingsPage() {
   const [sellerName, setSellerName] = useState('')
   const [phone, setPhone] = useState('')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [bio, setBio] = useState('')
+  const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<{ sellerName?: string; phone?: string; regions?: string }>({})
 
-  const becomeSeller = trpc.seller.becomeSeller.useMutation({
-    onSuccess: () => {
-      toast.success('成功成為賣家！')
-      router.push('/dashboard')
-    },
-    onError: (err) => toast.error(err.message),
-  })
+  const becomeSeller = trpc.seller.becomeSeller.useMutation()
+  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
+  const deleteObjects = trpc.upload.deleteObjects.useMutation()
 
   if (!session?.profile) return null
 
@@ -53,7 +55,7 @@ export default function SettingsPage() {
     )
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const nextErrors: { sellerName?: string; phone?: string; regions?: string } = {}
 
@@ -75,11 +77,33 @@ export default function SettingsPage() {
     }
 
     setErrors({})
-    becomeSeller.mutate({
-      name: sellerName.trim(),
-      phone_number: phone.trim(),
-      region_ids: selectedRegions,
-    })
+
+    let finalAvatarUrl = avatarImage?.url
+    let uploadedR2Key: string | null = null
+
+    try {
+      if (pendingFile) {
+        const [uploaded] = await uploadImageFiles('avatar', [pendingFile], getPresignedUrl.mutateAsync)
+        finalAvatarUrl = uploaded.url
+        uploadedR2Key = uploaded.r2Key
+      }
+
+      await becomeSeller.mutateAsync({
+        name: sellerName.trim(),
+        phone_number: phone.trim(),
+        region_ids: selectedRegions,
+        bio: bio.trim() || undefined,
+        avatar_url: finalAvatarUrl,
+      })
+
+      toast.success('成功成為賣家！')
+      router.push('/dashboard')
+    } catch (err: unknown) {
+      if (uploadedR2Key) {
+        await deleteObjects.mutateAsync({ r2Keys: [uploadedR2Key] }).catch(() => {})
+      }
+      toast.error(err instanceof Error ? err.message : '操作失敗')
+    }
   }
 
   return (
@@ -96,6 +120,17 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            <div>
+              <Label>頭貼（選填）</Label>
+              <AvatarUpload
+                value={avatarImage}
+                onChange={setAvatarImage}
+                pendingFile={pendingFile}
+                onPendingFileChange={setPendingFile}
+                className="mt-1"
+              />
+            </div>
+
             <div>
               <Label htmlFor="sellerName">賣家名稱 *</Label>
               <Input
@@ -154,7 +189,21 @@ export default function SettingsPage() {
               <FormFieldError message={errors.regions} />
             </div>
 
-            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={becomeSeller.isPending}>
+            <div>
+              <Label htmlFor="bio">簡介（選填）</Label>
+              <Textarea
+                id="bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="介紹你的代購服務、專長地區或購物風格…"
+                maxLength={300}
+                rows={4}
+                className="mt-1 resize-none"
+              />
+              <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+            </div>
+
+            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={becomeSeller.isPending || getPresignedUrl.isPending}>
               {becomeSeller.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Store className="mr-2 h-4 w-4" />}
               開始成為賣家
             </button>

@@ -41,7 +41,14 @@ export const productRouter = router({
       // Apply filters
       if (input.query) {
         const normalized = normalizeSearchText(input.query)
-        query = query.ilike('search_text', `%${normalized}%`)
+        const { data: matchingIds } = await ctx.db.rpc('search_product_ids', {
+          search_query: normalized,
+        })
+        const ids = (matchingIds ?? []).map((r: { id: string }) => r.id)
+        if (ids.length === 0) {
+          return { items: [], nextCursor: null }
+        }
+        query = query.in('id', ids)
       }
       if (input.category) {
         query = query.eq('category', input.category)

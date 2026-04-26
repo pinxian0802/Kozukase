@@ -6,11 +6,15 @@ import { Save, Loader2, Link2, Link2Off, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { MultiSelect } from '@/components/ui/multi-select'
+import { AvatarUpload } from '@/components/shared/avatar-upload'
+import { uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
@@ -38,15 +42,43 @@ export default function SellerProfilePage() {
 
   const [name, setName] = useState('')
   const [nameError, setNameError] = useState('')
+  const [bio, setBio] = useState('')
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [regionError, setRegionError] = useState('')
+  const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [initialized, setInitialized] = useState(false)
 
   const { data: seller, refetch: refetchSeller } = trpc.seller.getSelf.useQuery(undefined, {
     refetchOnWindowFocus: false,
   })
+  const { data: regions } = trpc.seller.getRegions.useQuery()
+  const { data: sellerRegions } = trpc.seller.getSellerRegions.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  })
+
+  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
+  const deleteObjects = trpc.upload.deleteObjects.useMutation()
 
   useEffect(() => {
     const initialName = (session?.profile?.sellers as Record<string, unknown> | null)?.name
     if (typeof initialName === 'string') setName(initialName)
   }, [session])
+
+  useEffect(() => {
+    if (initialized) return
+    if (seller) {
+      setBio((seller.bio as string | null) ?? '')
+      const existingAvatarUrl = (seller as Record<string, unknown>).avatar_url as string | null
+      if (existingAvatarUrl) {
+        setAvatarImage({ url: existingAvatarUrl, r2Key: '' })
+      }
+    }
+    if (sellerRegions) {
+      setSelectedRegions(sellerRegions.map((r: { region_id: string }) => r.region_id))
+      setInitialized(true)
+    }
+  }, [seller, sellerRegions, initialized])
 
   // 處理 OAuth callback 的 URL 參數，顯示 toast 後清除 params
   useEffect(() => {
@@ -78,7 +110,6 @@ export default function SellerProfilePage() {
 
   const updateSeller = trpc.seller.update.useMutation({
     onSuccess: () => toast.success('已更新'),
-    onError: (err) => toast.error(err.message),
   })
 
   const disconnectSocial = trpc.seller.disconnectSocial.useMutation({
@@ -90,15 +121,56 @@ export default function SellerProfilePage() {
     onError: (err) => toast.error(err.message),
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedName = name.trim()
+    let hasError = false
     if (!trimmedName) {
       setNameError('賣家名稱為必填')
-      return
+      hasError = true
+    } else {
+      setNameError('')
     }
-    setNameError('')
-    updateSeller.mutate({ name: trimmedName })
+    if (selectedRegions.length === 0) {
+      setRegionError('請至少選擇一個代購地區')
+      hasError = true
+    } else {
+      setRegionError('')
+    }
+    if (hasError) return
+
+    let finalAvatarUrl: string | null | undefined = avatarImage?.url ?? null
+    let uploadedR2Key: string | null = null
+
+    if (pendingFile) {
+      try {
+        const [uploaded] = await uploadImageFiles('avatar', [pendingFile], getPresignedUrl.mutateAsync)
+        finalAvatarUrl = uploaded.url
+        uploadedR2Key = uploaded.r2Key
+        setAvatarImage(uploaded)
+        setPendingFile(null)
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : '圖片上傳失敗')
+        return
+      }
+    }
+
+    updateSeller.mutate(
+      {
+        name: trimmedName,
+        bio: bio.trim() || undefined,
+        region_ids: selectedRegions,
+        avatar_url: finalAvatarUrl,
+      },
+      {
+        onError: async (err) => {
+          if (uploadedR2Key) {
+            await deleteObjects.mutateAsync({ r2Keys: [uploadedR2Key] }).catch(() => {})
+          }
+          toast.error(err.message)
+        },
+      },
+    )
   }
 
   const igConnectedAt = seller?.ig_connected_at as string | null | undefined
@@ -114,10 +186,21 @@ export default function SellerProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle>賣家資料設定</CardTitle>
-          <CardDescription>管理你的賣家名稱</CardDescription>
+          <CardDescription>管理你的賣家名稱、服務地區與簡介</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <div>
+              <Label>頭貼</Label>
+              <AvatarUpload
+                value={avatarImage}
+                onChange={setAvatarImage}
+                pendingFile={pendingFile}
+                onPendingFileChange={setPendingFile}
+                className="mt-1"
+              />
+            </div>
+
             <div>
               <Label htmlFor="name">賣家名稱</Label>
               <Input
@@ -134,7 +217,38 @@ export default function SellerProfilePage() {
               <FormFieldError message={nameError} />
             </div>
 
-            <button type="submit" className={buttonVariants()} disabled={updateSeller.isPending}>
+            <div>
+              <Label>代購地區</Label>
+              <MultiSelect
+                value={selectedRegions}
+                onValueChange={(v) => {
+                  setSelectedRegions(v)
+                  if (regionError) setRegionError('')
+                }}
+                options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
+                placeholder="選擇代購地區"
+                searchPlaceholder="搜尋地區..."
+                emptyText="找不到相符的地區"
+                className="mt-1"
+              />
+              <FormFieldError message={regionError} />
+            </div>
+
+            <div>
+              <Label htmlFor="bio">簡介</Label>
+              <Textarea
+                id="bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="介紹你的代購服務、專長地區或購物風格…"
+                maxLength={300}
+                rows={4}
+                className="mt-1 resize-none"
+              />
+              <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+            </div>
+
+            <button type="submit" className={buttonVariants()} disabled={updateSeller.isPending || getPresignedUrl.isPending}>
               {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
               儲存變更
             </button>

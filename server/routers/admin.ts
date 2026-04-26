@@ -101,7 +101,7 @@ export const adminRouter = router({
   setProductCategory: adminProcedure
     .input(z.object({
       id: z.string().uuid(),
-      category: z.enum(['fashion', 'beauty', 'food', 'electronics', 'lifestyle', 'toys', 'limited', 'other']),
+      category: z.enum(['fashion', 'beauty', 'health', 'food', 'electronics', 'lifestyle', 'sports', 'toys', 'books', 'pets', 'culture', 'automotive', 'baby', 'jewelry', 'other']),
     }))
     .mutation(async ({ ctx, input }) => {
       const { data, error } = await ctx.db
@@ -438,6 +438,7 @@ export const adminRouter = router({
       model_number: z.string().max(100).nullable().optional(),
       category: productCategoryEnum,
       catalog_image_id: z.string().uuid().nullable().optional(),
+      aliases: z.array(z.string().max(200)).max(20).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       if (input.catalog_image_id) {
@@ -461,6 +462,7 @@ export const adminRouter = router({
           model_number: input.model_number?.trim() ? input.model_number.trim() : null,
           category: input.category,
           catalog_image_id: input.catalog_image_id ?? null,
+          aliases: input.aliases ?? [],
         })
         .eq('id', input.id)
         .select(`

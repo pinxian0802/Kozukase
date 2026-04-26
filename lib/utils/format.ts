@@ -31,11 +31,18 @@ export function formatRelativeTime(dateString: string): string {
 export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   fashion: '時尚穿搭',
   beauty: '美妝保養',
+  health: '保健品',
   food: '食品零食',
   electronics: '3C 電器',
   lifestyle: '生活雜貨',
+  sports: '運動戶外',
   toys: '公仔玩具',
-  limited: '限定聯名',
+  books: '書籍文具',
+  pets: '寵物用品',
+  culture: '文化紀念品',
+  automotive: '汽機車用品',
+  baby: '母嬰用品',
+  jewelry: '珠寶首飾',
   other: '其他',
 }
 

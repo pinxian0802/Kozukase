@@ -3,11 +3,18 @@
 export type ProductCategory =
   | 'fashion'
   | 'beauty'
+  | 'health'
   | 'food'
   | 'electronics'
   | 'lifestyle'
+  | 'sports'
   | 'toys'
-  | 'limited'
+  | 'books'
+  | 'pets'
+  | 'culture'
+  | 'automotive'
+  | 'baby'
+  | 'jewelry'
   | 'other'
 
 export type ListingStatus = 'draft' | 'active' | 'inactive' | 'pending_approval'
@@ -96,6 +103,7 @@ export type Product = {
   removed_at: string | null
   removed_by: string | null
   search_text: string
+  aliases: string[]
   wish_count: number
   created_by: string
   created_at: string
@@ -288,6 +296,7 @@ export type Database = {
           is_removed?: boolean
           wish_count?: number
           search_text?: string
+          aliases?: string[]
         },
         Partial<Product>
       >

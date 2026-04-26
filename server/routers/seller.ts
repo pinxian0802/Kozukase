@@ -26,6 +26,8 @@ export const sellerRouter = router({
           name: input.name,
           phone_number: input.phone_number,
           phone_verified: true, // TODO: implement OTP verification
+          bio: input.bio ?? null,
+          avatar_url: input.avatar_url ?? null,
         })
         .select()
         .single()
@@ -192,6 +194,16 @@ export const sellerRouter = router({
       const { paginateResults } = await import('@/lib/utils/pagination')
       return paginateResults(data ?? [], input.limit)
     }),
+
+  getSellerRegions: sellerProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.db
+      .from('seller_regions')
+      .select('region_id')
+      .eq('seller_id', ctx.seller.id)
+
+    if (error) throw error
+    return data ?? []
+  }),
 
   getRegions: publicProcedure.query(async ({ ctx }) => {
     const { data, error } = await ctx.db

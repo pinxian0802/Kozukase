@@ -38,6 +38,7 @@ export default function OnboardingPage() {
 
   const completeOnboarding = trpc.auth.completeOnboarding.useMutation()
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
+  const deleteObjects = trpc.upload.deleteObjects.useMutation()
   const usernameCheck = trpc.auth.checkUsername.useQuery(
     { username: debouncedUsername },
     { enabled: USERNAME_REGEX.test(debouncedUsername), staleTime: 10000 }
@@ -112,6 +113,8 @@ export default function OnboardingPage() {
     setErrors({})
     setSubmitting(true)
 
+    let uploadedR2Key: string | null = null
+
     try {
       if (isEmailUser) {
         const supabase = createSupabaseBrowserClient()
@@ -126,6 +129,7 @@ export default function OnboardingPage() {
       if (pendingFile) {
         const [uploaded] = await uploadImageFiles('avatar', [pendingFile], getPresignedUrl.mutateAsync)
         finalAvatarUrl = uploaded.url
+        uploadedR2Key = uploaded.r2Key
       }
 
       await completeOnboarding.mutateAsync({
@@ -138,6 +142,9 @@ export default function OnboardingPage() {
       router.push(safeNext)
       router.refresh()
     } catch (error: unknown) {
+      if (uploadedR2Key) {
+        await deleteObjects.mutateAsync({ r2Keys: [uploadedR2Key] }).catch(() => {})
+      }
       const message = error instanceof Error ? error.message : ''
       if (message.includes('已被使用')) {
         setErrors(prev => ({ ...prev, username: '此 username 已被使用' }))

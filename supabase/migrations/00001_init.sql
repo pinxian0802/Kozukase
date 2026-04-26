@@ -4,7 +4,9 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Enums
 CREATE TYPE product_category AS ENUM (
-  'fashion', 'beauty', 'food', 'electronics', 'lifestyle', 'toys', 'limited', 'other'
+  'fashion', 'beauty', 'health', 'food', 'electronics',
+  'lifestyle', 'sports', 'toys', 'books', 'pets',
+  'culture', 'automotive', 'baby', 'jewelry', 'other'
 );
 
 CREATE TYPE listing_status AS ENUM (

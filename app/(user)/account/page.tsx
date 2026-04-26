@@ -87,6 +87,16 @@ export default function AccountPage() {
             </div>
 
             <div>
+              <Label htmlFor="username">ID</Label>
+              <Input
+                id="username"
+                value={`@${session.profile.username}`}
+                readOnly
+                className="mt-1 text-muted-foreground"
+              />
+            </div>
+
+            <div>
               <Label htmlFor="display-name">顯示名稱</Label>
               <Input
                 id="display-name"

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -305,19 +304,8 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Price */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div>
           <Label htmlFor="price">價格 (NT$) <span className="text-destructive">*</span></Label>
-          <div className="flex items-center gap-2">
-            <Switch
-              id="priceOnRequest"
-              checked={isPriceOnRequest}
-              onCheckedChange={(checked) => {
-                setIsPriceOnRequest(checked)
-                if (checked && errors.price) clearError('price')
-              }}
-            />
-            <Label htmlFor="priceOnRequest" className="text-sm">私訊報價</Label>
-          </div>
         </div>
         {!isPriceOnRequest && (
           <div>
