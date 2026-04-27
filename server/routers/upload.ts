@@ -23,6 +23,7 @@ export const uploadRouter = router({
       purpose: z.enum(['product', 'listing', 'connection', 'avatar']),
       contentType: z.string(),
       fileSize: z.number(),
+      variant: z.enum(['original', 'thumbnail']).default('original'),
     }))
     .mutation(async ({ ctx, input }) => {
       if (!ALLOWED_TYPES.includes(input.contentType)) {
@@ -33,13 +34,14 @@ export const uploadRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: '圖片大小不可超過 5MB' })
       }
 
-      const r2Key = `images/${input.purpose}/users/${ctx.user.id}/${randomUUID()}.webp`
+      const r2Key = `images/${input.purpose}/users/${ctx.user.id}/${input.variant}/${randomUUID()}.webp`
 
       const command = new PutObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
         Key: r2Key,
         ContentType: input.contentType,
         ContentLength: input.fileSize,
+        CacheControl: 'public, max-age=31536000, immutable',
       })
 
       const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 })
@@ -56,6 +58,8 @@ export const uploadRouter = router({
       product_id: z.string().uuid(),
       r2_key: z.string(),
       url: z.string().url(),
+      thumbnail_r2_key: z.string(),
+      thumbnail_url: z.string().url(),
     }))
     .mutation(async ({ ctx, input }) => {
       const { data: product } = await ctx.db
@@ -73,6 +77,8 @@ export const uploadRouter = router({
           product_id: input.product_id,
           r2_key: input.r2_key,
           url: input.url,
+          thumbnail_r2_key: input.thumbnail_r2_key,
+          thumbnail_url: input.thumbnail_url,
           uploaded_by: ctx.user.id,
         })
         .select()
@@ -134,6 +140,8 @@ export const uploadRouter = router({
       images: z.array(z.object({
         r2_key: z.string(),
         url: z.string().url(),
+        thumbnail_r2_key: z.string(),
+        thumbnail_url: z.string().url(),
         sort_order: z.number().min(0).max(4),
       })).max(5),
     }))
@@ -176,6 +184,8 @@ export const uploadRouter = router({
       images: z.array(z.object({
         r2_key: z.string(),
         url: z.string().url(),
+        thumbnail_r2_key: z.string(),
+        thumbnail_url: z.string().url(),
         sort_order: z.number().min(0).max(4),
       })).max(5),
     }))

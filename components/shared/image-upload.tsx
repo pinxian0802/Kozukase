@@ -12,8 +12,8 @@ import { toast } from 'sonner'
 interface ImageUploadProps {
   purpose: Purpose
   maxImages?: number
-  images: { url: string; r2Key: string }[]
-  onChange: (images: { url: string; r2Key: string }[]) => void
+  images: UploadedImage[]
+  onChange: (images: UploadedImage[]) => void
   pendingFiles?: File[]
   onPendingFilesChange?: (files: File[]) => void
   className?: string
@@ -21,26 +21,39 @@ interface ImageUploadProps {
 }
 
 type Purpose = 'product' | 'listing' | 'connection' | 'avatar'
-type GetPresignedUrl = (params: { purpose: Purpose; contentType: string; fileSize: number }) => Promise<{ presignedUrl: string; r2Key: string; publicUrl: string }>
+type GetPresignedUrl = (params: {
+  purpose: Purpose
+  contentType: string
+  fileSize: number
+  variant?: 'original' | 'thumbnail'
+}) => Promise<{ presignedUrl: string; r2Key: string; publicUrl: string }>
+
+export type UploadedImage = {
+  url: string
+  r2Key: string
+  thumbnailUrl?: string
+  thumbnailR2Key?: string
+}
 
 /** Compress files client-side and upload directly to R2 via presigned URLs. */
 export async function uploadImageFiles(
   purpose: Purpose,
   files: File[],
   getPresignedUrl: GetPresignedUrl,
-): Promise<{ url: string; r2Key: string }[]> {
+): Promise<UploadedImage[]> {
   const { default: imageCompression } = await import('browser-image-compression')
 
   return Promise.all(
     files.map(async (file) => {
-      const compressed = await imageCompression(file, {
+      const originalCompressed = await imageCompression(file, {
         maxSizeMB: 5,
         maxWidthOrHeight: 1920,
         fileType: 'image/webp',
+        useWebWorker: true,
       })
 
-      const uploadFile = new File(
-        [compressed],
+      const originalFile = new File(
+        [originalCompressed],
         file.name.replace(/\.[^.]+$/, '.webp'),
         { type: 'image/webp' },
       )
@@ -48,12 +61,13 @@ export async function uploadImageFiles(
       const { presignedUrl, r2Key, publicUrl } = await getPresignedUrl({
         purpose,
         contentType: 'image/webp',
-        fileSize: uploadFile.size,
+        fileSize: originalFile.size,
+        variant: 'original',
       })
 
       const response = await fetch(presignedUrl, {
         method: 'PUT',
-        body: uploadFile,
+        body: originalFile,
         headers: { 'Content-Type': 'image/webp' },
       })
 
@@ -61,7 +75,47 @@ export async function uploadImageFiles(
         throw new Error('圖片上傳失敗')
       }
 
-      return { url: publicUrl, r2Key }
+      if (purpose === 'avatar') {
+        return { url: publicUrl, r2Key }
+      }
+
+      const thumbnailCompressed = await imageCompression(file, {
+        maxSizeMB: 0.35,
+        maxWidthOrHeight: 480,
+        initialQuality: 0.72,
+        fileType: 'image/webp',
+        useWebWorker: true,
+      })
+
+      const thumbnailFile = new File(
+        [thumbnailCompressed],
+        file.name.replace(/\.[^.]+$/, '.webp'),
+        { type: 'image/webp' },
+      )
+
+      const thumbnailUpload = await getPresignedUrl({
+        purpose,
+        contentType: 'image/webp',
+        fileSize: thumbnailFile.size,
+        variant: 'thumbnail',
+      })
+
+      const thumbnailResponse = await fetch(thumbnailUpload.presignedUrl, {
+        method: 'PUT',
+        body: thumbnailFile,
+        headers: { 'Content-Type': 'image/webp' },
+      })
+
+      if (!thumbnailResponse.ok) {
+        throw new Error('圖片縮圖上傳失敗')
+      }
+
+      return {
+        url: publicUrl,
+        r2Key,
+        thumbnailUrl: thumbnailUpload.publicUrl,
+        thumbnailR2Key: thumbnailUpload.r2Key,
+      }
     }),
   )
 }

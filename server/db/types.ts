@@ -15,6 +15,7 @@ export type ProductCategory =
   | 'automotive'
   | 'baby'
   | 'jewelry'
+  | 'idol'
   | 'other'
 
 export type ListingStatus = 'draft' | 'active' | 'inactive' | 'pending_approval'
@@ -115,6 +116,8 @@ export type ProductImage = {
   product_id: string
   r2_key: string
   url: string
+  thumbnail_r2_key: string | null
+  thumbnail_url: string | null
   uploaded_by: string
   created_at: string
 }
@@ -142,6 +145,8 @@ export type ListingImage = {
   listing_id: string
   r2_key: string
   url: string
+  thumbnail_r2_key: string | null
+  thumbnail_url: string | null
   sort_order: number
   created_at: string
 }
@@ -232,6 +237,8 @@ export type ConnectionImage = {
   connection_id: string
   r2_key: string
   url: string
+  thumbnail_r2_key: string | null
+  thumbnail_url: string | null
   sort_order: number
   created_at: string
 }

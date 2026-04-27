@@ -201,7 +201,7 @@ export default function SellerProfilePage() {
             </div>
 
             <div>
-              <Label htmlFor="name">賣家名稱</Label>
+              <Label htmlFor="name">賣家名稱 <span className="text-destructive">*</span></Label>
               <Input
                 id="name"
                 value={name}
@@ -217,7 +217,7 @@ export default function SellerProfilePage() {
             </div>
 
             <div>
-              <Label>代購地區</Label>
+              <Label>代購地區 <span className="text-destructive">*</span></Label>
               <MultiSelect
                 value={selectedRegions}
                 onValueChange={(v) => {
@@ -228,6 +228,7 @@ export default function SellerProfilePage() {
                 placeholder="選擇代購地區"
                 searchPlaceholder="搜尋地區..."
                 emptyText="找不到相符的地區"
+                invalid={!!regionError}
                 className="mt-1"
               />
               <FormFieldError message={regionError} />

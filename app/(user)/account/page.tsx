@@ -96,7 +96,7 @@ export default function AccountPage() {
             </div>
 
             <div>
-              <Label htmlFor="display-name">顯示名稱</Label>
+              <Label htmlFor="display-name">顯示名稱 <span className="text-destructive">*</span></Label>
               <Input
                 id="display-name"
                 value={displayName}

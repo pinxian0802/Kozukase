@@ -20,20 +20,21 @@ interface ConnectionCardProps {
       is_social_verified: boolean
       profile?: { display_name: string; avatar_url?: string | null } | null
     } | null
-    connection_images?: { url: string; sort_order: number }[]
+    connection_images?: { url: string; thumbnail_url?: string | null; sort_order: number }[]
   }
 }
 
 export function ConnectionCard({ connection }: ConnectionCardProps) {
   const firstImage = connection.connection_images?.sort((a, b) => a.sort_order - b.sort_order)[0]
+  const imageUrl = firstImage?.thumbnail_url ?? firstImage?.url ?? null
 
   return (
     <Link href={connection.seller ? `/sellers/${connection.seller.id}` : '#'}>
       <Card className="group overflow-hidden transition-shadow hover:shadow-md">
-        {firstImage && (
+        {imageUrl && (
           <div className="aspect-video overflow-hidden bg-muted">
             <img
-              src={firstImage.url}
+              src={imageUrl}
               alt=""
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
             />

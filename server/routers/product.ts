@@ -27,8 +27,8 @@ export const productRouter = router({
         .from('products')
         .select(`
           id, name, brand:brands(name), model_number, category, wish_count, created_at,
-          catalog_image:product_images!fk_catalog_image(id, url, r2_key),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
           listings!inner(id, price, is_price_on_request, shipping_days, created_at,
             seller:sellers!inner(id, is_social_verified, is_suspended)
           )
@@ -51,6 +51,9 @@ export const productRouter = router({
       }
       if (input.category) {
         query = query.eq('category', input.category)
+      }
+      if (input.brandId) {
+        query = query.eq('brand_id', input.brandId)
       }
       if (input.priceMin !== undefined) {
         query = query.gte('listings.price', input.priceMin)
@@ -76,12 +79,8 @@ export const productRouter = router({
         query = query.in('listings.seller_id', sellerIds)
       }
 
-      // Sorting
-      if (input.sort === 'price_asc') {
-        query = query.order('price', { ascending: true, referencedTable: 'listings' })
-      } else {
-        query = query.order('created_at', { ascending: false, referencedTable: 'listings' })
-      }
+      // Sort by product creation date (newest products first)
+      query = query.order('created_at', { ascending: false })
 
       // Offset pagination
       const offset = (input.page - 1) * input.limit
@@ -107,8 +106,8 @@ export const productRouter = router({
         .select(`
           *,
           brand:brands(name),
-          catalog_image:product_images!fk_catalog_image(id, url, r2_key),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
           listings(
             id, price, is_price_on_request, specs, note, post_url, 
             shipping_days, expires_at, status, created_at,
@@ -116,7 +115,7 @@ export const productRouter = router({
               id, name, ig_handle, threads_handle, ig_follower_count, 
               threads_follower_count, is_social_verified, avg_rating, review_count
             ),
-            listing_images(id, url, r2_key, sort_order)
+            listing_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
           )
         `)
         .eq('id', input.id)

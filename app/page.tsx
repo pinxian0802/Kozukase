@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ShoppingBag, Sparkles, Candy, Smartphone, Home, Gamepad2, MoreHorizontal, HeartPulse, Dumbbell, BookOpen, PawPrint, Landmark, Car, Baby, Gem } from 'lucide-react'
+import { ShoppingBag, Sparkles, Candy, Smartphone, Home, Gamepad2, MoreHorizontal, HeartPulse, Dumbbell, BookOpen, PawPrint, Landmark, Car, Baby, Gem, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
@@ -20,6 +20,7 @@ const categories = [
   { key: 'automotive', label: '汽機車用品', icon: Car },
   { key: 'baby', label: '母嬰用品', icon: Baby },
   { key: 'jewelry', label: '珠寶首飾', icon: Gem },
+  { key: 'idol', label: '明星偶像', icon: Star },
   { key: 'other', label: '其他', icon: MoreHorizontal },
 ]
 

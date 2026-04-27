@@ -43,6 +43,7 @@ export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   automotive: '汽機車用品',
   baby: '母嬰用品',
   jewelry: '珠寶首飾',
+  idol: '明星偶像',
   other: '其他',
 }
 

@@ -101,7 +101,7 @@ export const adminRouter = router({
   setProductCategory: adminProcedure
     .input(z.object({
       id: z.string().uuid(),
-      category: z.enum(['fashion', 'beauty', 'health', 'food', 'electronics', 'lifestyle', 'sports', 'toys', 'books', 'pets', 'culture', 'automotive', 'baby', 'jewelry', 'other']),
+      category: z.enum(['fashion', 'beauty', 'health', 'food', 'electronics', 'lifestyle', 'sports', 'toys', 'books', 'pets', 'culture', 'automotive', 'baby', 'jewelry', 'idol', 'other']),
     }))
     .mutation(async ({ ctx, input }) => {
       const { data, error } = await ctx.db
@@ -364,7 +364,7 @@ export const adminRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
+          product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
           seller:sellers(id, name)
         `, { count: 'exact' })
         .eq('status', 'pending_approval')
@@ -410,8 +410,8 @@ export const adminRouter = router({
         .select(`
           *,
           brand:brands(name),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
-          catalog_image:product_images!fk_catalog_image(id, url, r2_key)
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
 
@@ -467,8 +467,8 @@ export const adminRouter = router({
         .eq('id', input.id)
         .select(`
           *,
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key),
-          catalog_image:product_images!fk_catalog_image(id, url, r2_key)
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
         `)
         .single()
 

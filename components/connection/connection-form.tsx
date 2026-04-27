@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { DatePicker } from '@/components/ui/date-picker'
-import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
+import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { BrandMultiSelect } from '@/components/shared/brand-select'
 import { trpc } from '@/lib/trpc/client'
@@ -32,10 +32,12 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [startDate, setStartDate] = useState(initialData?.start_date?.split('T')[0] ?? '')
   const [endDate, setEndDate] = useState(initialData?.end_date?.split('T')[0] ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
-  const [images, setImages] = useState<{ url: string; r2Key: string }[]>(
+  const [images, setImages] = useState<UploadedImage[]>(
     (initialData?.images ?? initialData?.connection_images ?? []).map((img: any) => ({
       url: img.url ?? img.image_url,
       r2Key: img.r2_key ?? img.r2Key,
+      thumbnailUrl: img.thumbnail_url ?? img.thumbnailUrl ?? img.url ?? img.image_url,
+      thumbnailR2Key: img.thumbnail_r2_key ?? img.thumbnailR2Key ?? img.r2_key ?? img.r2Key,
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -108,11 +110,17 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
         if (pendingFiles.length > 0) {
           const uploadedImages = await uploadImageFiles('connection', pendingFiles, getPresignedUrl.mutateAsync)
-          uploadedR2Keys.push(...uploadedImages.map((img) => img.r2Key))
+          uploadedR2Keys.push(...uploadedImages.flatMap((img) => [img.r2Key, img.thumbnailR2Key].filter(Boolean) as string[]))
           const allImages = [...images, ...uploadedImages]
           await confirmImages.mutateAsync({
             connection_id: result.id,
-            images: allImages.map((img, index) => ({ r2_key: img.r2Key, url: img.url, sort_order: index })),
+            images: allImages.map((img, index) => ({
+              r2_key: img.r2Key,
+              url: img.url,
+              thumbnail_r2_key: img.thumbnailR2Key ?? img.r2Key,
+              thumbnail_url: img.thumbnailUrl ?? img.url,
+              sort_order: index,
+            })),
           })
         }
 
@@ -134,7 +142,13 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
         await confirmImages.mutateAsync({
           connection_id: initialData.id,
-          images: allImages.map((img, index) => ({ r2_key: img.r2Key, url: img.url, sort_order: index })),
+          images: allImages.map((img, index) => ({
+            r2_key: img.r2Key,
+            url: img.url,
+            thumbnail_r2_key: img.thumbnailR2Key ?? img.r2Key,
+            thumbnail_url: img.thumbnailUrl ?? img.url,
+            sort_order: index,
+          })),
         })
 
         toast.dismiss(toastId)

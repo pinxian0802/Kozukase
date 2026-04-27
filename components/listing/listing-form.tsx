@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/ui/date-picker'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
-import { ImageUpload, uploadImageFiles } from '@/components/shared/image-upload'
+import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { buttonVariants } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
@@ -46,7 +46,11 @@ interface ListingFormProps {
 export function ListingForm({ productId, mode, initialData, onCreateProduct }: ListingFormProps) {
   const router = useRouter()
   const utils = trpc.useUtils()
-  const selectedProductImageUrl = initialData?.product?.catalog_image?.url ?? initialData?.product?.product_images?.[0]?.url ?? null
+  const selectedProductImageUrl = initialData?.product?.catalog_image?.thumbnail_url
+    ?? initialData?.product?.catalog_image?.url
+    ?? initialData?.product?.product_images?.[0]?.thumbnail_url
+    ?? initialData?.product?.product_images?.[0]?.url
+    ?? null
   const selectedProductBrandLabel = typeof initialData?.product?.brand === 'string'
     ? initialData.product.brand
     : initialData?.product?.brand?.name ?? null
@@ -60,10 +64,12 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const [postUrl, setPostUrl] = useState(initialData?.post_url ?? '')
   const [shippingDays, setShippingDays] = useState<string>(initialData?.shipping_days?.toString() ?? '')
   const [expiresAt, setExpiresAt] = useState(initialData?.expires_at?.split('T')[0] ?? '')
-  const [images, setImages] = useState<{ url: string; r2Key: string }[]>(
+  const [images, setImages] = useState<UploadedImage[]>(
     (initialData?.images ?? initialData?.listing_images ?? []).map((img: any) => ({
       url: img.url ?? img.image_url,
       r2Key: img.r2_key ?? img.r2Key,
+      thumbnailUrl: img.thumbnail_url ?? img.thumbnailUrl ?? img.url ?? img.image_url,
+      thumbnailR2Key: img.thumbnail_r2_key ?? img.thumbnailR2Key ?? img.r2_key ?? img.r2Key,
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -200,17 +206,29 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         // ── Step 2: Upload pending images to R2, collect keys for rollback ──
         if (pendingFiles.length > 0) {
           const uploadedImages = await uploadImageFiles('listing', pendingFiles, getPresignedUrl.mutateAsync)
-          uploadedR2Keys.push(...uploadedImages.map(img => img.r2Key))
+          uploadedR2Keys.push(...uploadedImages.flatMap((img) => [img.r2Key, img.thumbnailR2Key].filter(Boolean) as string[]))
           const allImages = [...images, ...uploadedImages]
           // ── Step 3: Confirm image relations in DB (atomic via RPC) ──
           await confirmImages.mutateAsync({
             listing_id: result.id,
-            images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+            images: allImages.map((img, i) => ({
+              r2_key: img.r2Key,
+              url: img.url,
+              thumbnail_r2_key: img.thumbnailR2Key ?? img.r2Key,
+              thumbnail_url: img.thumbnailUrl ?? img.url,
+              sort_order: i,
+            })),
           })
         } else if (images.length > 0) {
           await confirmImages.mutateAsync({
             listing_id: result.id,
-            images: images.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+            images: images.map((img, i) => ({
+              r2_key: img.r2Key,
+              url: img.url,
+              thumbnail_r2_key: img.thumbnailR2Key ?? img.r2Key,
+              thumbnail_url: img.thumbnailUrl ?? img.url,
+              sort_order: i,
+            })),
           })
         }
 
@@ -232,7 +250,13 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         await updateListing.mutateAsync({ id: initialData.id, ...updateData })
         await confirmImages.mutateAsync({
           listing_id: initialData.id,
-          images: allImages.map((img, i) => ({ r2_key: img.r2Key, url: img.url, sort_order: i })),
+          images: allImages.map((img, i) => ({
+            r2_key: img.r2Key,
+            url: img.url,
+            thumbnail_r2_key: img.thumbnailR2Key ?? img.r2Key,
+            thumbnail_url: img.thumbnailUrl ?? img.url,
+            sort_order: i,
+          })),
         })
         toast.dismiss(toastId)
         toast.success('\u5df2\u66f4\u65b0')

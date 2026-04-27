@@ -94,12 +94,16 @@ export default function NewListingPage() {
             product_id: product.id,
             r2_key: uploaded[0].r2Key,
             url: uploaded[0].url,
+            thumbnail_r2_key: uploaded[0].thumbnailR2Key ?? uploaded[0].r2Key,
+            thumbnail_url: uploaded[0].thumbnailUrl ?? uploaded[0].url,
           })
         } catch (err) {
           // confirmProductImage failed: clean up the orphan R2 object.
           // The product record itself stays — it's a valid catalog entry
           // and the caller's rollback will delete it if the whole flow fails.
-          await deleteObjects.mutateAsync({ r2Keys: [uploaded[0].r2Key] }).catch(() => {})
+          await deleteObjects.mutateAsync({
+            r2Keys: [uploaded[0].r2Key, uploaded[0].thumbnailR2Key].filter(Boolean) as string[],
+          }).catch(() => {})
           throw err
         }
       }

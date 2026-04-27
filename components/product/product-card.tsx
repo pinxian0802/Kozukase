@@ -2,15 +2,16 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Package } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getCardImageUrl } from '@/lib/utils/image-variants.mjs'
 
 export type ProductCardProduct = {
   id: string
   name: string
   brand?: string | { name: string } | null
   model_number?: string | null
-  catalog_image?: { url: string } | null
+  catalog_image?: { url: string; thumbnail_url?: string | null } | null
   catalog_image_url?: string | null
-  product_images?: { url: string }[]
+  product_images?: { url: string; thumbnail_url?: string | null }[]
 }
 
 type ProductCardProps = {
@@ -23,7 +24,8 @@ type ProductCardProps = {
 }
 
 export function ProductCard({ product, href, linkToProduct = true, onClick, className, variant = 'default' }: ProductCardProps) {
-  const imageUrl = product.catalog_image?.url ?? product.catalog_image_url ?? product.product_images?.[0]?.url ?? null
+  const imageUrl = getCardImageUrl(product)
+  const isLocalPreviewUrl = imageUrl?.startsWith('blob:') || imageUrl?.startsWith('data:')
   const brandLabel = typeof product.brand === 'string' ? product.brand : product.brand?.name ?? null
 
   const card = (
@@ -44,7 +46,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 className="object-cover transition-transform duration-200 group-hover:scale-105"
-                unoptimized
+                unoptimized={isLocalPreviewUrl}
               />
             ) : (
               <div className="flex h-full items-center justify-center text-muted-foreground/30">
@@ -62,7 +64,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
                 fill
                 sizes="64px"
                 className="object-cover"
-                unoptimized
+                unoptimized={isLocalPreviewUrl}
               />
             ) : (
               <div className="flex h-full items-center justify-center text-muted-foreground/30">

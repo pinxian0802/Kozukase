@@ -153,11 +153,22 @@ export default function SettingsPage() {
               <Input
                 id="phone"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value)
+                  if (errors.phone) {
+                    setErrors((current) => {
+                      const next = { ...current }
+                      delete next.phone
+                      return next
+                    })
+                  }
+                }}
                 placeholder="0912345678"
                 type="tel"
+                aria-invalid={!!errors.phone}
                 className="mt-1"
               />
+              <FormFieldError message={errors.phone} />
             </div>
 
             <div>

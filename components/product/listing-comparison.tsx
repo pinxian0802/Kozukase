@@ -13,7 +13,7 @@ interface Listing {
   is_price_on_request: boolean
   shipping_days: number
   specs: any[] | null
-  listing_images: { url: string; sort_order: number }[]
+  listing_images: { url: string; thumbnail_url?: string | null; sort_order: number }[]
   seller: {
     id: string
     name: string
@@ -40,13 +40,14 @@ export function ListingComparison({ listings }: ListingComparisonProps) {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map((listing) => {
         const firstImage = listing.listing_images?.sort((a, b) => a.sort_order - b.sort_order)[0]
+        const imageUrl = firstImage?.thumbnail_url ?? firstImage?.url ?? null
         return (
           <Link key={listing.id} href={`/listings/${listing.id}`}>
             <Card className="group h-full overflow-hidden transition-shadow hover:shadow-md">
-              {firstImage && (
+              {imageUrl && (
                 <div className="aspect-video overflow-hidden bg-muted">
                   <img
-                    src={firstImage.url}
+                    src={imageUrl}
                     alt=""
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
                   />

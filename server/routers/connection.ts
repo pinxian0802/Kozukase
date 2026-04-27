@@ -154,7 +154,7 @@ export const connectionRouter = router({
         .select(`
           *,
           region:regions(id, name),
-          connection_images(id, url, r2_key, sort_order)
+          connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
         `)
         .eq('seller_id', input.sellerId)
         .eq('status', 'active')
@@ -185,7 +185,7 @@ export const connectionRouter = router({
             id, name, ig_handle, threads_handle, is_social_verified,
             profile:profiles(display_name, avatar_url)
           ),
-          connection_images(id, url, r2_key, sort_order)
+          connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
         `)
         .eq('status', 'active')
         .eq('seller.is_suspended', false)
@@ -218,7 +218,7 @@ export const connectionRouter = router({
         .select(`
           *,
           region:regions(id, name),
-          connection_images(id, url, r2_key, sort_order),
+          connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order),
           connection_brands(brand_id)
         `)
         .eq('seller_id', ctx.seller.id)

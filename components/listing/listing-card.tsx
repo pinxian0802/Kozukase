@@ -12,13 +12,14 @@ interface ListingCardProps {
     status: string
     product?: { id: string; name: string; brand?: string | { name: string } | null; model_number?: string | null } | null
     seller?: { id: string; name: string } | null
-    listing_images?: { url: string; sort_order: number }[]
+    listing_images?: { url: string; thumbnail_url?: string | null; sort_order: number }[]
   }
   showStatus?: boolean
 }
 
 export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
   const firstImage = listing.listing_images?.sort((a, b) => a.sort_order - b.sort_order)[0]
+  const imageUrl = firstImage?.thumbnail_url ?? firstImage?.url ?? null
   const brandLabel = typeof listing.product?.brand === 'string' ? listing.product.brand : listing.product?.brand?.name ?? null
 
   const statusLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
@@ -32,14 +33,13 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
     <Link href={`/listings/${listing.id}`}>
       <div className="group overflow-hidden rounded-2xl bg-white shadow-md transition-shadow hover:shadow-lg">
         <div className="relative aspect-video overflow-hidden bg-white">
-          {firstImage ? (
+          {imageUrl ? (
             <Image
-              src={firstImage.url}
+              src={imageUrl}
               alt={listing.product?.name ?? ''}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition-transform group-hover:scale-105"
-              unoptimized
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">

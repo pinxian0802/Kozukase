@@ -1,8 +1,8 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState, type ReactNode } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/product/product-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Pagination } from '@/components/ui/pagination'
+import type { ProductCategory } from '@/lib/validators/product'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { Package } from 'lucide-react'
@@ -30,18 +31,23 @@ function SearchContent() {
 
   const q = searchParams.get('q') ?? ''
   const category = searchParams.get('category') ?? undefined
-  const sort = (searchParams.get('sort') as 'latest' | 'price_asc') ?? 'latest'
+  const brandId = searchParams.get('brand') ?? undefined
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
   const pageSize = (() => {
     const raw = parseInt(searchParams.get('pageSize') ?? '20', 10)
     return [10, 20, 50].includes(raw) ? raw : 20
   })()
 
+  const [categoryExpanded, setCategoryExpanded] = useState(false)
+
+  const { data: brandsData } = trpc.brand.list.useQuery()
+  const brands = brandsData ?? []
+
   const { data, isLoading } = trpc.product.browse.useQuery(
     {
       query: q || undefined,
-      category: category as any,
-      sort,
+      category: category as ProductCategory | undefined,
+      brandId,
       page,
       limit: pageSize,
     },
@@ -68,12 +74,16 @@ function SearchContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const categoryEntries = Object.entries(PRODUCT_CATEGORY_LABELS)
+  const half = Math.ceil(categoryEntries.length / 2)
+  const firstHalf = categoryEntries.slice(0, half)
+  const secondHalf = categoryEntries.slice(half)
+
   const FilterContent = () => (
     <div className="space-y-6">
-      <div>
-        <h3 className="font-medium mb-3">商品分類</h3>
-        <div className="space-y-2">
-          {Object.entries(PRODUCT_CATEGORY_LABELS).map(([key, label]) => (
+      <FilterSectionCard title="商品類別">
+        <div className="space-y-2 p-4">
+          {firstHalf.map(([key, label]) => (
             <div key={key} className="flex items-center gap-2">
               <Checkbox
                 id={`cat-${key}`}
@@ -84,7 +94,58 @@ function SearchContent() {
             </div>
           ))}
         </div>
-      </div>
+        <div
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ maxHeight: categoryExpanded ? `${secondHalf.length * 32}px` : '0px' }}
+        >
+          <div className="space-y-2 px-4 pb-4">
+            {secondHalf.map(([key, label]) => (
+              <div key={key} className="flex items-center gap-2">
+                <Checkbox
+                  id={`cat-${key}`}
+                  checked={category === key}
+                  onCheckedChange={(checked) => updateParam('category', checked ? key : null)}
+                />
+                <Label htmlFor={`cat-${key}`} className="text-sm">{label}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+        <button
+          className="flex w-full cursor-pointer items-center justify-center gap-1 px-4 pb-4 text-xs text-muted-foreground"
+          onClick={() => setCategoryExpanded((v) => !v)}
+        >
+          {categoryExpanded ? '收合' : '展開更多'}
+          <ChevronDown className={`size-3 transition-transform duration-300 ${categoryExpanded ? 'rotate-180' : ''}`} />
+        </button>
+      </FilterSectionCard>
+
+      <FilterSectionCard title="品牌">
+        <div className="space-y-2 p-4">
+          {brands.length > 0 ? (
+            brands.map((brand) => (
+              <div key={brand.id} className="flex items-center gap-2">
+                <Checkbox
+                  id={`brand-${brand.id}`}
+                  checked={brandId === brand.id}
+                  onCheckedChange={(checked) => updateParam('brand', checked ? brand.id : null)}
+                />
+                <Label htmlFor={`brand-${brand.id}`} className="text-sm">{brand.name}</Label>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">目前沒有品牌資料</p>
+          )}
+        </div>
+        {brandId && (
+          <button
+            className="w-full px-4 pb-4 text-left text-xs text-muted-foreground underline underline-offset-2"
+            onClick={() => updateParam('brand', null)}
+          >
+            清除品牌篩選
+          </button>
+        )}
+      </FilterSectionCard>
     </div>
   )
 
@@ -118,19 +179,6 @@ function SearchContent() {
             </SelectContent>
           </Select>
 
-          {/* Sort selector */}
-          <Select value={sort} onValueChange={(v) => updateParam('sort', v)}>
-            <SelectTrigger className="w-36">
-              <SelectValue>
-                {(v: string) => ({ latest: '最新上架', price_asc: '價格最低' } as Record<string, string>)[v] ?? v}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="latest">最新上架</SelectItem>
-              <SelectItem value="price_asc">價格最低</SelectItem>
-            </SelectContent>
-          </Select>
-
           {/* Mobile filter */}
           <Sheet>
             <SheetTrigger
@@ -141,17 +189,19 @@ function SearchContent() {
                 <SheetTitle>篩選</SheetTitle>
               </SheetHeader>
               <div className="mt-4">
-                <FilterContent />
+                {FilterContent()}
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex items-start gap-8">
         {/* Desktop sidebar filter */}
-        <aside className="hidden md:block w-56 flex-shrink-0">
-          <FilterContent />
+        <aside className="hidden w-72 flex-shrink-0 self-start md:sticky md:top-24 md:block">
+          <div className="max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
+            {FilterContent()}
+          </div>
         </aside>
 
         {/* Results */}
@@ -169,7 +219,7 @@ function SearchContent() {
           ) : products.length > 0 ? (
             <>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {products.map((product: any) => (
+                {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
@@ -190,5 +240,16 @@ function SearchContent() {
         </div>
       </div>
     </div>
+  )
+}
+
+function FilterSectionCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-[18px] border border-[#dedad4] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      <div className="border-b border-[#e6e1da] bg-[#f6f4f1] px-4 py-4">
+        <h3 className="font-medium">{title}</h3>
+      </div>
+      {children}
+    </section>
   )
 }

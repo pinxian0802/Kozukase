@@ -187,13 +187,13 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name, brand:brands(name), model_number, category, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
+          product:products(id, name, brand:brands(name), model_number, category, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
           seller:sellers(
             id, name, ig_handle, threads_handle, ig_follower_count,
             threads_follower_count, is_social_verified, avg_rating, review_count,
             seller_regions(region:regions(id, name))
           ),
-          listing_images(id, url, r2_key, sort_order)
+          listing_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
         `)
         .eq('id', input.id)
         .single()
@@ -239,8 +239,8 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *, 
-          product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key)),
-          listing_images(id, url, r2_key, sort_order)
+          product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
+          listing_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
         `)
         .eq('seller_id', ctx.seller.id)
         .order('created_at', { ascending: false })
