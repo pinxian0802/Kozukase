@@ -60,7 +60,7 @@ export function MultiSelect({
         disabled={disabled}
         aria-invalid={invalid}
         className={cn(
-          'flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm transition-colors outline-none',
+          'flex min-h-9 w-full flex-wrap cursor-pointer items-center gap-1.5 rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm transition-colors outline-none',
           'focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30',
           invalid && 'border-destructive',
           className

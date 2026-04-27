@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { router, publicProcedure, protectedProcedure } from '../trpc'
 import { searchProductsInput, browseProductsInput, createProductInput } from '@/lib/validators/product'
 import { normalizeSearchText } from '@/lib/utils/search'
-import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
 
 export const productRouter = router({
   // Instant search for listing/wish flow - returns up to 20 product names
@@ -20,7 +19,7 @@ export const productRouter = router({
       return data ?? []
     }),
 
-  // Buyer browsing search with filters, sorting, cursor pagination
+  // Buyer browsing search with filters, sorting, offset pagination
   browse: publicProcedure
     .input(browseProductsInput)
     .query(async ({ ctx, input }) => {
@@ -33,7 +32,7 @@ export const productRouter = router({
           listings!inner(id, price, is_price_on_request, shipping_days, created_at,
             seller:sellers!inner(id, is_social_verified, is_suspended)
           )
-        `)
+        `, { count: 'exact' })
         .eq('is_removed', false)
         .eq('listings.status', 'active')
         .eq('listings.seller.is_suspended', false)
@@ -46,7 +45,7 @@ export const productRouter = router({
         })
         const ids = (matchingIds ?? []).map((r: { id: string }) => r.id)
         if (ids.length === 0) {
-          return { items: [], nextCursor: null }
+          return { items: [], total: 0, page: input.page, totalPages: 0 }
         }
         query = query.in('id', ids)
       }
@@ -72,7 +71,7 @@ export const productRouter = router({
           .eq('region_id', input.region)
         const sellerIds = (regionSellers ?? []).map((r: { seller_id: string }) => r.seller_id)
         if (sellerIds.length === 0) {
-          return { items: [], nextCursor: null }
+          return { items: [], total: 0, page: input.page, totalPages: 0 }
         }
         query = query.in('listings.seller_id', sellerIds)
       }
@@ -84,18 +83,20 @@ export const productRouter = router({
         query = query.order('created_at', { ascending: false, referencedTable: 'listings' })
       }
 
-      // Cursor pagination
-      if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
-      }
+      // Offset pagination
+      const offset = (input.page - 1) * input.limit
+      query = query.range(offset, offset + input.limit - 1)
 
-      query = query.limit(input.limit + 1)
-
-      const { data, error } = await query
+      const { data, error, count } = await query
       if (error) throw error
 
-      return paginateResults(data ?? [], input.limit)
+      const total = count ?? 0
+      return {
+        items: data ?? [],
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / input.limit),
+      }
     }),
 
   getById: publicProcedure

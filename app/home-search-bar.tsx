@@ -20,15 +20,15 @@ export function HomeSearchBar() {
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
       <div className="relative flex-1">
-        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜尋商品名稱或品牌..."
-          className="h-12 pl-12 text-base rounded-full"
+          className="h-11 pl-10 text-base"
         />
       </div>
-      <Button type="submit" size="lg" className="rounded-full px-8">
+      <Button type="submit" className="h-11 px-6">
         搜尋
       </Button>
     </form>

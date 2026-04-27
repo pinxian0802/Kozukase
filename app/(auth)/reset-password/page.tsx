@@ -87,11 +87,10 @@ export default function ResetPasswordPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary/5 to-background px-4">
-        <Card className="w-full max-w-md">
+      <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+        <Card className="w-full max-w-sm shadow-none">
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">正在確認重設密碼連結</p>
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </CardContent>
         </Card>
       </div>
@@ -99,18 +98,18 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary/5 to-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
-          <Link href="/" className="font-heading text-3xl font-bold text-primary">
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+      <Card className="w-full max-w-sm shadow-none">
+        <CardHeader className="space-y-1 text-center pb-4">
+          <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
             Kozukase
           </Link>
-          <CardTitle className="text-xl">重設密碼</CardTitle>
+          <CardTitle className="text-base font-medium">重設密碼</CardTitle>
           <CardDescription>請輸入新的密碼與確認密碼</CardDescription>
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
               <Label htmlFor="password">新密碼</Label>
               <Input
@@ -132,7 +131,6 @@ export default function ResetPasswordPage() {
                 aria-invalid={!!errors.password}
                 className="mt-1"
               />
-              <p className="mt-1 text-sm text-muted-foreground">至少 6 個字元</p>
               <FormFieldError message={errors.password} />
             </div>
 

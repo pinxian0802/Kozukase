@@ -162,17 +162,16 @@ export default function OnboardingPage() {
   if (!ready) return null
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-primary/5 to-background px-4 py-10">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-xl">設定個人資料</CardTitle>
-          <CardDescription>在開始之前，先設定你的帳號資訊</CardDescription>
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
+      <Card className="w-full max-w-sm shadow-none">
+        <CardHeader className="space-y-1 text-center pb-4">
+          <CardTitle className="text-base font-medium">設定個人資料</CardTitle>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
-              <Label>頭貼（選填）</Label>
+              <Label>頭貼</Label>
               <AvatarUpload
                 value={avatarImage}
                 onChange={setAvatarImage}
@@ -193,7 +192,7 @@ export default function OnboardingPage() {
                     setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))
                     setErrors(prev => { const n = { ...prev }; delete n.username; return n })
                   }}
-                  placeholder="只能使用小寫英文和數字"
+                  placeholder="a-z 0-9，3–20 字元"
                   aria-invalid={!!errors.username}
                   className="pl-7 pr-16"
                 />
@@ -221,7 +220,7 @@ export default function OnboardingPage() {
                   setDisplayName(e.target.value)
                   setErrors(prev => { const n = { ...prev }; delete n.displayName; return n })
                 }}
-                placeholder="你想讓別人怎麼稱呼你？"
+                placeholder="顯示名稱"
                 aria-invalid={!!errors.displayName}
                 className="mt-1"
               />

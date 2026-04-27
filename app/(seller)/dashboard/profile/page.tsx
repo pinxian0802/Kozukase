@@ -185,8 +185,7 @@ export default function SellerProfilePage() {
       {/* 基本資料 */}
       <Card>
         <CardHeader>
-          <CardTitle>賣家資料設定</CardTitle>
-          <CardDescription>管理你的賣家名稱、服務地區與簡介</CardDescription>
+          <CardTitle>賣家資料</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -259,8 +258,7 @@ export default function SellerProfilePage() {
       {/* 社群連結 */}
       <Card>
         <CardHeader>
-          <CardTitle>社群帳號連結</CardTitle>
-          <CardDescription>透過 OAuth 驗證連結你的社群帳號，連結後自動顯示帳號名稱與粉絲數，並獲得認證標章</CardDescription>
+          <CardTitle>社群帳號</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Instagram */}
@@ -276,48 +274,40 @@ export default function SellerProfilePage() {
             </div>
 
             {igConnectedAt ? (
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="space-y-1 text-sm">
-                    {igHandle && <p className="font-medium">@{igHandle}</p>}
-                    {igFollowers !== null && igFollowers !== undefined
-                      ? <p className="text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</p>
-                      : null
+              <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
+                <div className="space-y-0.5 text-sm">
+                  {igHandle && <p className="font-medium">@{igHandle}</p>}
+                  {igFollowers != null && (
+                    <p className="text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</p>
+                  )}
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button variant="outline" size="sm" render={<a href="/api/auth/instagram/connect" />}>
+                    <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    disabled={disconnectSocial.isPending}
+                    onClick={() => disconnectSocial.mutate({ platform: 'instagram' })}
+                  >
+                    {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'instagram'
+                      ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                      : <Link2Off className="mr-1 h-3.5 w-3.5" />
                     }
-                    <p className="text-xs text-muted-foreground">
-                      連結時間：{new Date(igConnectedAt).toLocaleDateString('zh-TW')}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button variant="outline" size="sm" render={<a href="/api/auth/instagram/connect" />}>
-                      <Link2 className="mr-1 h-3.5 w-3.5" />
-                      重新連結
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      disabled={disconnectSocial.isPending}
-                      onClick={() => disconnectSocial.mutate({ platform: 'instagram' })}
-                    >
-                      {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'instagram'
-                        ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                        : <Link2Off className="mr-1 h-3.5 w-3.5" />
-                      }
-                      取消連結
-                    </Button>
-                  </div>
+                    取消連結
+                  </Button>
                 </div>
               </div>
             ) : (
-              <div className="flex items-start gap-3 rounded-lg border border-dashed p-4">
+              <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
                 <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <p className="flex-1 text-sm text-muted-foreground">
-                  連結 Instagram 後，帳號名稱與粉絲數將自動顯示在你的賣家頁面
+                  連結後帳號名稱與粉絲數將顯示在賣家頁面
                 </p>
                 <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/instagram/connect" />}>
-                  <Link2 className="mr-1 h-3.5 w-3.5" />
-                  連結 Instagram
+                  <Link2 className="mr-1 h-3.5 w-3.5" />連結
                 </Button>
               </div>
             )}
@@ -338,48 +328,40 @@ export default function SellerProfilePage() {
             </div>
 
             {threadsConnectedAt ? (
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="space-y-1 text-sm">
-                    {threadsHandle && <p className="font-medium">@{threadsHandle}</p>}
-                    {threadsFollowers !== null && threadsFollowers !== undefined
-                      ? <p className="text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</p>
-                      : <p className="text-xs text-muted-foreground">Threads 目前不提供粉絲數資料</p>
+              <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
+                <div className="space-y-0.5 text-sm">
+                  {threadsHandle && <p className="font-medium">@{threadsHandle}</p>}
+                  {threadsFollowers != null && (
+                    <p className="text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</p>
+                  )}
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button variant="outline" size="sm" render={<a href="/api/auth/threads/connect" />}>
+                    <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    disabled={disconnectSocial.isPending}
+                    onClick={() => disconnectSocial.mutate({ platform: 'threads' })}
+                  >
+                    {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'threads'
+                      ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                      : <Link2Off className="mr-1 h-3.5 w-3.5" />
                     }
-                    <p className="text-xs text-muted-foreground">
-                      連結時間：{new Date(threadsConnectedAt).toLocaleDateString('zh-TW')}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button variant="outline" size="sm" render={<a href="/api/auth/threads/connect" />}>
-                      <Link2 className="mr-1 h-3.5 w-3.5" />
-                      重新連結
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      disabled={disconnectSocial.isPending}
-                      onClick={() => disconnectSocial.mutate({ platform: 'threads' })}
-                    >
-                      {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'threads'
-                        ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                        : <Link2Off className="mr-1 h-3.5 w-3.5" />
-                      }
-                      取消連結
-                    </Button>
-                  </div>
+                    取消連結
+                  </Button>
                 </div>
               </div>
             ) : (
-              <div className="flex items-start gap-3 rounded-lg border border-dashed p-4">
+              <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
                 <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <p className="flex-1 text-sm text-muted-foreground">
-                  連結 Threads 後，帳號名稱將自動顯示在你的賣家頁面
+                  連結後帳號名稱將顯示在賣家頁面
                 </p>
                 <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/threads/connect" />}>
-                  <Link2 className="mr-1 h-3.5 w-3.5" />
-                  連結 Threads
+                  <Link2 className="mr-1 h-3.5 w-3.5" />連結
                 </Button>
               </div>
             )}

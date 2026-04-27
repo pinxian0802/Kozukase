@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation'
 import { Loader2, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { buttonVariants } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -81,16 +80,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary/5 to-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
-          <Link href="/" className="font-heading text-3xl font-bold text-primary">
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+      <Card className="w-full max-w-sm shadow-none">
+        <CardHeader className="space-y-1 text-center pb-4">
+          <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
             Kozukase
           </Link>
-          <CardTitle className="text-xl">建立帳號</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-base font-medium text-foreground">建立帳號</CardTitle>
+          <CardDescription className="text-sm">
             已經有帳號？
-            <Link href={`/login?next=${encodeURIComponent(safeNext)}`} className="ml-1 text-primary underline-offset-4 hover:underline">
+            <Link href={`/login?next=${encodeURIComponent(safeNext)}`} className="ml-1 text-foreground underline underline-offset-4 hover:text-muted-foreground">
               前往登入
             </Link>
           </CardDescription>
@@ -121,15 +120,15 @@ export default function RegisterPage() {
             <div className="absolute inset-0 flex items-center">
               <Separator className="w-full" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <Badge variant="secondary" className="px-2 text-muted-foreground">或使用 Email</Badge>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-muted-foreground">或使用 Email 註冊</span>
             </div>
           </div>
 
           {emailSent ? (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-              <p className="font-medium">驗證信已寄出！</p>
-              <p className="mt-1">請到 <span className="font-medium">{email.trim()}</span> 的信箱點擊連結，完成驗證後即可設定帳號。</p>
+            <div className="rounded-md border bg-muted p-4 text-sm">
+              <p className="font-medium">驗證信已寄出</p>
+              <p className="mt-1 text-muted-foreground">請到 <span className="font-medium text-foreground">{email.trim()}</span> 的信箱點擊連結完成驗證。</p>
             </div>
           ) : (
             <form onSubmit={handleEmailRegister} className="space-y-3" noValidate>
@@ -146,6 +145,7 @@ export default function RegisterPage() {
                   }}
                   placeholder="your@email.com"
                   aria-invalid={!!emailError}
+                  className="mt-1"
                 />
                 <FormFieldError message={emailError} />
               </div>

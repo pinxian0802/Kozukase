@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Rubik, Nunito_Sans } from "next/font/google";
+import { Rubik, Inter, Noto_Sans_TC } from "next/font/google";
 import { TRPCProvider } from "@/lib/trpc/provider";
 import { SessionProvider } from "@/lib/context/session-context";
 import { getServerSession } from "@/lib/supabase/get-session";
@@ -14,10 +14,17 @@ const rubik = Rubik({
   weight: ["400", "500", "600", "700"],
 });
 
-const nunitoSans = Nunito_Sans({
+const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const notoSansTC = Noto_Sans_TC({
+  variable: "--font-sans-tc",
+  weight: ["400", "500", "700"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -37,16 +44,15 @@ export default async function RootLayout({
   return (
     <html
       lang="zh-TW"
-      className={`${rubik.variable} ${nunitoSans.variable} h-full antialiased`}
+      className={`${rubik.variable} ${inter.variable} ${notoSansTC.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
-        {/* 點擊連結時頂部立刻出現的進度條，color 對應主色 */}
-        <NextTopLoader color="#7040ef" height={3} showSpinner={false} />
+      <body className="min-h-full flex flex-col">
+        <NextTopLoader color="#0a0a0a" height={2} showSpinner={false} />
         <TooltipProvider>
           <TRPCProvider>
             <SessionProvider value={session}>
               {children}
-              <Toaster richColors position="top-center" />
+              <Toaster position="top-center" />
             </SessionProvider>
           </TRPCProvider>
         </TooltipProvider>

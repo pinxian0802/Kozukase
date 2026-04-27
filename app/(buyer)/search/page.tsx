@@ -2,10 +2,8 @@
 
 import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState, useCallback, useEffect } from 'react'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -13,9 +11,10 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/co
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/product/product-card'
 import { EmptyState } from '@/components/shared/empty-state'
+import { Pagination } from '@/components/ui/pagination'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
-import { Search, Package } from 'lucide-react'
+import { Package } from 'lucide-react'
 
 export default function SearchPage() {
   return (
@@ -28,30 +27,45 @@ export default function SearchPage() {
 function SearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+
   const q = searchParams.get('q') ?? ''
   const category = searchParams.get('category') ?? undefined
   const sort = (searchParams.get('sort') as 'latest' | 'price_asc') ?? 'latest'
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
+  const pageSize = (() => {
+    const raw = parseInt(searchParams.get('pageSize') ?? '20', 10)
+    return [10, 20, 50].includes(raw) ? raw : 20
+  })()
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    trpc.product.browse.useInfiniteQuery(
-      {
-        query: q || undefined,
-        category: category as any,
-        sort,
-        limit: 20,
-      },
-      {
-        getNextPageParam: (lastPage: any) => lastPage.nextCursor,
-      }
-    )
+  const { data, isLoading } = trpc.product.browse.useQuery(
+    {
+      query: q || undefined,
+      category: category as any,
+      sort,
+      page,
+      limit: pageSize,
+    },
+    { placeholderData: (prev) => prev }
+  )
 
-  const products = data?.pages.flatMap((p: any) => p.items) ?? []
+  const products = data?.items ?? []
+  const total = data?.total ?? 0
+  const totalPages = data?.totalPages ?? 0
 
   const updateParam = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value) params.set(key, value)
     else params.delete(key)
+    // Reset to page 1 on filter/sort/size changes
+    params.set('page', '1')
     router.push(`/search?${params.toString()}`)
+  }
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', String(newPage))
+    router.push(`/search?${params.toString()}`)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const FilterContent = () => (
@@ -82,12 +96,34 @@ function SearchContent() {
           <h1 className="text-2xl font-bold font-heading">
             {q ? `「${q}」的搜尋結果` : '瀏覽商品'}
           </h1>
-          {!isLoading && <p className="text-sm text-muted-foreground mt-1">共 {products.length} 件商品</p>}
+          {!isLoading && (
+            <p className="text-sm text-muted-foreground mt-1">共 {total} 件商品</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
+          {/* Page size selector */}
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => updateParam('pageSize', v)}
+          >
+            <SelectTrigger className="w-24">
+              <SelectValue>
+                {(v: string) => v ? `${v} 筆` : undefined}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 筆</SelectItem>
+              <SelectItem value="20">20 筆</SelectItem>
+              <SelectItem value="50">50 筆</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sort selector */}
           <Select value={sort} onValueChange={(v) => updateParam('sort', v)}>
             <SelectTrigger className="w-36">
-              <SelectValue />
+              <SelectValue>
+                {(v: string) => ({ latest: '最新上架', price_asc: '價格最低' } as Record<string, string>)[v] ?? v}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="latest">最新上架</SelectItem>
@@ -137,17 +173,12 @@ function SearchContent() {
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-              {hasNextPage && (
-                <div className="mt-8 text-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => fetchNextPage()}
-                    disabled={isFetchingNextPage}
-                  >
-                    {isFetchingNextPage ? '載入中...' : '載入更多'}
-                  </Button>
-                </div>
-              )}
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                className="mt-8"
+              />
             </>
           ) : (
             <EmptyState

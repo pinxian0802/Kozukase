@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { Search, Menu, User, Bell, LogOut, Store, Heart, Settings } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,17 @@ import { NotificationBell } from '@/components/shared/notification-bell'
 
 export function Header() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    if (pathname === '/search') {
+      setSearchQuery(searchParams.get('q') ?? '')
+    } else {
+      setSearchQuery('')
+    }
+  }, [pathname, searchParams])
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   // Session 直接從 Context 讀取，不打任何 API
@@ -39,7 +49,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0 font-heading text-2xl font-bold text-primary">
+        <Link href="/" className="flex-shrink-0 font-heading text-xl font-bold text-foreground tracking-tight">
           Kozukase
         </Link>
 

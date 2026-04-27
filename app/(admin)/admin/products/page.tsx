@@ -90,7 +90,9 @@ export default function AdminProductsPage() {
                   onValueChange={(val) => setCategory.mutate({ id: product.id, category: val as ProductCategory })}
                 >
                   <SelectTrigger className="h-9 w-28 text-xs">
-                    <SelectValue placeholder="分類" />
+                    <SelectValue placeholder="分類">
+                      {(value: string) => value ? (PRODUCT_CATEGORY_LABELS[value] ?? value) : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {CATEGORIES.map(([value, label]) => (

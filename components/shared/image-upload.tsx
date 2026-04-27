@@ -181,47 +181,48 @@ export function ImageUpload({
 
   return (
     <div className={cn('space-y-3', className)}>
-      <Card className="overflow-hidden bg-transparent shadow-none ring-0 py-0 gap-0">
-        <CardContent className="p-0">
-          <div
-            role="button"
-            tabIndex={remainingSlots > 0 && !uploading ? 0 : -1}
-            aria-disabled={remainingSlots === 0 || uploading}
-            onClick={remainingSlots > 0 && !uploading ? openPicker : undefined}
-            onKeyDown={(event) => {
-              if ((event.key === 'Enter' || event.key === ' ') && remainingSlots > 0 && !uploading) {
+      {previewItems.length === 0 && (
+        <Card className="overflow-hidden bg-transparent shadow-none ring-0 py-0 gap-0">
+          <CardContent className="p-0">
+            <div
+              role="button"
+              tabIndex={remainingSlots > 0 && !uploading ? 0 : -1}
+              aria-disabled={remainingSlots === 0 || uploading}
+              onClick={remainingSlots > 0 && !uploading ? openPicker : undefined}
+              onKeyDown={(event) => {
+                if ((event.key === 'Enter' || event.key === ' ') && remainingSlots > 0 && !uploading) {
+                  event.preventDefault()
+                  openPicker()
+                }
+              }}
+              onDragOver={(event) => {
                 event.preventDefault()
-                openPicker()
-              }
-            }}
-            onDragOver={(event) => {
-              event.preventDefault()
-              if (remainingSlots > 0 && !uploading) {
-                setIsDragging(true)
-              }
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            className={cn(
-              'flex min-h-56 items-center justify-center rounded-2xl border-2 border-dashed border-border/70 px-4 py-10 text-center transition-colors',
-              isDragging && 'border-primary bg-primary/5',
-              invalid && !isDragging && 'border-destructive',
-              remainingSlots > 0 && !uploading ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed opacity-70'
-            )}
-          >
-            <div className="flex flex-col items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-border/60">
-                {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
-              </div>
-              <div className="space-y-1">
-                <p className="text-base font-medium text-foreground">拖曳圖片到這裡</p>
-                <p className="text-sm text-muted-foreground">或點擊選擇檔案</p>
-                <p className="text-xs text-muted-foreground">JPEG, JPG, PNG, WEBP</p>
+                if (remainingSlots > 0 && !uploading) {
+                  setIsDragging(true)
+                }
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={cn(
+                'flex min-h-56 items-center justify-center rounded-2xl border-2 border-dashed border-border/70 px-4 py-10 text-center transition-colors',
+                isDragging && 'border-primary bg-primary/5',
+                invalid && !isDragging && 'border-destructive',
+                remainingSlots > 0 && !uploading ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed opacity-70'
+              )}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-border/60">
+                  {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-base font-medium text-foreground">拖曳圖片到這裡</p>
+                  <p className="text-sm text-muted-foreground">或點擊選擇檔案</p>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {previewItems.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -275,6 +276,41 @@ export function ImageUpload({
               </Card>
             )
           })}
+
+          {remainingSlots > 0 && (
+            <Card
+              role="button"
+              tabIndex={!uploading ? 0 : -1}
+              aria-disabled={uploading}
+              onClick={!uploading ? openPicker : undefined}
+              onKeyDown={(event) => {
+                if ((event.key === 'Enter' || event.key === ' ') && !uploading) {
+                  event.preventDefault()
+                  openPicker()
+                }
+              }}
+              onDragOver={(event) => {
+                event.preventDefault()
+                if (!uploading) setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={cn(
+                'relative aspect-square overflow-hidden rounded-xl border-2 border-dashed border-border/70 py-0 gap-0 transition-colors',
+                isDragging && 'border-primary bg-primary/5',
+                uploading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-primary/60 hover:bg-muted/30',
+              )}
+            >
+              <CardContent className="flex h-full w-full items-center justify-center p-0">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground">
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  </div>
+                  <p className="text-xs text-muted-foreground">新增圖片</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
@@ -289,7 +325,7 @@ export function ImageUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/*"
         multiple={maxImages > 1}
         className="hidden"
         onChange={handleInputChange}

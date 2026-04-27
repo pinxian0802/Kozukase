@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Search, ArrowRight, ShoppingBag, Sparkles, Candy, Smartphone, Home, Gamepad2, MoreHorizontal, HeartPulse, Dumbbell, BookOpen, PawPrint, Landmark, Car, Baby, Gem } from 'lucide-react'
+import { ShoppingBag, Sparkles, Candy, Smartphone, Home, Gamepad2, MoreHorizontal, HeartPulse, Dumbbell, BookOpen, PawPrint, Landmark, Car, Baby, Gem } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
@@ -29,12 +29,12 @@ export default function HomePage() {
       <Header />
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-b from-primary/5 to-background py-16 md:py-24">
-          <div className="mx-auto max-w-3xl px-4 text-center">
-            <h1 className="font-heading text-4xl font-bold text-foreground md:text-5xl">
-              找到最適合你的<span className="text-primary">日本代購</span>
+        <section className="border-b py-20 md:py-28">
+          <div className="mx-auto max-w-2xl px-4 text-center">
+            <h1 className="font-heading text-4xl font-bold text-foreground md:text-5xl leading-tight">
+              找到最適合你的日本代購
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
+            <p className="mt-4 text-base text-muted-foreground">
               比較多家代購的價格、評價、運送速度，一次搞定
             </p>
             <div className="mt-8 mx-auto max-w-xl">
@@ -44,21 +44,21 @@ export default function HomePage() {
         </section>
 
         {/* Categories */}
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <h2 className="font-heading text-2xl font-bold mb-6">商品分類</h2>
-          <div className="grid grid-cols-4 gap-4 md:grid-cols-8">
+        <section className="mx-auto max-w-7xl px-4 py-14">
+          <h2 className="font-heading text-lg font-semibold mb-5 text-foreground">商品分類</h2>
+          <div className="grid grid-cols-5 gap-1 md:grid-cols-8">
             {categories.map((cat) => {
               const Icon = cat.icon
               return (
                 <Link
                   key={cat.key}
                   href={`/search?category=${cat.key}`}
-                  className="flex flex-col items-center gap-2 rounded-xl p-4 transition-colors hover:bg-primary/5"
+                  className="flex flex-col items-center gap-2 rounded-md p-3 transition-colors hover:bg-muted"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Icon className="h-6 w-6" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <span className="text-xs font-medium text-center">{cat.label}</span>
+                  <span className="text-xs text-center text-muted-foreground leading-tight">{cat.label}</span>
                 </Link>
               )
             })}
@@ -66,12 +66,16 @@ export default function HomePage() {
         </section>
 
         {/* CTA */}
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-8 text-center text-primary-foreground md:p-12">
-            <h2 className="font-heading text-2xl font-bold md:text-3xl">成為 Kozukase 代購賣家</h2>
-            <p className="mt-2 text-primary-foreground/80">讓更多人看到你的代購服務</p>
-            <Button size="lg" variant="secondary" className="mt-6" render={<Link href="/become-seller" />}>
-              開始上架
+        <section className="border-t bg-foreground">
+          <div className="mx-auto max-w-2xl px-4 py-16 text-center md:py-20">
+            <h2 className="font-heading text-2xl font-bold text-background md:text-3xl">成為 Kozukase 賣家</h2>
+            <p className="mt-3 text-sm text-background/60">讓更多買家找到你的代購服務</p>
+            <Button
+              size="lg"
+              className="mt-8 bg-background text-foreground hover:bg-background/90"
+              render={<Link href="/become-seller" />}
+            >
+              立即上架
             </Button>
           </div>
         </section>

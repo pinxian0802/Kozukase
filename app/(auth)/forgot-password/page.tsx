@@ -5,11 +5,9 @@ import Link from 'next/link'
 import { Loader2, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { buttonVariants } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { getAuthErrorMessage } from '@/lib/supabase/auth-error'
@@ -50,33 +48,21 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary/5 to-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
-          <Link href="/" className="font-heading text-3xl font-bold text-primary">
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+      <Card className="w-full max-w-sm shadow-none">
+        <CardHeader className="space-y-1 text-center pb-4">
+          <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
             Kozukase
           </Link>
-          <CardTitle className="text-xl">忘記密碼</CardTitle>
-          <CardDescription>輸入你的 Email，我們會寄出重設密碼連結</CardDescription>
+          <CardTitle className="text-base font-medium">忘記密碼</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <Badge variant="secondary" className="px-2 text-muted-foreground">
-                透過 Email 重設
-              </Badge>
-            </div>
-          </div>
-
           {emailSent ? (
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-primary">
-              <p className="font-medium">重設密碼連結已寄出</p>
-              <p className="mt-1">
-                重設密碼連結已寄至 <span className="font-medium">{email.trim()}</span>，請點擊信中連結繼續。
+            <div className="rounded-md border bg-muted p-4 text-sm">
+              <p className="font-medium">重設連結已寄出</p>
+              <p className="mt-1 text-muted-foreground">
+                請到 <span className="font-medium text-foreground">{email.trim()}</span> 的信箱點擊連結繼續。
               </p>
             </div>
           ) : (
@@ -94,6 +80,7 @@ export default function ForgotPasswordPage() {
                   }}
                   placeholder="your@email.com"
                   aria-invalid={!!emailError}
+                  className="mt-1"
                 />
                 <FormFieldError message={emailError} />
               </div>
@@ -113,8 +100,8 @@ export default function ForgotPasswordPage() {
             </form>
           )}
 
-          <div className="text-center text-sm text-muted-foreground">
-            <Link href="/login" className="text-primary underline-offset-4 hover:underline">
+          <div className="text-center">
+            <Link href="/login" className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
               返回登入
             </Link>
           </div>

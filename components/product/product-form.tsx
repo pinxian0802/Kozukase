@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SearchableSelect } from '@/components/ui/searchable-select'
-import { ImageUpload } from '@/components/shared/image-upload'
+import { SingleImageUpload } from '@/components/shared/single-image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { BrandSelect } from '@/components/shared/brand-select'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
@@ -16,11 +16,11 @@ import type { ProductCategory } from '@/lib/validators/product'
 
 export interface ProductFormData {
   name: string
-  brand_id: string
+  brand_id: string | undefined
   modelNumber: string
   category: ProductCategory | ''
   regionId: string
-  pendingFiles: File[]
+  pendingFile: File | null
 }
 
 interface ProductFormProps {
@@ -35,7 +35,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
   const [modelNumber, setModelNumber] = useState('')
   const [category, setCategory] = useState<ProductCategory | ''>('')
   const [regionId, setRegionId] = useState('')
-  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [nameError, setNameError] = useState('')
   const [imageError, setImageError] = useState('')
 
@@ -53,7 +53,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
       setNameError('')
     }
 
-    if (pendingFiles.length === 0) {
+    if (!pendingFile) {
       setImageError('商品圖片為必填')
       hasError = true
     } else {
@@ -68,7 +68,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
       modelNumber,
       category,
       regionId,
-      pendingFiles,
+      pendingFile,
     })
   }
 
@@ -84,19 +84,19 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
       <div className="space-y-5">
         <div>
           <Label>商品目錄圖片 <span className="text-destructive">*</span></Label>
-          <p className="text-xs text-muted-foreground mb-2">此圖片用於商品目錄，與上架圖片不同</p>
-          <ImageUpload
-            purpose="product"
-            maxImages={1}
-            images={[]}
-            onChange={() => {}}
-            pendingFiles={pendingFiles}
-            onPendingFilesChange={(files) => {
-              setPendingFiles(files)
-              if (files.length > 0 && imageError) setImageError('')
-            }}
-            invalid={!!imageError}
-          />
+          <div className="mt-1.5">
+            <SingleImageUpload
+              purpose="product"
+              value={null}
+              onChange={() => {}}
+              pendingFile={pendingFile}
+              onPendingFileChange={(file) => {
+                setPendingFile(file)
+                if (file && imageError) setImageError('')
+              }}
+              invalid={!!imageError}
+            />
+          </div>
           <FormFieldError message={imageError} />
         </div>
 
@@ -116,9 +116,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label>
-            品牌 <span className="text-muted-foreground text-xs">（選填）</span>
-          </Label>
+          <Label>品牌</Label>
           <BrandSelect
             value={brandId}
             onValueChange={setBrandId}
@@ -127,9 +125,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="product-model">
-            型號 <span className="text-muted-foreground text-xs">（選填）</span>
-          </Label>
+          <Label htmlFor="product-model">型號</Label>
           <Input
             id="product-model"
             value={modelNumber}
@@ -139,12 +135,12 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label>
-            分類 <span className="text-muted-foreground text-xs">（選填）</span>
-          </Label>
+          <Label>分類</Label>
           <Select value={category} onValueChange={(v) => setCategory(v as ProductCategory)}>
             <SelectTrigger>
-              <SelectValue placeholder="選擇分類" />
+              <SelectValue placeholder="選擇分類">
+                {(value: string) => value ? (PRODUCT_CATEGORY_LABELS[value] ?? value) : undefined}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {Object.entries(PRODUCT_CATEGORY_LABELS).map(([key, label]) => (
@@ -155,9 +151,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label>
-            商品國家 <span className="text-muted-foreground text-xs">（選填）</span>
-          </Label>
+          <Label>商品國家</Label>
           <SearchableSelect
             value={regionId}
             onValueChange={setRegionId}

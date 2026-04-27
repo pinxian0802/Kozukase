@@ -20,8 +20,8 @@ interface SellerCardProps {
 export function SellerCard({ seller }: SellerCardProps) {
   return (
     <Link href={`/sellers/${seller.id}`}>
-      <Card className="transition-shadow hover:shadow-md">
-        <CardContent className="flex items-center gap-4 p-4">
+      <Card className="shadow-none transition-colors hover:border-foreground/30">
+        <CardContent className="flex items-center gap-3 p-4">
           <Avatar className="h-12 w-12">
             <AvatarImage src={seller.profile?.avatar_url ?? undefined} />
             <AvatarFallback>{seller.name[0]}</AvatarFallback>

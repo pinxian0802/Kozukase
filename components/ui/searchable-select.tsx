@@ -51,7 +51,7 @@ export function SearchableSelect({
         disabled={disabled}
         aria-invalid={invalid}
         className={cn(
-          'flex h-9 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none select-none',
+          'flex h-9 w-full cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none select-none',
           'focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30',
           invalid && 'border-destructive',
           !selected && 'text-muted-foreground',

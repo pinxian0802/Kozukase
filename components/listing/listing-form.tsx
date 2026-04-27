@@ -290,7 +290,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Images */}
       <div>
-        <Label>{mode === 'edit' ? '商品圖片（可修改）' : '商品圖片（最多 5 張）'}</Label>
+        <Label>商品圖片<span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span></Label>
         <ImageUpload
           purpose="listing"
           maxImages={5}
@@ -298,17 +298,15 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           onChange={setImages}
           pendingFiles={pendingFiles}
           onPendingFilesChange={setPendingFiles}
-          className="mt-2"
+          className="mt-1"
         />
       </div>
 
       {/* Price */}
-      <div className="space-y-3">
-        <div>
-          <Label htmlFor="price">價格 (NT$) <span className="text-destructive">*</span></Label>
-        </div>
+      <div>
+        <Label htmlFor="price">價格 (NT$) <span className="text-destructive">*</span></Label>
         {!isPriceOnRequest && (
-          <div>
+          <>
             <Input
               id="price"
               type="number"
@@ -319,10 +317,11 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
                 if (errors.price) clearError('price')
               }}
               placeholder="輸入價格"
+              className="mt-1"
               aria-invalid={!!errors.price}
             />
             <FormFieldError message={errors.price} />
-          </div>
+          </>
         )}
       </div>
 
@@ -463,7 +462,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Expires */}
       <div>
-        <Label>截止日期（選填）</Label>
+        <Label>截止日期</Label>
         <DatePicker
           value={expiresAt}
           onValueChange={setExpiresAt}

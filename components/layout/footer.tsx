@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="mt-auto border-t bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
-          <Link href="/" className="font-heading text-xl font-bold text-primary">
+          <Link href="/" className="font-heading text-base font-bold text-foreground tracking-tight">
             Kozukase
           </Link>
           <nav className="flex gap-6 text-sm text-muted-foreground">

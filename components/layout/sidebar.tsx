@@ -33,10 +33,10 @@ export function Sidebar({ mode }: SidebarProps) {
 
   return (
     <aside className="hidden md:flex w-60 flex-col border-r bg-background px-3 py-6">
-      <h2 className="mb-4 px-3 font-heading text-lg font-semibold text-primary">
+      <h2 className="mb-4 px-3 font-heading text-sm font-semibold text-foreground uppercase tracking-wider">
         {mode === 'seller' ? '賣家後台' : '管理後台'}
       </h2>
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-0.5">
         {links.map((link) => {
           const Icon = link.icon
           const isActive = pathname === link.href || (link.href !== '/dashboard' && link.href !== '/admin' && pathname.startsWith(link.href))
@@ -45,9 +45,9 @@ export function Sidebar({ mode }: SidebarProps) {
               key={link.href}
               href={link.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? 'bg-primary/10 text-primary font-medium'
+                  ? 'bg-muted text-foreground font-medium'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >

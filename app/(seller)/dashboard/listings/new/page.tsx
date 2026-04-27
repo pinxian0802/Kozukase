@@ -60,8 +60,8 @@ export default function NewListingPage() {
         brand_id: data.brand_id || null,
         brand_name: brandName,
         model_number: data.modelNumber.trim() || null,
-        catalog_image_url: data.pendingFiles[0]
-          ? URL.createObjectURL(data.pendingFiles[0])
+        catalog_image_url: data.pendingFile
+          ? URL.createObjectURL(data.pendingFile)
           : null,
       },
     })
@@ -86,8 +86,8 @@ export default function NewListingPage() {
     // Persist the id immediately after DB creation so retries are safe
     createdProductIdRef.current = product.id
 
-    if (draft.pendingFiles.length > 0) {
-      const uploaded = await uploadImageFiles('product', draft.pendingFiles, getPresignedUrl.mutateAsync)
+    if (draft.pendingFile) {
+      const uploaded = await uploadImageFiles('product', [draft.pendingFile], getPresignedUrl.mutateAsync)
       if (uploaded[0]) {
         try {
           await confirmProductImage.mutateAsync({
@@ -119,7 +119,7 @@ export default function NewListingPage() {
           <h1 className="text-2xl font-bold font-heading">新增代購</h1>
         </div>
         <div className="space-y-2">
-          <p className="text-muted-foreground">第一步：搜尋或新增商品</p>
+          <p className="text-sm text-muted-foreground">搜尋或新增商品</p>
           <ProductSearch
             onSelect={(p: ProductSearchResult) =>
               setStep({

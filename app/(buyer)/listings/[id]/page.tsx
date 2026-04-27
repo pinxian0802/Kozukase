@@ -72,7 +72,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Price */}
           <div>
-            <p className="text-3xl font-bold text-primary">
+            <p className="text-3xl font-bold text-foreground tabular-nums">
               {formatPrice(listing.price, listing.is_price_on_request)}
             </p>
             <Badge variant="outline" className="mt-2">

@@ -161,7 +161,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
-      <div className="space-y-2">
+      <div className="space-y-1">
         <Label className="text-sm font-medium text-foreground">連線國家 *</Label>
         <SearchableSelect
           value={regionId}
@@ -178,7 +178,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         <FormFieldError message={errors.regionId} />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1">
         <Label className="text-sm font-medium text-foreground">品牌（選填）</Label>
         <BrandMultiSelect
           value={brandIds}
@@ -187,7 +187,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1">
         <Label htmlFor="subRegion" className="text-sm font-medium text-foreground">地區（選填）</Label>
         <Input
           id="subRegion"
@@ -199,7 +199,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label htmlFor="startDate" className="text-sm font-medium text-foreground">開始日期 *</Label>
           <DatePicker
             value={startDate}
@@ -228,7 +228,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           />
           <FormFieldError message={errors.startDate} />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label htmlFor="endDate" className="text-sm font-medium text-foreground">結束日期 *</Label>
           <DatePicker
             value={endDate}
@@ -258,7 +258,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1">
         <Label htmlFor="description" className="text-sm font-medium text-foreground">說明（選填）</Label>
         <Textarea
           id="description"
@@ -270,8 +270,8 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>圖片（最多 5 張）</Label>
+      <div className="space-y-1">
+        <Label>圖片<span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span></Label>
         <ImageUpload
           purpose="connection"
           maxImages={5}
@@ -279,7 +279,6 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           onChange={setImages}
           pendingFiles={pendingFiles}
           onPendingFilesChange={setPendingFiles}
-          className="mt-2"
         />
       </div>
 

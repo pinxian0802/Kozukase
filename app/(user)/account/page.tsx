@@ -71,7 +71,6 @@ export default function AccountPage() {
       <Card>
         <CardHeader>
           <CardTitle>個人資料</CardTitle>
-          <CardDescription>管理你的顯示名稱與頭貼</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -82,7 +81,7 @@ export default function AccountPage() {
                 onChange={setAvatarValue}
                 pendingFile={pendingFile}
                 onPendingFileChange={setPendingFile}
-                className="mt-1.5"
+                className="mt-1"
               />
             </div>
 

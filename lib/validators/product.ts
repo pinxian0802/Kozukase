@@ -28,7 +28,7 @@ export const browseProductsInput = z.object({
   shippingDaysMax: z.number().min(1).optional(),
   socialVerifiedOnly: z.boolean().optional(),
   sort: z.enum(['latest', 'price_asc']).default('latest'),
-  cursor: z.string().optional(),
+  page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(20),
 })
 

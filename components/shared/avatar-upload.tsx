@@ -123,7 +123,6 @@ export function AvatarUpload({
               {uploading && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
               上傳頭貼
             </Button>
-            <p className="text-xs text-muted-foreground">JPG、PNG、WebP</p>
           </>
         )}
       </div>
@@ -131,7 +130,7 @@ export function AvatarUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/*"
         className="hidden"
         onChange={handleFileChange}
       />

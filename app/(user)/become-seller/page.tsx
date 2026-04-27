@@ -110,18 +110,12 @@ export default function SettingsPage() {
     <div className="mx-auto max-w-2xl px-4 py-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Store className="h-5 w-5 text-primary" />
-            成為賣家
-          </CardTitle>
-          <CardDescription>
-            填寫以下資料開始在 Kozukase 上架代購商品
-          </CardDescription>
+          <CardTitle>成為賣家</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
-              <Label>頭貼（選填）</Label>
+              <Label>頭貼</Label>
               <AvatarUpload
                 value={avatarImage}
                 onChange={setAvatarImage}
@@ -149,6 +143,7 @@ export default function SettingsPage() {
                 placeholder="你的店家名稱"
                 maxLength={50}
                 aria-invalid={!!errors.sellerName}
+                className="mt-1"
               />
               <FormFieldError message={errors.sellerName} />
             </div>
@@ -161,14 +156,14 @@ export default function SettingsPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="0912345678"
                 type="tel"
+                className="mt-1"
               />
-              <p className="mt-1 text-xs text-muted-foreground">不會公開顯示，僅供平台聯繫使用</p>
             </div>
 
             <div>
               <Label>代購地區 *</Label>
-              <p className="text-xs text-muted-foreground mb-2">選擇你提供代購服務的地區</p>
               <MultiSelect
+                className="mt-1"
                 value={selectedRegions}
                 onValueChange={(ids) => {
                   setSelectedRegions(ids)
@@ -190,7 +185,7 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <Label htmlFor="bio">簡介（選填）</Label>
+              <Label htmlFor="bio">簡介</Label>
               <Textarea
                 id="bio"
                 value={bio}

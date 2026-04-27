@@ -39,21 +39,21 @@ export default function SellerDashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">全部代購</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold">{counts?.total ?? 0}<span className="text-sm text-muted-foreground font-normal"> / 25</span></p></CardContent>
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">全部代購</CardTitle></CardHeader>
+          <CardContent><p className="text-3xl font-bold tabular-nums">{counts?.total ?? 0}<span className="text-sm text-muted-foreground font-normal"> / 25</span></p></CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">上架中</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold text-green-600">{counts?.active ?? 0}</p></CardContent>
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">上架中</CardTitle></CardHeader>
+          <CardContent><p className="text-3xl font-bold tabular-nums">{counts?.active ?? 0}</p></CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">草稿</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold text-yellow-600">{counts?.draft ?? 0}</p></CardContent>
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">草稿</CardTitle></CardHeader>
+          <CardContent><p className="text-3xl font-bold tabular-nums text-muted-foreground">{counts?.draft ?? 0}</p></CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">待審核</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold text-blue-600">{counts?.pending_approval ?? 0}</p></CardContent>
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">待審核</CardTitle></CardHeader>
+          <CardContent><p className="text-3xl font-bold tabular-nums text-muted-foreground">{counts?.pending_approval ?? 0}</p></CardContent>
         </Card>
       </div>
 
