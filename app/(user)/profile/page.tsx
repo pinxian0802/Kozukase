@@ -37,21 +37,21 @@ function ProfileContent() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
       {/* Profile header */}
-      <div className="flex items-center gap-4">
-        <Avatar className="h-16 w-16">
+      <div className="flex items-center gap-5 py-4">
+        <Avatar className="h-20 w-20">
           <AvatarImage src={session.profile.avatar_url ?? undefined} />
-          <AvatarFallback className="text-xl">{session.profile.display_name?.[0]}</AvatarFallback>
+          <AvatarFallback className="text-2xl">{session.profile.display_name?.[0]}</AvatarFallback>
         </Avatar>
         <div>
           <h1 className="text-xl font-bold font-heading">{session.profile.display_name}</h1>
-          {session.isSeller && (session.profile?.sellers as any) && (
-            <p className="text-sm text-muted-foreground">賣家：{(session.profile.sellers as any).name}</p>
+          {session.profile.username && (
+            <p className="text-sm text-muted-foreground">@{session.profile.username}</p>
           )}
         </div>
       </div>
 
       <Tabs defaultValue={defaultTab}>
-        <TabsList className="flex-wrap">
+        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
           <TabsTrigger value="bookmarks"><Bookmark className="mr-1 h-4 w-4" />收藏</TabsTrigger>
           <TabsTrigger value="wishes"><Heart className="mr-1 h-4 w-4" />許願</TabsTrigger>
           <TabsTrigger value="follows"><UserCheck className="mr-1 h-4 w-4" />追蹤</TabsTrigger>

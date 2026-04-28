@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 import { uploadImageFiles } from '@/components/shared/image-upload'
+import { normalizeImageFile } from '@/lib/utils/heic'
 
 interface SingleImageUploadProps {
   purpose: 'product' | 'listing' | 'connection' | 'avatar'
@@ -45,17 +46,19 @@ export function SingleImageUpload({
   const displayUrl = pendingPreview ?? value?.url ?? null
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const raw = e.target.files?.[0]
+    if (!raw) return
     e.target.value = ''
 
-    if (isDeferred) {
-      onPendingFileChange!(file)
-      return
-    }
-
-    setUploading(true)
     try {
+      const file = await normalizeImageFile(raw)
+
+      if (isDeferred) {
+        onPendingFileChange!(file)
+        return
+      }
+
+      setUploading(true)
       const [uploaded] = await uploadImageFiles(purpose, [file], getPresignedUrl.mutateAsync)
       onChange(uploaded)
     } catch (err) {
@@ -106,7 +109,7 @@ export function SingleImageUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         className="hidden"
         onChange={handleFileChange}
       />

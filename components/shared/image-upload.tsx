@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ImageLightbox } from '@/components/shared/image-lightbox'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
+import { isHeicFile, normalizeImageFile } from '@/lib/utils/heic'
 
 interface ImageUploadProps {
   purpose: Purpose
@@ -175,21 +176,24 @@ export function ImageUpload({
     async (files: FileList | File[]) => {
       if (uploading || remainingSlots === 0) return
 
-      const incoming = Array.from(files).filter((file) => file.type.startsWith('image/'))
-      if (incoming.length === 0) return
-
-      const accepted = incoming.slice(0, remainingSlots)
-      if (accepted.length < incoming.length) {
-        toast.error(`最多只能加入 ${remainingSlots} 張圖片`)
-      }
-
-      if (isDeferred) {
-        onPendingFilesChange!([...(pendingFiles ?? []), ...accepted])
-        return
-      }
-
-      setUploading(true)
       try {
+        const incoming = Array.from(files).filter(
+          (file) => file.type.startsWith('image/') || isHeicFile(file),
+        )
+        if (incoming.length === 0) return
+
+        const raw = incoming.slice(0, remainingSlots)
+        if (raw.length < incoming.length) {
+          toast.error(`最多只能加入 ${remainingSlots} 張圖片`)
+        }
+        const accepted = await Promise.all(raw.map(normalizeImageFile))
+
+        if (isDeferred) {
+          onPendingFilesChange!([...(pendingFiles ?? []), ...accepted])
+          return
+        }
+
+        setUploading(true)
         const uploaded = await uploadImageFiles(purpose, accepted, getPresignedUrl.mutateAsync)
         onChange([...images, ...uploaded])
       } catch (error) {
@@ -379,7 +383,7 @@ export function ImageUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         multiple={maxImages > 1}
         className="hidden"
         onChange={handleInputChange}
