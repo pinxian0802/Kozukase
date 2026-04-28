@@ -49,7 +49,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0 font-heading text-xl font-bold text-foreground tracking-tight">
+        <Link href="/" className="shrink-0 font-heading text-xl font-bold text-foreground tracking-tight">
           Kozukase
         </Link>
 

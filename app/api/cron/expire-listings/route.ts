@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { timingSafeEqual } from 'crypto'
+
+function isAuthorizedCron(authHeader: string | null): boolean {
+  const expected = `Bearer ${process.env.CRON_SECRET ?? ''}`
+  if (!authHeader || authHeader.length !== expected.length) return false
+  return timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected))
+}
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCron(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

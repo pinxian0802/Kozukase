@@ -17,6 +17,29 @@ const s3Client = new S3Client({
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
+type ImagePurpose = 'product' | 'listing' | 'connection' | 'avatar'
+
+function ownedKeyPrefix(purpose: ImagePurpose, userId: string): string {
+  return `images/${purpose}/users/${userId}/`
+}
+
+function expectedPublicUrl(r2Key: string): string {
+  return `${process.env.R2_PUBLIC_URL}/${r2Key}`
+}
+
+function assertOwnedR2Key(r2Key: string, purpose: ImagePurpose, userId: string) {
+  const prefix = ownedKeyPrefix(purpose, userId)
+  if (!r2Key.startsWith(prefix) || r2Key.includes('..')) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: '無效的圖片金鑰' })
+  }
+}
+
+function assertUrlMatchesKey(url: string, r2Key: string) {
+  if (url !== expectedPublicUrl(r2Key)) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: '圖片 URL 與金鑰不符' })
+  }
+}
+
 export const uploadRouter = router({
   getPresignedUrl: protectedProcedure
     .input(z.object({
@@ -56,12 +79,17 @@ export const uploadRouter = router({
   confirmProductImage: protectedProcedure
     .input(z.object({
       product_id: z.string().uuid(),
-      r2_key: z.string(),
+      r2_key: z.string().min(1).max(500),
       url: z.string().url(),
-      thumbnail_r2_key: z.string(),
+      thumbnail_r2_key: z.string().min(1).max(500),
       thumbnail_url: z.string().url(),
     }))
     .mutation(async ({ ctx, input }) => {
+      assertOwnedR2Key(input.r2_key, 'product', ctx.user.id)
+      assertOwnedR2Key(input.thumbnail_r2_key, 'product', ctx.user.id)
+      assertUrlMatchesKey(input.url, input.r2_key)
+      assertUrlMatchesKey(input.thumbnail_url, input.thumbnail_r2_key)
+
       const { data: product } = await ctx.db
         .from('products')
         .select('created_by')
@@ -117,7 +145,7 @@ export const uploadRouter = router({
       ]
 
       for (const key of input.r2Keys) {
-        if (!allowedPrefixes.some(prefix => key.startsWith(prefix))) {
+        if (key.includes('..') || !allowedPrefixes.some(prefix => key.startsWith(prefix))) {
           throw new TRPCError({ code: 'FORBIDDEN', message: '無法刪除不屬於你的檔案' })
         }
       }
@@ -138,14 +166,21 @@ export const uploadRouter = router({
     .input(z.object({
       listing_id: z.string().uuid(),
       images: z.array(z.object({
-        r2_key: z.string(),
+        r2_key: z.string().min(1).max(500),
         url: z.string().url(),
-        thumbnail_r2_key: z.string(),
+        thumbnail_r2_key: z.string().min(1).max(500),
         thumbnail_url: z.string().url(),
         sort_order: z.number().min(0).max(4),
       })).max(5),
     }))
     .mutation(async ({ ctx, input }) => {
+      for (const img of input.images) {
+        assertOwnedR2Key(img.r2_key, 'listing', ctx.user.id)
+        assertOwnedR2Key(img.thumbnail_r2_key, 'listing', ctx.user.id)
+        assertUrlMatchesKey(img.url, img.r2_key)
+        assertUrlMatchesKey(img.thumbnail_url, img.thumbnail_r2_key)
+      }
+
       // Verify listing ownership
       const { data: listing } = await ctx.db
         .from('listings')
@@ -182,14 +217,21 @@ export const uploadRouter = router({
     .input(z.object({
       connection_id: z.string().uuid(),
       images: z.array(z.object({
-        r2_key: z.string(),
+        r2_key: z.string().min(1).max(500),
         url: z.string().url(),
-        thumbnail_r2_key: z.string(),
+        thumbnail_r2_key: z.string().min(1).max(500),
         thumbnail_url: z.string().url(),
         sort_order: z.number().min(0).max(4),
       })).max(5),
     }))
     .mutation(async ({ ctx, input }) => {
+      for (const img of input.images) {
+        assertOwnedR2Key(img.r2_key, 'connection', ctx.user.id)
+        assertOwnedR2Key(img.thumbnail_r2_key, 'connection', ctx.user.id)
+        assertUrlMatchesKey(img.url, img.r2_key)
+        assertUrlMatchesKey(img.thumbnail_url, img.thumbnail_r2_key)
+      }
+
       // Verify connection ownership before modifying images
       const { data: connection } = await ctx.db
         .from('connections')

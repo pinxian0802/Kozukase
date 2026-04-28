@@ -10,3 +10,8 @@ export const idParam = z.object({
 })
 
 export type CursorPaginationInput = z.infer<typeof cursorPaginationInput>
+
+export const httpUrl = z
+  .string()
+  .url()
+  .refine((u) => /^https?:\/\//i.test(u), { message: '只允許 http(s) 連結' })

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { httpUrl } from './common'
 
 const listingSpecSchema = z.object({
   type: z.string().min(1),
@@ -14,7 +15,7 @@ export const createListingInput = z.object({
   is_price_on_request: z.boolean().default(false),
   specs: z.array(listingSpecSchema).default([]),
   note: z.string().max(1000).optional(),
-  post_url: z.string().url('請提供有效的貼文連結').optional(),
+  post_url: httpUrl.optional(),
   shipping_days: z.number().min(1).optional(),
   expires_at: z.string().datetime().optional(),
 })
@@ -26,7 +27,7 @@ export const updateListingInput = z.object({
   is_price_on_request: z.boolean().optional(),
   specs: z.array(listingSpecSchema).optional(),
   note: z.string().max(1000).optional(),
-  post_url: z.string().url().optional(),
+  post_url: httpUrl.optional(),
   shipping_days: z.number().min(1).optional(),
   expires_at: z.string().datetime().nullable().optional(),
 })
@@ -38,7 +39,7 @@ export const publishListingInput = z.object({
   is_price_on_request: z.boolean(),
   specs: z.array(listingSpecSchema).default([]),
   note: z.string().max(1000).optional(),
-  post_url: z.string().url('請提供有效的貼文連結'),
+  post_url: httpUrl,
   shipping_days: z.number().min(1, '出貨天數為必填'),
   expires_at: z.string().datetime().optional(),
 }).refine(

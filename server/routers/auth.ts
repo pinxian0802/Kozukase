@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, publicProcedure, protectedProcedure } from '../trpc'
+import { httpUrl } from '@/lib/validators/common'
 
 export function buildProfilePayload(user: {
   id: string
@@ -96,7 +97,7 @@ export const authRouter = router({
     .input(z.object({
       username: z.string().regex(/^[a-z0-9]{3,20}$/, 'username 只能包含小寫英文和數字，長度 3-20'),
       display_name: z.string().min(1, '顯示名稱為必填').max(50),
-      avatar_url: z.string().url().optional(),
+      avatar_url: httpUrl.optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const { data: existing } = await ctx.db
@@ -131,7 +132,7 @@ export const authRouter = router({
   updateProfile: protectedProcedure
     .input(z.object({
       display_name: z.string().min(1, '顯示名稱為必填').max(50).optional(),
-      avatar_url: z.string().url().nullable().optional(),
+      avatar_url: httpUrl.nullable().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const updates: Record<string, unknown> = {}
