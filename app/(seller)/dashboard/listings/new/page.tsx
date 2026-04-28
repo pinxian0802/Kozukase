@@ -41,6 +41,7 @@ export default function NewListingPage() {
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
   const { data: brands } = trpc.brand.list.useQuery()
   const createProduct = trpc.product.create.useMutation()
+  const createBrand = trpc.brand.create.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
 
@@ -51,7 +52,9 @@ export default function NewListingPage() {
   }
 
   const handleProductFormContinue = (data: ProductFormData) => {
-    const brandName = brands?.find((brand) => brand.id === data.brand_id)?.name ?? null
+    const brandName = data.brand_id?.startsWith('__new__:')
+      ? data.brand_id.slice(8)
+      : brands?.find((brand) => brand.id === data.brand_id)?.name ?? null
     draftProductRef.current = data
     setStep({
       type: 'listing',
@@ -75,9 +78,16 @@ export default function NewListingPage() {
     }
 
     const draft = draftProductRef.current!
+
+    let resolvedBrandId = draft.brand_id
+    if (resolvedBrandId?.startsWith('__new__:')) {
+      const brand = await createBrand.mutateAsync({ name: resolvedBrandId.slice(8) })
+      resolvedBrandId = brand.id
+    }
+
     const product = await createProduct.mutateAsync({
       name: draft.name,
-      brand_id: draft.brand_id || undefined,
+      brand_id: resolvedBrandId || undefined,
       model_number: draft.modelNumber.trim() || undefined,
       category: draft.category || undefined,
       region_id: draft.regionId || undefined,

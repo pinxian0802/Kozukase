@@ -132,7 +132,7 @@ export function ImageUpload({
   invalid,
 }: ImageUploadProps) {
   const isDeferred = pendingFiles !== undefined && onPendingFilesChange !== undefined
-  const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
+  const { mutateAsync: getPresignedUrl } = trpc.upload.getPresignedUrl.useMutation()
   const [uploading, setUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [pendingPreviews, setPendingPreviews] = useState<string[]>([])
@@ -176,6 +176,7 @@ export function ImageUpload({
     async (files: FileList | File[]) => {
       if (uploading || remainingSlots === 0) return
 
+      setUploading(true)
       try {
         const incoming = Array.from(files).filter(
           (file) => file.type.startsWith('image/') || isHeicFile(file),
@@ -193,8 +194,7 @@ export function ImageUpload({
           return
         }
 
-        setUploading(true)
-        const uploaded = await uploadImageFiles(purpose, accepted, getPresignedUrl.mutateAsync)
+        const uploaded = await uploadImageFiles(purpose, accepted, getPresignedUrl)
         onChange([...images, ...uploaded])
       } catch (error) {
         console.error('Upload failed:', error)
@@ -203,7 +203,7 @@ export function ImageUpload({
         setUploading(false)
       }
     },
-    [images, isDeferred, onChange, onPendingFilesChange, pendingFiles, purpose, remainingSlots, uploading]
+    [getPresignedUrl, images, isDeferred, onChange, onPendingFilesChange, pendingFiles, purpose, remainingSlots, uploading]
   )
 
   const openPicker = () => {

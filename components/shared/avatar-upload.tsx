@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 import { uploadImageFiles } from '@/components/shared/image-upload'
+import { normalizeImageFile } from '@/lib/utils/heic'
 
 interface AvatarUploadProps {
   value: { url: string; r2Key: string } | null
@@ -44,17 +45,19 @@ export function AvatarUpload({
   const displayUrl = pendingPreview ?? value?.url ?? undefined
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const raw = e.target.files?.[0]
+    if (!raw) return
     e.target.value = ''
-
-    if (isDeferred) {
-      onPendingFileChange!(file)
-      return
-    }
 
     setUploading(true)
     try {
+      const file = await normalizeImageFile(raw)
+
+      if (isDeferred) {
+        onPendingFileChange!(file)
+        return
+      }
+
       const [uploaded] = await uploadImageFiles('avatar', [file], getPresignedUrl.mutateAsync)
       onChange(uploaded)
     } catch (err) {
@@ -74,17 +77,28 @@ export function AvatarUpload({
   return (
     <div className={cn('flex items-center gap-4', className)}>
       {hasImage ? (
-        <Avatar className="h-[72px] w-[72px] flex-shrink-0">
-          <AvatarImage src={displayUrl} />
-          <AvatarFallback className="text-2xl">?</AvatarFallback>
-        </Avatar>
+        <div className="relative h-[72px] w-[72px] flex-shrink-0">
+          <Avatar className="h-full w-full">
+            <AvatarImage src={displayUrl} />
+            <AvatarFallback className="text-2xl">?</AvatarFallback>
+          </Avatar>
+          {uploading && (
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30">
+              <Loader2 className="h-5 w-5 animate-spin text-white" />
+            </span>
+          )}
+        </div>
       ) : (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
-          className="h-[72px] w-[72px] flex-shrink-0 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground text-xl hover:border-primary hover:bg-muted/30 transition-colors"
+          onClick={() => !uploading && inputRef.current?.click()}
+          className={cn(
+            'relative h-[72px] w-[72px] flex-shrink-0 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground text-xl transition-colors',
+            uploading ? 'cursor-not-allowed opacity-60' : 'hover:border-primary hover:bg-muted/30',
+          )}
+          disabled={uploading}
         >
-          +
+          {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : '+'}
         </button>
       )}
 
@@ -130,7 +144,7 @@ export function AvatarUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         className="hidden"
         onChange={handleFileChange}
       />

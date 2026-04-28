@@ -50,6 +50,7 @@ export function SingleImageUpload({
     if (!raw) return
     e.target.value = ''
 
+    setUploading(true)
     try {
       const file = await normalizeImageFile(raw)
 
@@ -58,7 +59,6 @@ export function SingleImageUpload({
         return
       }
 
-      setUploading(true)
       const [uploaded] = await uploadImageFiles(purpose, [file], getPresignedUrl.mutateAsync)
       onChange(uploaded)
     } catch (err) {

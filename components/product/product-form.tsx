@@ -121,6 +121,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
             value={brandId}
             onValueChange={setBrandId}
             placeholder="選擇或新增品牌"
+            deferred
           />
         </div>
 

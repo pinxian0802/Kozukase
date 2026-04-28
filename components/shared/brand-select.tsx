@@ -24,6 +24,7 @@ interface BrandSelectProps {
   className?: string
   invalid?: boolean
   disabled?: boolean
+  deferred?: boolean
 }
 
 export function BrandSelect({
@@ -33,6 +34,7 @@ export function BrandSelect({
   className,
   invalid,
   disabled,
+  deferred,
 }: BrandSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
@@ -41,7 +43,8 @@ export function BrandSelect({
   const { data: brands = [] } = trpc.brand.list.useQuery()
   const createBrand = trpc.brand.create.useMutation()
 
-  const selected = brands.find((b) => b.id === value)
+  const pendingName = value.startsWith('__new__:') ? value.slice(8) : null
+  const selected = pendingName ? null : brands.find((b) => b.id === value)
 
   const filtered = search
     ? brands.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
@@ -51,6 +54,12 @@ export function BrandSelect({
   const showCreate = search.trim().length > 0 && !exactMatch
 
   const handleCreate = async () => {
+    if (deferred) {
+      onValueChange('__new__:' + search.trim())
+      setOpen(false)
+      setSearch('')
+      return
+    }
     try {
       const brand = await createBrand.mutateAsync({ name: search.trim() })
       await utils.brand.list.invalidate()
@@ -72,11 +81,11 @@ export function BrandSelect({
           'flex h-9 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none select-none',
           'focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30',
           invalid && 'border-destructive',
-          !selected && 'text-muted-foreground',
+          !(selected || pendingName) && 'text-muted-foreground',
           className
         )}
       >
-        <span className="flex-1 truncate text-left">{selected ? selected.name : placeholder}</span>
+        <span className="flex-1 truncate text-left">{pendingName ?? (selected ? selected.name : placeholder)}</span>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent className="w-(--anchor-width) min-w-36 p-0" align="start" sideOffset={4}>
