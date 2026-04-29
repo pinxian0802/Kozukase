@@ -23,6 +23,7 @@ interface ConnectionFormProps {
 
 export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const router = useRouter()
+  const utils = trpc.useUtils()
 
   const [regionId, setRegionId] = useState(initialData?.region_id ?? '')
   const [brandIds, setBrandIds] = useState<string[]>(
@@ -31,6 +32,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [locations, setLocations] = useState<string[]>(initialData?.locations ?? [])
   const [startDate, setStartDate] = useState(initialData?.start_date?.split('T')[0] ?? '')
   const [endDate, setEndDate] = useState(initialData?.end_date?.split('T')[0] ?? '')
+  const [shippingDate, setShippingDate] = useState<string>(initialData?.shipping_date?.split('T')[0] ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [images, setImages] = useState<UploadedImage[]>(
     (initialData?.images ?? initialData?.connection_images ?? []).map((img: any) => ({
@@ -41,7 +43,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string; images?: string }>({})
+  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string }>({})
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
 
@@ -66,7 +68,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   }
 
   const handleSubmit = async () => {
-    const nextErrors: { regionId?: string; startDate?: string; endDate?: string; images?: string } = {}
+    const nextErrors: { regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string } = {}
 
     if (!regionId) {
       nextErrors.regionId = '連線國家為必填'
@@ -78,6 +80,10 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
     if (!endDate) {
       nextErrors.endDate = '結束日期為必填'
+    }
+
+    if (!shippingDate) {
+      nextErrors.shippingDate = '預計出貨日期為必填'
     }
 
     if (startDate && endDate && parsedStartDate && parsedEndDate && !isAfter(parsedEndDate, parsedStartDate)) {
@@ -107,6 +113,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           locations: locations.length > 0 ? locations : undefined,
           start_date: startDate,
           end_date: endDate,
+          shipping_date: shippingDate,
           description: description || undefined,
           brand_ids: brandIds.length > 0 ? brandIds : undefined,
         })
@@ -130,6 +137,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
         toast.dismiss(toastId)
         toast.success('已建立連線公告')
+        utils.connection.invalidate()
       } else {
         const uploadedImages = pendingFiles.length > 0 ? await uploadImageFiles('connection', pendingFiles, getPresignedUrl.mutateAsync) : []
         const allImages = [...images, ...uploadedImages]
@@ -140,6 +148,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           locations,
           start_date: startDate || undefined,
           end_date: endDate || undefined,
+          shipping_date: shippingDate || undefined,
           description: description || undefined,
           brand_ids: brandIds,
         })
@@ -157,6 +166,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
         toast.dismiss(toastId)
         toast.success('已更新連線公告')
+        utils.connection.invalidate()
       }
 
       router.push('/dashboard/connections')
@@ -276,6 +286,22 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           />
           <FormFieldError message={errors.endDate} />
         </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-sm font-medium text-foreground">預計出貨日期 *</Label>
+        <DatePicker
+          value={shippingDate}
+          onValueChange={(value) => {
+            setShippingDate(value)
+            if (errors.shippingDate) clearError('shippingDate')
+          }}
+          placeholder="選擇預計出貨日期"
+          className="w-full"
+          name="shipping_date"
+          invalid={!!errors.shippingDate}
+        />
+        <FormFieldError message={errors.shippingDate} />
       </div>
 
       <div className="space-y-1">

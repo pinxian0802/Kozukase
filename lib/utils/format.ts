@@ -3,8 +3,13 @@ export function formatPrice(price: number | null, isPriceOnRequest: boolean): st
   return `NT$ ${price.toLocaleString()}`
 }
 
-export function formatShippingDays(days: number): string {
-  return `${days} 天出貨`
+export function formatShippingDate(dateString: string | null): string {
+  if (!dateString) return '出貨日期未設定'
+  return `${new Date(dateString).toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  })} 出貨`
 }
 
 export function formatDate(dateString: string): string {

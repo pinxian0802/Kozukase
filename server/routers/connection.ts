@@ -26,6 +26,7 @@ export const connectionRouter = router({
           locations: input.locations ?? [],
           start_date: input.start_date,
           end_date: input.end_date,
+          shipping_date: input.shipping_date,
           description: input.description ?? null,
           status: 'active',
         })

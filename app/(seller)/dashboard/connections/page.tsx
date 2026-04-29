@@ -58,6 +58,9 @@ export default function SellerConnectionsPage() {
                   <Badge variant="secondary" className={statusColors[conn.status]}>{statusLabels[conn.status]}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</p>
+                {conn.shipping_date && (
+                  <p className="text-sm text-muted-foreground">預計出貨：{formatDate(conn.shipping_date)}</p>
+                )}
                 {conn.description && <p className="text-sm text-muted-foreground mt-1">{conn.description}</p>}
               </div>
               <div className="flex gap-2">

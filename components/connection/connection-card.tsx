@@ -11,6 +11,7 @@ interface ConnectionCardProps {
     id: string
     start_date: string
     end_date: string
+    shipping_date?: string | null
     locations?: string[] | null
     description?: string | null
     region?: { id: string; name: string } | null
@@ -55,6 +56,12 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
             <Calendar className="h-3 w-3" />
             <span>{formatDate(connection.start_date)} ~ {formatDate(connection.end_date)}</span>
           </div>
+
+          {connection.shipping_date && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span>預計出貨：{formatDate(connection.shipping_date)}</span>
+            </div>
+          )}
 
           {/* Description */}
           {connection.description && (

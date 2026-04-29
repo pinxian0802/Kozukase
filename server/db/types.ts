@@ -134,7 +134,7 @@ export type Listing = {
   specs: ListingSpec[]
   note: string | null
   post_url: string
-  shipping_days: number
+  shipping_date: string | null
   expires_at: string | null
   created_at: string
   updated_at: string
@@ -224,6 +224,7 @@ export type Connection = {
   locations: string[]
   start_date: string
   end_date: string
+  shipping_date: string
   description: string | null
   status: ConnectionStatus
   ended_reason: EndedReason | null

@@ -15,7 +15,7 @@ import { ImageGallery } from '@/components/shared/image-gallery'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
-import { formatPrice, formatShippingDays } from '@/lib/utils/format'
+import { formatPrice, formatShippingDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -76,7 +76,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               {formatPrice(listing.price, listing.is_price_on_request)}
             </p>
             <Badge variant="outline" className="mt-2">
-              {formatShippingDays(listing.shipping_days)}
+              {formatShippingDate(listing.shipping_date)}
             </Badge>
           </div>
 

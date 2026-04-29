@@ -124,12 +124,12 @@ try {
     id: listingId,
     price: 1500,
     is_price_on_request: false,
-    shipping_days: 7,
+    shipping_date: '2026-05-06',
     post_url: 'https://www.instagram.com/p/test123/',
     note: 'API test note',
   }, cookieHeader)
   if (data?.price !== 1500) throw new Error('Expected price=1500, got ' + data?.price)
-  pass('listing.update', 'price=' + data.price + ' shipping_days=' + data.shipping_days)
+  pass('listing.update', 'price=' + data.price + ' shipping_date=' + data.shipping_date)
 } catch (error) {
   fail('listing.update', error.message)
 }

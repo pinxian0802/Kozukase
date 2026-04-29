@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { addDays, format } from 'date-fns'
 import { router, publicProcedure, protectedProcedure } from '../trpc'
 import { searchProductsInput, browseProductsInput, createProductInput } from '@/lib/validators/product'
 import { normalizeSearchText } from '@/lib/utils/search'
@@ -29,7 +30,7 @@ export const productRouter = router({
           id, name, brand:brands(name), model_number, category, wish_count, created_at,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
-          listings!inner(id, price, is_price_on_request, shipping_days, created_at,
+          listings!inner(id, price, is_price_on_request, shipping_date, created_at,
             seller:sellers!inner(id, is_social_verified, is_suspended)
           )
         `, { count: 'exact' })
@@ -62,7 +63,8 @@ export const productRouter = router({
         query = query.lte('listings.price', input.priceMax)
       }
       if (input.shippingDaysMax !== undefined) {
-        query = query.lte('listings.shipping_days', input.shippingDaysMax)
+        const shippingDateMax = format(addDays(new Date(), input.shippingDaysMax), 'yyyy-MM-dd')
+        query = query.lte('listings.shipping_date', shippingDateMax)
       }
       if (input.socialVerifiedOnly) {
         query = query.eq('listings.seller.is_social_verified', true)
@@ -110,7 +112,7 @@ export const productRouter = router({
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
           listings(
             id, price, is_price_on_request, specs, note, post_url, 
-            shipping_days, expires_at, status, created_at,
+            shipping_date, expires_at, status, created_at,
             seller:sellers(
               id, name, ig_handle, threads_handle, ig_follower_count, 
               threads_follower_count, is_social_verified, avg_rating, review_count

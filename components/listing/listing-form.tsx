@@ -62,7 +62,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   )
   const [note, setNote] = useState(initialData?.note ?? '')
   const [postUrl, setPostUrl] = useState(initialData?.post_url ?? '')
-  const [shippingDays, setShippingDays] = useState<string>(initialData?.shipping_days?.toString() ?? '')
+  const [shippingDate, setShippingDate] = useState<string>(initialData?.shipping_date?.split('T')[0] ?? '')
   const [expiresAt, setExpiresAt] = useState(initialData?.expires_at?.split('T')[0] ?? '')
   const [images, setImages] = useState<UploadedImage[]>(
     (initialData?.images ?? initialData?.listing_images ?? []).map((img: any) => ({
@@ -74,7 +74,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [isCreatingProduct, setIsCreatingProduct] = useState(false)
-  const [errors, setErrors] = useState<{ price?: string; shippingDays?: string; postUrl?: string; specs?: string; images?: string }>({})
+  const [errors, setErrors] = useState<{ price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string }>({})
 
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
@@ -130,17 +130,16 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       specs: specsClean,
       note: note || undefined,
       post_url: postUrl || undefined,
-      shipping_days: shippingDays ? Number(shippingDays) : undefined,
+      shipping_date: shippingDate || undefined,
       expires_at: expiresAt ? new Date(expiresAt).toISOString() : undefined,
     }
   }
 
   const handleSave = async (status: 'draft' | 'active') => {
     if (status === 'active') {
-      const nextErrors: { price?: string; shippingDays?: string; postUrl?: string; specs?: string } = {}
+      const nextErrors: { price?: string; shippingDate?: string; postUrl?: string; specs?: string } = {}
       const trimmedPostUrl = postUrl.trim()
       const trimmedPrice = price.trim()
-      const trimmedShippingDays = shippingDays.trim()
 
       if (!trimmedPostUrl) {
         nextErrors.postUrl = '貼文連結為必填'
@@ -152,10 +151,8 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         }
       }
 
-      if (!trimmedShippingDays) {
-        nextErrors.shippingDays = '出貨天數為必填'
-      } else if (Number(trimmedShippingDays) < 1) {
-        nextErrors.shippingDays = '出貨天數至少為 1 天'
+      if (!shippingDate) {
+        nextErrors.shippingDate = '出貨日期為必填'
       }
 
       if (!isPriceOnRequest) {
@@ -366,21 +363,19 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Shipping */}
       <div>
-        <Label htmlFor="shipping">出貨天數 <span className="text-destructive">*</span></Label>
-        <Input
-          id="shipping"
-          type="number"
-          min="1"
-          value={shippingDays}
-          onChange={(e) => {
-            setShippingDays(e.target.value)
-            if (errors.shippingDays) clearError('shippingDays')
+        <Label>預計出貨日期 <span className="text-destructive">*</span></Label>
+        <DatePicker
+          value={shippingDate}
+          onValueChange={(value) => {
+            setShippingDate(value)
+            if (errors.shippingDate) clearError('shippingDate')
           }}
-          placeholder="預計出貨天數"
+          placeholder="選擇預計出貨日期"
           className="mt-1"
-          aria-invalid={!!errors.shippingDays}
+          minDate={new Date()}
+          invalid={!!errors.shippingDate}
         />
-        <FormFieldError message={errors.shippingDays} />
+        <FormFieldError message={errors.shippingDate} />
       </div>
 
       {/* Specs */}

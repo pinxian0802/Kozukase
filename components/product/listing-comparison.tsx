@@ -5,13 +5,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { StarRating } from '@/components/shared/star-rating'
 import { SocialBadge } from '@/components/seller/social-badge'
-import { formatPrice, formatShippingDays } from '@/lib/utils/format'
+import { formatPrice, formatShippingDate } from '@/lib/utils/format'
 
 interface Listing {
   id: string
   price: number | null
   is_price_on_request: boolean
-  shipping_days: number
+  shipping_date: string | null
   specs: any[] | null
   listing_images: { url: string; thumbnail_url?: string | null; sort_order: number }[]
   seller: {
@@ -76,7 +76,7 @@ export function ListingComparison({ listings }: ListingComparisonProps) {
                     {formatPrice(listing.price, listing.is_price_on_request)}
                   </span>
                   <Badge variant="outline" className="text-xs">
-                    {formatShippingDays(listing.shipping_days)}
+                    {formatShippingDate(listing.shipping_date)}
                   </Badge>
                 </div>
 

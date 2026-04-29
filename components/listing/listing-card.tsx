@@ -1,14 +1,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
-import { formatPrice, formatShippingDays } from '@/lib/utils/format'
+import { formatPrice, formatShippingDate } from '@/lib/utils/format'
 
 interface ListingCardProps {
   listing: {
     id: string
     price: number | null
     is_price_on_request: boolean
-    shipping_days: number
+    shipping_date: string | null
     status: string
     product?: { id: string; name: string; brand?: string | { name: string } | null; model_number?: string | null } | null
     seller?: { id: string; name: string } | null
@@ -77,7 +77,7 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
               {formatPrice(listing.price, listing.is_price_on_request)}
             </span>
             <Badge variant="outline" className="text-[11px]">
-              {formatShippingDays(listing.shipping_days)}
+              {formatShippingDate(listing.shipping_date)}
             </Badge>
           </div>
           {showStatus && (

@@ -88,7 +88,7 @@ export const bookmarkRouter = router({
         .select(`
           id, created_at,
           listing:listings(
-            id, price, is_price_on_request, shipping_days, status,
+            id, price, is_price_on_request, shipping_date, status,
             product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
             seller:sellers(id, name),
             listing_images(url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)

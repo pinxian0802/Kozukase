@@ -30,7 +30,7 @@ export const listingRouter = router({
           specs: input.specs,
           note: input.note ?? null,
           post_url: input.post_url ?? '',
-          shipping_days: input.shipping_days ?? 0,
+          shipping_date: input.shipping_date ?? null,
           expires_at: input.expires_at ?? null,
         })
         .select()
@@ -93,7 +93,7 @@ export const listingRouter = router({
 
       // Validate required fields for publish
       if (!listing.post_url) throw new TRPCError({ code: 'BAD_REQUEST', message: '貼文連結為必填' })
-      if (!listing.shipping_days) throw new TRPCError({ code: 'BAD_REQUEST', message: '出貨天數為必填' })
+      if (!listing.shipping_date) throw new TRPCError({ code: 'BAD_REQUEST', message: '出貨日期為必填' })
       if (listing.price === null && !listing.is_price_on_request) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: '請填寫價格或選擇私訊報價' })
       }
