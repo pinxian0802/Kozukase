@@ -23,7 +23,7 @@ export const connectionRouter = router({
         .insert({
           seller_id: ctx.seller.id,
           region_id: input.region_id,
-          sub_region: input.sub_region ?? null,
+          locations: input.locations ?? [],
           start_date: input.start_date,
           end_date: input.end_date,
           description: input.description ?? null,
@@ -168,6 +168,7 @@ export const connectionRouter = router({
   browse: publicProcedure
     .input(z.object({
       region_id: z.string().uuid().optional(),
+      location_query: z.string().max(50).optional(),
       active_during: z.object({
         start: z.string().optional(),
         end: z.string().optional(),
@@ -193,6 +194,10 @@ export const connectionRouter = router({
 
       if (input.region_id) {
         query = query.eq('region_id', input.region_id)
+      }
+
+      if (input.location_query) {
+        query = query.filter('locations::text', 'ilike', `%${input.location_query}%`)
       }
 
       if (input.cursor) {

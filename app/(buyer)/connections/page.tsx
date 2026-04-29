@@ -1,16 +1,19 @@
 'use client'
 
-import { Globe, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import { Globe, Search } from 'lucide-react'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 
 export default function ConnectionsPage() {
+  const [locationQuery, setLocationQuery] = useState('')
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     trpc.connection.browse.useInfiniteQuery(
-      { limit: 20 },
+      { limit: 20, location_query: locationQuery.trim() || undefined },
       { getNextPageParam: (lastPage: any) => lastPage.nextCursor }
     )
 
@@ -22,6 +25,18 @@ export default function ConnectionsPage() {
       <p className="text-muted-foreground mb-8">
         代購目前正在當地，可以即時幫你購買商品
       </p>
+
+      <div className="mb-6 max-w-md">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={locationQuery}
+            onChange={(event) => setLocationQuery(event.target.value)}
+            placeholder="搜尋地點，例如：稻荷神社"
+            className="pl-10"
+          />
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

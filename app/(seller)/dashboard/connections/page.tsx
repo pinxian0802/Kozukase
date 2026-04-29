@@ -52,7 +52,8 @@ export default function SellerConnectionsPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-medium">
-                    {conn.region?.name}{conn.sub_region ? ` - ${conn.sub_region}` : ''}
+                    {conn.region?.name}
+                    {conn.locations && conn.locations.length > 0 ? ` - ${conn.locations.slice(0, 2).join('・')}${conn.locations.length > 2 ? ` +${conn.locations.length - 2}` : ''}` : ''}
                   </p>
                   <Badge variant="secondary" className={statusColors[conn.status]}>{statusLabels[conn.status]}</Badge>
                 </div>

@@ -71,7 +71,10 @@ export default function SellerDashboardPage() {
                 {connections.map((c: any) => (
                   <div key={c.id} className="flex items-center justify-between rounded-lg border p-3 text-sm">
                     <div>
-                      <p className="font-medium">{c.region?.name}{c.sub_region ? ` - ${c.sub_region}` : ''}</p>
+                      <p className="font-medium">
+                        {c.region?.name}
+                        {c.locations && c.locations.length > 0 ? ` - ${c.locations.slice(0, 2).join('・')}${c.locations.length > 2 ? ` +${c.locations.length - 2}` : ''}` : ''}
+                      </p>
                       <p className="text-xs text-muted-foreground">{c.start_date} ~ {c.end_date}</p>
                     </div>
                     <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{c.status}</Badge>

@@ -221,7 +221,7 @@ export type Connection = {
   id: string
   seller_id: string
   region_id: string
-  sub_region: string | null
+  locations: string[]
   start_date: string
   end_date: string
   description: string | null

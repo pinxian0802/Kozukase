@@ -11,7 +11,7 @@ interface ConnectionCardProps {
     id: string
     start_date: string
     end_date: string
-    sub_region?: string | null
+    locations?: string[] | null
     description?: string | null
     region?: { id: string; name: string } | null
     seller?: {
@@ -46,7 +46,7 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
             <MapPin className="h-4 w-4 text-primary" />
             <span className="font-medium">
               {connection.region?.name}
-              {connection.sub_region && ` · ${connection.sub_region}`}
+              {connection.locations && connection.locations.length > 0 && ` · ${connection.locations.slice(0, 2).join('・')}${connection.locations.length > 2 ? ` +${connection.locations.length - 2}` : ''}`}
             </span>
           </div>
 

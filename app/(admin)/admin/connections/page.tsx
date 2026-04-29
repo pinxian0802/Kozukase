@@ -46,7 +46,8 @@ export default function AdminConnectionsPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-medium">
-                    {conn.region?.name}{conn.sub_region ? ` - ${conn.sub_region}` : ''}
+                    {conn.region?.name}
+                    {conn.locations && conn.locations.length > 0 ? ` - ${conn.locations.slice(0, 2).join('・')}${conn.locations.length > 2 ? ` +${conn.locations.length - 2}` : ''}` : ''}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     賣家：{conn.seller?.name ?? '未知'} · {formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}

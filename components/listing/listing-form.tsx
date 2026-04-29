@@ -74,7 +74,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [isCreatingProduct, setIsCreatingProduct] = useState(false)
-  const [errors, setErrors] = useState<{ price?: string; shippingDays?: string; postUrl?: string; specs?: string }>({})
+  const [errors, setErrors] = useState<{ price?: string; shippingDays?: string; postUrl?: string; specs?: string; images?: string }>({})
 
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
@@ -169,6 +169,10 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       const invalidSpec = specs.find(s => !s.is_all && s.options.length === 0)
       if (invalidSpec) {
         nextErrors.specs = `規格「${invalidSpec.type}」尚未填寫選項，請新增選項或勾選「都有」`
+      }
+
+      if (images.length + pendingFiles.length === 0) {
+        nextErrors.images = '至少需要一張圖片'
       }
 
       if (Object.keys(nextErrors).length > 0) {
@@ -314,16 +318,27 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Images */}
       <div>
-        <Label>商品圖片<span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span></Label>
+        <Label>
+          商品圖片 *
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span>
+        </Label>
         <ImageUpload
           purpose="listing"
           maxImages={5}
           images={images}
-          onChange={setImages}
+          invalid={!!errors.images}
+          onChange={(value) => {
+            setImages(value)
+            if (errors.images) clearError('images')
+          }}
           pendingFiles={pendingFiles}
-          onPendingFilesChange={setPendingFiles}
+          onPendingFilesChange={(value) => {
+            setPendingFiles(value)
+            if (errors.images) clearError('images')
+          }}
           className="mt-1"
         />
+        <FormFieldError message={errors.images} />
       </div>
 
       {/* Price */}

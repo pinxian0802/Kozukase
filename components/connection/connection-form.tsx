@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { addDays, isAfter, parseISO, startOfDay } from 'date-fns'
 import { buttonVariants } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { TagInput } from '@/components/ui/tag-input'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { DatePicker } from '@/components/ui/date-picker'
 import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
@@ -28,7 +28,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [brandIds, setBrandIds] = useState<string[]>(
     (initialData?.connection_brands ?? []).map((cb: { brand_id: string }) => cb.brand_id)
   )
-  const [subRegion, setSubRegion] = useState(initialData?.sub_region ?? '')
+  const [locations, setLocations] = useState<string[]>(initialData?.locations ?? [])
   const [startDate, setStartDate] = useState(initialData?.start_date?.split('T')[0] ?? '')
   const [endDate, setEndDate] = useState(initialData?.end_date?.split('T')[0] ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
@@ -41,7 +41,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string }>({})
+  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string; images?: string }>({})
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
 
@@ -66,7 +66,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   }
 
   const handleSubmit = async () => {
-    const nextErrors: { regionId?: string; startDate?: string; endDate?: string } = {}
+    const nextErrors: { regionId?: string; startDate?: string; endDate?: string; images?: string } = {}
 
     if (!regionId) {
       nextErrors.regionId = '連線國家為必填'
@@ -82,6 +82,10 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
     if (startDate && endDate && parsedStartDate && parsedEndDate && !isAfter(parsedEndDate, parsedStartDate)) {
       nextErrors.endDate = '結束日期必須晚於開始日期'
+    }
+
+    if (images.length + pendingFiles.length === 0) {
+      nextErrors.images = '至少需要一張圖片'
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -100,7 +104,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       if (mode === 'create') {
         const result = await createConnection.mutateAsync({
           region_id: regionId,
-          sub_region: subRegion || undefined,
+          locations: locations.length > 0 ? locations : undefined,
           start_date: startDate,
           end_date: endDate,
           description: description || undefined,
@@ -133,7 +137,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         await updateConnection.mutateAsync({
           id: initialData.id,
           region_id: regionId || undefined,
-          sub_region: subRegion || undefined,
+          locations,
           start_date: startDate || undefined,
           end_date: endDate || undefined,
           description: description || undefined,
@@ -202,13 +206,15 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="subRegion" className="text-sm font-medium text-foreground">地區（選填）</Label>
-        <Input
-          id="subRegion"
-          value={subRegion}
-          onChange={(e) => setSubRegion(e.target.value)}
-          placeholder="例：東京、大阪"
-          maxLength={100}
+        <Label className="text-sm font-medium text-foreground">
+          地點（選填）
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground">輸入後按 Enter 新增，最多 10 個</span>
+        </Label>
+        <TagInput
+          value={locations}
+          onValueChange={setLocations}
+          placeholder="例：稻荷神社、上野動物園"
+          maxTags={10}
         />
       </div>
 
@@ -285,15 +291,26 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       </div>
 
       <div className="space-y-1">
-        <Label>圖片<span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span></Label>
+        <Label>
+          圖片 *
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span>
+        </Label>
         <ImageUpload
           purpose="connection"
           maxImages={5}
           images={images}
-          onChange={setImages}
+          invalid={!!errors.images}
+          onChange={(value) => {
+            setImages(value)
+            if (errors.images) clearError('images')
+          }}
           pendingFiles={pendingFiles}
-          onPendingFilesChange={setPendingFiles}
+          onPendingFilesChange={(value) => {
+            setPendingFiles(value)
+            if (errors.images) clearError('images')
+          }}
         />
+        <FormFieldError message={errors.images} />
       </div>
 
       <button type="submit" disabled={isPending} className={buttonVariants({ size: 'lg', className: 'w-full' })}>
