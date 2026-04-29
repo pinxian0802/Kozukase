@@ -65,7 +65,7 @@ export default function SellerListingsPage() {
       </div>
 
       <Tabs value={status} onValueChange={setStatus}>
-        <TabsList>
+        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
           <TabsTrigger value="all">全部 ({counts?.total ?? 0})</TabsTrigger>
           <TabsTrigger value="active">上架中 ({counts?.active ?? 0})</TabsTrigger>
           <TabsTrigger value="draft">草稿 ({counts?.draft ?? 0})</TabsTrigger>
