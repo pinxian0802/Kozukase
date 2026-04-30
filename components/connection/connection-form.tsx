@@ -34,6 +34,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [endDate, setEndDate] = useState(initialData?.end_date?.split('T')[0] ?? '')
   const [shippingDate, setShippingDate] = useState<string>(initialData?.shipping_date?.split('T')[0] ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
+  const [billingMethod, setBillingMethod] = useState(initialData?.billing_method ?? '')
   const [images, setImages] = useState<UploadedImage[]>(
     (initialData?.images ?? initialData?.connection_images ?? []).map((img: any) => ({
       url: img.url ?? img.image_url,
@@ -115,6 +116,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           end_date: endDate,
           shipping_date: shippingDate,
           description: description || undefined,
+          billing_method: billingMethod || undefined,
           brand_ids: brandIds.length > 0 ? brandIds : undefined,
         })
         createdConnectionId = result.id
@@ -150,6 +152,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           end_date: endDate || undefined,
           shipping_date: shippingDate || undefined,
           description: description || undefined,
+          billing_method: billingMethod || undefined,
           brand_ids: brandIds,
         })
 
@@ -311,6 +314,18 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="補充連線行程說明..."
+          maxLength={500}
+          className="min-h-32 resize-none"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="billingMethod" className="text-sm font-medium text-foreground">計費方法（選填）</Label>
+        <Textarea
+          id="billingMethod"
+          value={billingMethod}
+          onChange={(e) => setBillingMethod(e.target.value)}
+          placeholder="說明收費方式、付款方式..."
           maxLength={500}
           className="min-h-32 resize-none"
         />

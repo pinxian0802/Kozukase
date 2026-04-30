@@ -62,6 +62,7 @@ export default function SellerConnectionsPage() {
                   <p className="text-sm text-muted-foreground">預計出貨：{formatDate(conn.shipping_date)}</p>
                 )}
                 {conn.description && <p className="text-sm text-muted-foreground mt-1">{conn.description}</p>}
+                {conn.billing_method && <p className="text-sm text-muted-foreground mt-1">{conn.billing_method}</p>}
               </div>
               <div className="flex gap-2">
                 {conn.status === 'active' && (

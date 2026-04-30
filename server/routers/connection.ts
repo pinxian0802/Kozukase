@@ -28,6 +28,7 @@ export const connectionRouter = router({
           end_date: input.end_date,
           shipping_date: input.shipping_date,
           description: input.description ?? null,
+          billing_method: input.billing_method ?? null,
           status: 'active',
         })
         .select()
@@ -193,12 +194,30 @@ export const connectionRouter = router({
         .eq('seller.is_suspended', false)
         .order('start_date', { ascending: true })
 
+      let countQuery = ctx.db
+        .from('connections')
+        .select('id, seller:sellers!inner(is_suspended)', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .eq('seller.is_suspended', false)
+
       if (input.region_id) {
         query = query.eq('region_id', input.region_id)
+        countQuery = countQuery.eq('region_id', input.region_id)
       }
 
       if (input.location_query) {
         query = query.filter('locations::text', 'ilike', `%${input.location_query}%`)
+        countQuery = countQuery.filter('locations::text', 'ilike', `%${input.location_query}%`)
+      }
+
+      if (input.active_during?.end) {
+        query = query.lte('start_date', input.active_during.end)
+        countQuery = countQuery.lte('start_date', input.active_during.end)
+      }
+
+      if (input.active_during?.start) {
+        query = query.gte('end_date', input.active_during.start)
+        countQuery = countQuery.gte('end_date', input.active_during.start)
       }
 
       if (input.cursor) {
@@ -208,9 +227,15 @@ export const connectionRouter = router({
 
       query = query.limit(input.limit + 1)
 
-      const { data, error } = await query
+      const [{ data, error }, { count }] = await Promise.all([
+        query,
+        countQuery,
+      ])
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return {
+        ...paginateResults(data ?? [], input.limit),
+        total: count ?? 0,
+      }
     }),
 
   // Seller dashboard

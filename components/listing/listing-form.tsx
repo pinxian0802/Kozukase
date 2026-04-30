@@ -248,7 +248,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           : []
         const allImages = [...images, ...uploadedImages]
         const { product_id: _, status: __, ...updateData } = buildInput(status, productId ?? initialData.product_id)
-        await updateListing.mutateAsync({ id: initialData.id, ...updateData })
+        await updateListing.mutateAsync({ id: initialData.id, ...updateData, shipping_date: shippingDate || null })
         await confirmImages.mutateAsync({
           listing_id: initialData.id,
           images: allImages.map((img, i) => ({

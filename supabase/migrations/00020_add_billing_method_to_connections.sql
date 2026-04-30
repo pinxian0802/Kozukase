@@ -1,0 +1,1 @@
+ALTER TABLE connections ADD COLUMN IF NOT EXISTS billing_method text;

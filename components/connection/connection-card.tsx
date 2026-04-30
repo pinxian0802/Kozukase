@@ -14,6 +14,7 @@ interface ConnectionCardProps {
     shipping_date?: string | null
     locations?: string[] | null
     description?: string | null
+    billing_method?: string | null
     region?: { id: string; name: string } | null
     seller?: {
       id: string
@@ -66,6 +67,10 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
           {/* Description */}
           {connection.description && (
             <p className="line-clamp-2 text-sm text-muted-foreground">{connection.description}</p>
+          )}
+
+          {connection.billing_method && (
+            <p className="line-clamp-2 text-sm text-muted-foreground">{connection.billing_method}</p>
           )}
 
           {/* Seller */}
