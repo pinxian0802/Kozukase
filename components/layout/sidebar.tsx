@@ -3,10 +3,16 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
   mode: 'seller' | 'admin'
+  sellerProfile?: {
+    username: string
+    name: string
+    avatarUrl: string | null
+  }
 }
 
 const sellerLinks = [
@@ -27,7 +33,7 @@ const adminLinks = [
   { href: '/admin/categories', label: '分類管理', icon: Tags },
 ]
 
-export function Sidebar({ mode }: SidebarProps) {
+export function Sidebar({ mode, sellerProfile }: SidebarProps) {
   const pathname = usePathname()
   const links = mode === 'seller' ? sellerLinks : adminLinks
 
@@ -36,6 +42,18 @@ export function Sidebar({ mode }: SidebarProps) {
       <h2 className="mb-4 px-3 font-heading text-sm font-semibold text-foreground uppercase tracking-wider">
         {mode === 'seller' ? '賣家後台' : '管理後台'}
       </h2>
+      {mode === 'seller' && sellerProfile ? (
+        <div className="mb-6 flex flex-col items-center px-3 text-center">
+          <Avatar className="mb-3 h-20 w-20">
+            {sellerProfile.avatarUrl ? <AvatarImage src={sellerProfile.avatarUrl} alt={sellerProfile.name} /> : null}
+            <AvatarFallback className="bg-zinc-200 text-zinc-500">
+              <span className="sr-only">無賣家頭貼</span>
+            </AvatarFallback>
+          </Avatar>
+          <p className="max-w-full break-all text-xs text-muted-foreground">@{sellerProfile.username}</p>
+          <p className="mt-1 max-w-full break-words text-sm font-semibold text-foreground">{sellerProfile.name}</p>
+        </div>
+      ) : null}
       <nav className="flex flex-col gap-0.5">
         {links.map((link) => {
           const Icon = link.icon

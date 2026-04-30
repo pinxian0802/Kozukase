@@ -34,7 +34,7 @@ const rowStyles: Record<string, string> = {
   pending_approval: 'border-border bg-white',
 }
 
-const listingGridClass = 'grid gap-4 lg:grid-cols-[minmax(0,4.1fr)_minmax(152px,0.88fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_max-content]'
+const listingGridClass = 'grid gap-4 lg:grid-cols-[minmax(0,4.1fr)_minmax(152px,0.88fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(124px,0.78fr)]'
 
 type ListingSpec = {
   type: string
@@ -104,12 +104,12 @@ export default function SellerListingsPage() {
       ) : data?.items && data.items.length > 0 ? (
         <div className="space-y-4">
           <div className={`hidden items-center gap-4 px-4 text-xs font-medium tracking-[0.18em] text-muted-foreground/80 lg:${listingGridClass}`}>
-            <span>商品</span>
-            <span>規格與備註</span>
-            <span>到貨與時程</span>
-            <span aria-hidden="true" />
-            <span>價格</span>
-            <span className="text-right">操作</span>
+            <span className="justify-self-start">商品</span>
+            <span className="justify-self-start">規格與備註</span>
+            <span className="justify-self-start">到貨與時程</span>
+            <span className="justify-self-center" aria-hidden="true" />
+            <span className="justify-self-start pl-2">價格</span>
+            <span className="w-24 justify-self-end text-center">操作</span>
           </div>
 
           {data.items.map((listing) => {

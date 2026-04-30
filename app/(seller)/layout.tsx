@@ -15,11 +15,29 @@ export default async function SellerLayout({ children }: { children: React.React
     redirect('/become-seller')
   }
 
+  const sellerProfile = session.profile.sellers as Record<string, unknown> | null
+  const sellerName = typeof sellerProfile?.name === 'string' && sellerProfile.name.trim()
+    ? sellerProfile.name
+    : session.profile.display_name ?? '賣家'
+  const sellerUsername = typeof session.profile.username === 'string' && session.profile.username.trim()
+    ? session.profile.username
+    : '未設定 username'
+  const sellerAvatarUrl = typeof sellerProfile?.avatar_url === 'string' && sellerProfile.avatar_url.trim()
+    ? sellerProfile.avatar_url
+    : null
+
   return (
     <>
       <Header />
       <div className="flex flex-1">
-        <Sidebar mode="seller" />
+        <Sidebar
+          mode="seller"
+          sellerProfile={{
+            username: sellerUsername,
+            name: sellerName,
+            avatarUrl: sellerAvatarUrl,
+          }}
+        />
         <main className="flex-1 p-6">{children}</main>
       </div>
     </>
