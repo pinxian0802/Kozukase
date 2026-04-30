@@ -46,7 +46,7 @@ export default function AdminReportsPage() {
       <h1 className="text-2xl font-bold font-heading">檢舉處理</h1>
 
       <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-        <TabsList>
+        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
           <TabsTrigger value="pending">待處理</TabsTrigger>
           <TabsTrigger value="resolved">已解決</TabsTrigger>
           <TabsTrigger value="dismissed">已駁回</TabsTrigger>

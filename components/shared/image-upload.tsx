@@ -354,7 +354,7 @@ export function ImageUpload({
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               className={cn(
-                'relative aspect-square overflow-hidden rounded-xl border-2 border-dashed border-border/70 py-0 gap-0 transition-colors',
+                'relative aspect-square overflow-hidden rounded-xl border-2 border-dashed border-border/70 py-0 gap-0 ring-0 transition-colors',
                 isDragging && 'border-primary bg-primary/5',
                 uploading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-primary/60 hover:bg-muted/30',
               )}

@@ -25,6 +25,7 @@ const statusColors: Record<string, string> = {
 export default function SellerConnectionsPage() {
   const utils = trpc.useUtils()
   const { data, isLoading } = trpc.connection.myConnections.useQuery({})
+  type SellerConnection = NonNullable<typeof data>[number]
 
   const endConnection = trpc.connection.end.useMutation({
     onSuccess: () => { toast.success('已結束連線'); utils.connection.invalidate() },
@@ -32,7 +33,12 @@ export default function SellerConnectionsPage() {
   })
 
   const reactivate = trpc.connection.reactivate.useMutation({
-    onSuccess: () => { toast.success('已重新申請'); utils.connection.invalidate() },
+    onSuccess: () => { toast.success('已更新連線狀態'); utils.connection.invalidate() },
+    onError: (err) => toast.error(err.message),
+  })
+
+  const deleteConnection = trpc.connection.delete.useMutation({
+    onSuccess: () => { toast.success('已刪除連線'); utils.connection.invalidate() },
     onError: (err) => toast.error(err.message),
   })
 
@@ -47,7 +53,7 @@ export default function SellerConnectionsPage() {
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
       ) : data && data.length > 0 ? (
         <div className="space-y-3">
-          {data.map((conn: any) => (
+          {data.map((conn: SellerConnection) => (
             <div key={conn.id} className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -71,8 +77,12 @@ export default function SellerConnectionsPage() {
                     <Button size="sm" variant="destructive" onClick={() => endConnection.mutate({ id: conn.id })} disabled={endConnection.isPending}>結束</Button>
                   </>
                 )}
-                {conn.status === 'ended' && conn.ended_reason === 'admin' && (
-                  <Button size="sm" onClick={() => reactivate.mutate({ id: conn.id })} disabled={reactivate.isPending}>重新申請</Button>
+                {conn.status === 'ended' && (
+                  <>
+                    <Button size="sm" variant="outline" render={<Link href={`/dashboard/connections/${conn.id}/edit`} />}>編輯</Button>
+                    <Button size="sm" onClick={() => reactivate.mutate({ id: conn.id })} disabled={reactivate.isPending}>重新上架</Button>
+                    <Button size="sm" variant="destructive" onClick={() => deleteConnection.mutate({ id: conn.id })} disabled={deleteConnection.isPending}>刪除</Button>
+                  </>
                 )}
               </div>
             </div>

@@ -114,7 +114,7 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
 
       {/* Tabs */}
       <Tabs defaultValue="listings">
-        <TabsList>
+        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
           <TabsTrigger value="listings">上架商品</TabsTrigger>
           <TabsTrigger value="reviews">評價 ({seller.review_count})</TabsTrigger>
           <TabsTrigger value="connections">連線代購</TabsTrigger>
