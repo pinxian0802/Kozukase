@@ -19,7 +19,7 @@ const sellerLinks = [
   { href: '/dashboard', label: '總覽', icon: LayoutDashboard },
   { href: '/dashboard/listings', label: '代購管理', icon: Package },
   { href: '/dashboard/connections', label: '連線管理', icon: Globe },
-  { href: '/dashboard/profile', label: '賣家資料', icon: UserCog },
+  { href: '/dashboard/profile', label: '賣家帳號', icon: UserCog },
 ]
 
 const adminLinks = [

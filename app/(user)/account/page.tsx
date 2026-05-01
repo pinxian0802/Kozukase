@@ -24,6 +24,7 @@ export default function AccountPage() {
     session?.profile?.avatar_url ? { url: session.profile.avatar_url, r2Key: '' } : null,
   )
   const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
   const updateProfile = trpc.auth.updateProfile.useMutation({
@@ -36,7 +37,7 @@ export default function AccountPage() {
 
   if (!session?.profile) return null
 
-  const isPending = updateProfile.isPending || getPresignedUrl.isPending
+  const isPending = isSubmitting || updateProfile.isPending || getPresignedUrl.isPending
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,25 +46,27 @@ export default function AccountPage() {
       return
     }
     setDisplayNameError('')
+    setIsSubmitting(true)
 
-    let finalAvatarUrl: string | null = avatarValue?.url ?? null
+    try {
+      let finalAvatarUrl: string | null = avatarValue?.url ?? null
 
-    if (pendingFile) {
-      try {
+      if (pendingFile) {
         const [uploaded] = await uploadImageFiles('avatar', [pendingFile], getPresignedUrl.mutateAsync)
         finalAvatarUrl = uploaded.url
         setAvatarValue(uploaded)
         setPendingFile(null)
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : '圖片上傳失敗')
-        return
       }
-    }
 
-    updateProfile.mutate({
-      display_name: displayName.trim(),
-      avatar_url: finalAvatarUrl,
-    })
+      await updateProfile.mutateAsync({
+        display_name: displayName.trim(),
+        avatar_url: finalAvatarUrl,
+      })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '操作失敗')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

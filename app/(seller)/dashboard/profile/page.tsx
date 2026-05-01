@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { AvatarUpload } from '@/components/shared/avatar-upload'
@@ -48,6 +49,7 @@ export default function SellerProfilePage() {
   const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [initialized, setInitialized] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { data: seller, refetch: refetchSeller } = trpc.seller.getSelf.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -109,7 +111,11 @@ export default function SellerProfilePage() {
   }, [])
 
   const updateSeller = trpc.seller.update.useMutation({
-    onSuccess: () => toast.success('已更新'),
+    onSuccess: () => {
+      toast.success('已更新')
+      void refetchSeller()
+      router.refresh()
+    },
   })
 
   const disconnectSocial = trpc.seller.disconnectSocial.useMutation({
@@ -139,38 +145,35 @@ export default function SellerProfilePage() {
     }
     if (hasError) return
 
+    setIsSubmitting(true)
     let finalAvatarUrl: string | null | undefined = avatarImage?.url ?? null
     let uploadedR2Key: string | null = null
 
-    if (pendingFile) {
-      try {
+    try {
+      if (pendingFile) {
         const [uploaded] = await uploadImageFiles('avatar', [pendingFile], getPresignedUrl.mutateAsync)
         finalAvatarUrl = uploaded.url
         uploadedR2Key = uploaded.r2Key
         setAvatarImage(uploaded)
         setPendingFile(null)
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : '圖片上傳失敗')
-        return
       }
-    }
 
-    updateSeller.mutate(
-      {
-        name: trimmedName,
-        bio: bio.trim() || undefined,
-        region_ids: selectedRegions,
-        avatar_url: finalAvatarUrl,
-      },
-      {
-        onError: async (err) => {
-          if (uploadedR2Key) {
-            await deleteObjects.mutateAsync({ r2Keys: [uploadedR2Key] }).catch(() => {})
-          }
-          toast.error(err.message)
+      await updateSeller.mutateAsync(
+        {
+          name: trimmedName,
+          bio: bio.trim() || undefined,
+          region_ids: selectedRegions,
+          avatar_url: finalAvatarUrl,
         },
-      },
-    )
+      )
+    } catch (err) {
+      if (uploadedR2Key) {
+        await deleteObjects.mutateAsync({ r2Keys: [uploadedR2Key] }).catch(() => {})
+      }
+      toast.error(err instanceof Error ? err.message : '操作失敗')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const igConnectedAt = seller?.ig_connected_at as string | null | undefined
@@ -182,193 +185,202 @@ export default function SellerProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      {/* 基本資料 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>賣家資料</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-            <div>
-              <Label>頭貼</Label>
-              <AvatarUpload
-                value={avatarImage}
-                onChange={setAvatarImage}
-                pendingFile={pendingFile}
-                onPendingFileChange={setPendingFile}
-                className="mt-1"
-              />
-            </div>
+      <Tabs defaultValue="seller-info">
+        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
+          <TabsTrigger value="seller-info">賣家資料</TabsTrigger>
+          <TabsTrigger value="social">社群帳號</TabsTrigger>
+        </TabsList>
 
-            <div>
-              <Label htmlFor="name">賣家名稱 <span className="text-destructive">*</span></Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value)
-                  if (nameError) setNameError('')
-                }}
-                maxLength={50}
-                className="mt-1"
-                aria-invalid={!!nameError}
-              />
-              <FormFieldError message={nameError} />
-            </div>
+        <TabsContent value="seller-info" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>賣家資料</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                <div>
+                  <Label>頭貼</Label>
+                  <AvatarUpload
+                    value={avatarImage}
+                    onChange={setAvatarImage}
+                    pendingFile={pendingFile}
+                    onPendingFileChange={setPendingFile}
+                    className="mt-1"
+                  />
+                </div>
 
-            <div>
-              <Label>代購地區 <span className="text-destructive">*</span></Label>
-              <MultiSelect
-                value={selectedRegions}
-                onValueChange={(v) => {
-                  setSelectedRegions(v)
-                  if (regionError) setRegionError('')
-                }}
-                options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
-                placeholder="選擇代購地區"
-                searchPlaceholder="搜尋地區..."
-                emptyText="找不到相符的地區"
-                invalid={!!regionError}
-                className="mt-1"
-              />
-              <FormFieldError message={regionError} />
-            </div>
+                <div>
+                  <Label htmlFor="name">賣家名稱 <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value)
+                      if (nameError) setNameError('')
+                    }}
+                    maxLength={50}
+                    className="mt-1"
+                    aria-invalid={!!nameError}
+                  />
+                  <FormFieldError message={nameError} />
+                </div>
 
-            <div>
-              <Label htmlFor="bio">簡介</Label>
-              <Textarea
-                id="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="介紹你的代購服務、專長地區或購物風格…"
-                maxLength={300}
-                rows={4}
-                className="mt-1 resize-none"
-              />
-              <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
-            </div>
+                <div>
+                  <Label>代購地區 <span className="text-destructive">*</span></Label>
+                  <MultiSelect
+                    value={selectedRegions}
+                    onValueChange={(v) => {
+                      setSelectedRegions(v)
+                      if (regionError) setRegionError('')
+                    }}
+                    options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
+                    placeholder="選擇代購地區"
+                    searchPlaceholder="搜尋地區..."
+                    emptyText="找不到相符的地區"
+                    invalid={!!regionError}
+                    className="mt-1"
+                  />
+                  <FormFieldError message={regionError} />
+                </div>
 
-            <button type="submit" className={buttonVariants()} disabled={updateSeller.isPending || getPresignedUrl.isPending}>
-              {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
-              儲存變更
-            </button>
-          </form>
-        </CardContent>
-      </Card>
+                <div>
+                  <Label htmlFor="bio">簡介</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="介紹你的代購服務、專長地區或購物風格…"
+                    maxLength={300}
+                    rows={4}
+                    className="mt-1 resize-none"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+                </div>
 
-      {/* 社群連結 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>社群帳號</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Instagram */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <InstagramIcon className="h-5 w-5 text-pink-500" />
-              <span className="font-medium">Instagram</span>
-              {igConnectedAt ? (
-                <Badge variant="secondary" className="text-xs">已連結</Badge>
-              ) : (
-                <Badge variant="outline" className="text-xs text-muted-foreground">未連結</Badge>
-              )}
-            </div>
+                <button type="submit" className={buttonVariants()} disabled={isSubmitting || updateSeller.isPending || getPresignedUrl.isPending}>
+                  {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+                  儲存變更
+                </button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            {igConnectedAt ? (
-              <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
-                <div className="space-y-0.5 text-sm">
-                  {igHandle && <p className="font-medium">@{igHandle}</p>}
-                  {igFollowers != null && (
-                    <p className="text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</p>
+        <TabsContent value="social" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>社群帳號</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Instagram */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <InstagramIcon className="h-5 w-5 text-pink-500" />
+                  <span className="font-medium">Instagram</span>
+                  {igConnectedAt ? (
+                    <Badge variant="secondary" className="text-xs">已連結</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-xs text-muted-foreground">未連結</Badge>
                   )}
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <Button variant="outline" size="sm" render={<a href="/api/auth/instagram/connect" />}>
-                    <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    disabled={disconnectSocial.isPending}
-                    onClick={() => disconnectSocial.mutate({ platform: 'instagram' })}
-                  >
-                    {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'instagram'
-                      ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                      : <Link2Off className="mr-1 h-3.5 w-3.5" />
-                    }
-                    取消連結
-                  </Button>
-                </div>
+
+                {igConnectedAt ? (
+                  <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
+                    <div className="space-y-0.5 text-sm">
+                      {igHandle && <p className="font-medium">@{igHandle}</p>}
+                      {igFollowers != null && (
+                        <p className="text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button variant="outline" size="sm" render={<a href="/api/auth/instagram/connect" />}>
+                        <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        disabled={disconnectSocial.isPending}
+                        onClick={() => disconnectSocial.mutate({ platform: 'instagram' })}
+                      >
+                        {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'instagram'
+                          ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                          : <Link2Off className="mr-1 h-3.5 w-3.5" />
+                        }
+                        取消連結
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
+                    <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="flex-1 text-sm text-muted-foreground">
+                      連結後帳號名稱與粉絲數將顯示在賣家頁面
+                    </p>
+                    <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/instagram/connect" />}>
+                      <Link2 className="mr-1 h-3.5 w-3.5" />連結
+                    </Button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
-                <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <p className="flex-1 text-sm text-muted-foreground">
-                  連結後帳號名稱與粉絲數將顯示在賣家頁面
-                </p>
-                <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/instagram/connect" />}>
-                  <Link2 className="mr-1 h-3.5 w-3.5" />連結
-                </Button>
-              </div>
-            )}
-          </div>
 
-          <Separator />
+              <Separator />
 
-          {/* Threads */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <ThreadsIcon className="h-5 w-5" />
-              <span className="font-medium">Threads</span>
-              {threadsConnectedAt ? (
-                <Badge variant="secondary" className="text-xs">已連結</Badge>
-              ) : (
-                <Badge variant="outline" className="text-xs text-muted-foreground">未連結</Badge>
-              )}
-            </div>
-
-            {threadsConnectedAt ? (
-              <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
-                <div className="space-y-0.5 text-sm">
-                  {threadsHandle && <p className="font-medium">@{threadsHandle}</p>}
-                  {threadsFollowers != null && (
-                    <p className="text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</p>
+              {/* Threads */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <ThreadsIcon className="h-5 w-5" />
+                  <span className="font-medium">Threads</span>
+                  {threadsConnectedAt ? (
+                    <Badge variant="secondary" className="text-xs">已連結</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-xs text-muted-foreground">未連結</Badge>
                   )}
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <Button variant="outline" size="sm" render={<a href="/api/auth/threads/connect" />}>
-                    <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    disabled={disconnectSocial.isPending}
-                    onClick={() => disconnectSocial.mutate({ platform: 'threads' })}
-                  >
-                    {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'threads'
-                      ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                      : <Link2Off className="mr-1 h-3.5 w-3.5" />
-                    }
-                    取消連結
-                  </Button>
-                </div>
+
+                {threadsConnectedAt ? (
+                  <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
+                    <div className="space-y-0.5 text-sm">
+                      {threadsHandle && <p className="font-medium">@{threadsHandle}</p>}
+                      {threadsFollowers != null && (
+                        <p className="text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button variant="outline" size="sm" render={<a href="/api/auth/threads/connect" />}>
+                        <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        disabled={disconnectSocial.isPending}
+                        onClick={() => disconnectSocial.mutate({ platform: 'threads' })}
+                      >
+                        {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'threads'
+                          ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                          : <Link2Off className="mr-1 h-3.5 w-3.5" />
+                        }
+                        取消連結
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
+                    <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="flex-1 text-sm text-muted-foreground">
+                      連結後帳號名稱將顯示在賣家頁面
+                    </p>
+                    <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/threads/connect" />}>
+                      <Link2 className="mr-1 h-3.5 w-3.5" />連結
+                    </Button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
-                <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <p className="flex-1 text-sm text-muted-foreground">
-                  連結後帳號名稱將顯示在賣家頁面
-                </p>
-                <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/threads/connect" />}>
-                  <Link2 className="mr-1 h-3.5 w-3.5" />連結
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

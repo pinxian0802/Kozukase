@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
+import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -219,15 +220,15 @@ export default function SellerListingsPage() {
 
                 <div className="flex items-start lg:pt-1">
                   {listing.post_url ? (
-                    <Button
+                    <SafeExternalLink
+                      href={listing.post_url}
                       size="sm"
                       variant="outline"
                       className="w-full justify-center"
-                      render={<a href={listing.post_url} target="_blank" rel="noreferrer" />}
                     >
                       查看貼文
                       <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
+                    </SafeExternalLink>
                   ) : null}
                 </div>
 

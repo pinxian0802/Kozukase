@@ -47,7 +47,7 @@ export function ImageLightbox({
     }
 
     setIsVisible(false)
-    closeTimerRef.current = setTimeout(() => setShouldRender(false), 200)
+    closeTimerRef.current = setTimeout(() => setShouldRender(false), 320)
     return () => {
       if (closeTimerRef.current) {
         clearTimeout(closeTimerRef.current)
@@ -93,7 +93,7 @@ export function ImageLightbox({
   return createPortal(
     <div
       className={cn(
-        'fixed inset-0 z-1000 bg-slate-950/70 backdrop-blur-md transition-opacity duration-200 ease-out',
+        'fixed inset-0 z-1000 bg-neutral-950/78 backdrop-blur-sm transition-[opacity,backdrop-filter] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
         isVisible ? 'opacity-100' : 'opacity-0',
         className
       )}
@@ -130,15 +130,15 @@ export function ImageLightbox({
 
       <div
         className={cn(
-          'flex h-full w-full items-center justify-center p-4 transition-all duration-200 ease-out sm:p-8',
-          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          'flex h-full w-full items-center justify-center p-4 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform sm:p-8 motion-reduce:transition-none',
+          isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-1.5 scale-[0.985] opacity-0'
         )}
         onClick={(event) => event.stopPropagation()}
       >
         <img
           src={currentImage.url}
           alt={currentImage.alt ?? '圖片'}
-          className="max-h-[90vh] max-w-[92vw] select-none object-contain sm:max-h-[94vh] sm:max-w-[88vw]"
+          className="max-h-[90vh] max-w-[92vw] select-none object-contain shadow-2xl shadow-black/30 sm:max-h-[94vh] sm:max-w-[88vw]"
           draggable={false}
         />
       </div>

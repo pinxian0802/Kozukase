@@ -30,6 +30,7 @@ export default function SettingsPage() {
   const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<{ sellerName?: string; phone?: string; regions?: string }>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const becomeSeller = trpc.seller.becomeSeller.useMutation()
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
@@ -77,6 +78,7 @@ export default function SettingsPage() {
     }
 
     setErrors({})
+    setIsSubmitting(true)
 
     let finalAvatarUrl = avatarImage?.url
     let uploadedR2Key: string | null = null
@@ -103,6 +105,7 @@ export default function SettingsPage() {
         await deleteObjects.mutateAsync({ r2Keys: [uploadedR2Key] }).catch(() => {})
       }
       toast.error(err instanceof Error ? err.message : '操作失敗')
+      setIsSubmitting(false)
     }
   }
 
@@ -209,7 +212,7 @@ export default function SettingsPage() {
               <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
             </div>
 
-            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={becomeSeller.isPending || getPresignedUrl.isPending}>
+            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={isSubmitting || becomeSeller.isPending || getPresignedUrl.isPending}>
               {becomeSeller.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Store className="mr-2 h-4 w-4" />}
               開始成為賣家
             </button>

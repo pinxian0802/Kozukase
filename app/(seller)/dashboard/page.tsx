@@ -1,24 +1,58 @@
 'use client'
 
 import Link from 'next/link'
-import { Package, Globe, Plus } from 'lucide-react'
+import { Package, Globe, Plus, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 
+const MAX_LISTINGS = 25
+
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 5) return '深夜好'
+  if (h < 12) return '早安'
+  if (h < 18) return '午安'
+  return '晚安'
+}
+
+const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+  active: { label: '上架中', variant: 'default' },
+  draft: { label: '草稿', variant: 'secondary' },
+  pending_approval: { label: '待審核', variant: 'outline' },
+  inactive: { label: '已下架', variant: 'secondary' },
+}
+
 export default function SellerDashboardPage() {
   const { data: counts, isLoading } = trpc.listing.myListingCount.useQuery()
   const { data: connections } = trpc.connection.myConnections.useQuery({})
+  const { data: recentListings } = trpc.listing.myListings.useQuery({ limit: 5 })
+
+  const total = counts?.total ?? 0
+  const active = counts?.active ?? 0
+  const draft = counts?.draft ?? 0
+  const pending = counts?.pending_approval ?? 0
+  const inactive = counts?.inactive ?? 0
+  const remaining = MAX_LISTINGS - total
+
+  const activeConnections = connections?.filter((c: any) => c.status === 'active') ?? []
+
+  const today = new Date().toLocaleDateString('zh-TW', {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  })
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
-          ))}
+        <Skeleton className="h-16 rounded-xl" />
+        <Skeleton className="h-28 rounded-xl" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton className="h-72 rounded-xl" />
+          <Skeleton className="h-72 rounded-xl" />
         </div>
       </div>
     )
@@ -26,9 +60,13 @@ export default function SellerDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold font-heading">賣家後台</h1>
-        <div className="flex gap-2">
+      {/* Header */}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold font-heading">{getGreeting()}，歡迎回來</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{today}</p>
+        </div>
+        <div className="flex gap-2 mt-3 sm:mt-0">
           <Button size="sm" render={<Link href="/dashboard/listings/new" />}>
             <Plus className="mr-1 h-4 w-4" />新增代購
           </Button>
@@ -38,51 +76,181 @@ export default function SellerDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="shadow-none">
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">全部代購</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold tabular-nums">{counts?.total ?? 0}<span className="text-sm text-muted-foreground font-normal"> / 25</span></p></CardContent>
-        </Card>
-        <Card className="shadow-none">
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">上架中</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold tabular-nums">{counts?.active ?? 0}</p></CardContent>
-        </Card>
-        <Card className="shadow-none">
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">草稿</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold tabular-nums text-muted-foreground">{counts?.draft ?? 0}</p></CardContent>
-        </Card>
-        <Card className="shadow-none">
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">待審核</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-bold tabular-nums text-muted-foreground">{counts?.pending_approval ?? 0}</p></CardContent>
-        </Card>
-      </div>
+      {/* Listing quota overview */}
+      <Card className="shadow-none">
+        <CardContent className="pt-5 pb-5">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="text-sm font-medium">代購刊登量</span>
+            <span className="text-sm tabular-nums">
+              <span className="font-bold">{total}</span>
+              <span className="text-muted-foreground"> / {MAX_LISTINGS}</span>
+            </span>
+          </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
+          {/* Segmented progress bar */}
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden flex">
+            {active > 0 && (
+              <div
+                className="h-full bg-foreground transition-all"
+                style={{ width: `${(active / MAX_LISTINGS) * 100}%` }}
+              />
+            )}
+            {pending > 0 && (
+              <div
+                className="h-full bg-foreground/45 transition-all"
+                style={{ width: `${(pending / MAX_LISTINGS) * 100}%` }}
+              />
+            )}
+            {draft > 0 && (
+              <div
+                className="h-full bg-foreground/20 transition-all"
+                style={{ width: `${(draft / MAX_LISTINGS) * 100}%` }}
+              />
+            )}
+          </div>
+
+          {/* Legend */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2 w-2 rounded-sm bg-foreground" />
+              上架中 <strong className="text-foreground">{active}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2 w-2 rounded-sm bg-foreground/45" />
+              待審核 <strong className="text-foreground">{pending}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2 w-2 rounded-sm bg-foreground/20" />
+              草稿 <strong className="text-foreground">{draft}</strong>
+            </span>
+            {inactive > 0 && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-sm bg-muted-foreground/30" />
+                已下架 <strong className="text-foreground">{inactive}</strong>
+              </span>
+            )}
+            <span className="ml-auto">
+              剩餘 <span className="font-semibold text-foreground">{remaining}</span> 個空位
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent listings + Active connections */}
+      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+        {/* Recent listings */}
+        <Card className="shadow-none">
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">最近連線</CardTitle>
-              <Button variant="ghost" size="sm" render={<Link href="/dashboard/connections" />}>全部</Button>
+              <CardTitle className="text-sm font-semibold">最近代購</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1 text-muted-foreground"
+                render={<Link href="/dashboard/listings" />}
+              >
+                全部 <ArrowRight className="h-3 w-3" />
+              </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            {connections && connections.length > 0 ? (
-              <div className="space-y-3">
-                {connections.map((c: any) => (
-                  <div key={c.id} className="flex items-center justify-between rounded-lg border p-3 text-sm">
-                    <div>
-                      <p className="font-medium">
+          <CardContent className="pt-0 pb-2">
+            {recentListings && recentListings.items.length > 0 ? (
+              <div className="divide-y divide-border -mx-6">
+                {recentListings.items.map((l: any) => {
+                  const sc = statusConfig[l.status] ?? { label: l.status, variant: 'secondary' as const }
+                  return (
+                    <Link
+                      key={l.id}
+                      href={`/dashboard/listings/${l.id}/edit`}
+                      className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{l.product?.name ?? '未知商品'}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {l.product?.brand?.name ?? ''}
+                          {l.price != null
+                            ? `・NT$ ${l.price.toLocaleString()}`
+                            : l.is_price_on_request
+                            ? '・私訊報價'
+                            : ''}
+                        </p>
+                      </div>
+                      <Badge variant={sc.variant} className="ml-3 shrink-0 text-xs">
+                        {sc.label}
+                      </Badge>
+                    </Link>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="py-10 flex flex-col items-center text-center gap-2">
+                <Package className="h-8 w-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">還沒有代購</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-1"
+                  render={<Link href="/dashboard/listings/new" />}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" />新增第一筆代購
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Active connections */}
+        <Card className="shadow-none">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold">目前連線</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1 text-muted-foreground"
+                render={<Link href="/dashboard/connections" />}
+              >
+                全部 <ArrowRight className="h-3 w-3" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 pb-2">
+            {activeConnections.length > 0 ? (
+              <div className="divide-y divide-border -mx-6">
+                {activeConnections.slice(0, 5).map((c: any) => (
+                  <Link
+                    key={c.id}
+                    href={`/dashboard/connections/${c.id}/edit`}
+                    className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">
                         {c.region?.name}
-                        {c.locations && c.locations.length > 0 ? ` - ${c.locations.slice(0, 2).join('・')}${c.locations.length > 2 ? ` +${c.locations.length - 2}` : ''}` : ''}
+                        {c.locations?.length > 0
+                          ? ` — ${c.locations.slice(0, 2).join('・')}${c.locations.length > 2 ? ` +${c.locations.length - 2}` : ''}`
+                          : ''}
                       </p>
-                      <p className="text-xs text-muted-foreground">{c.start_date} ~ {c.end_date}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {c.start_date} ～ {c.end_date}
+                      </p>
                     </div>
-                    <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{c.status}</Badge>
-                  </div>
+                    <span className="ml-3 shrink-0 h-2 w-2 rounded-full bg-green-500" />
+                  </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">還沒有連線公告</p>
+              <div className="py-10 flex flex-col items-center text-center gap-2">
+                <Globe className="h-8 w-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">沒有進行中的連線</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-1"
+                  render={<Link href="/dashboard/connections/new" />}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" />新增連線
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

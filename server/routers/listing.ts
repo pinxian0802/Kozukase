@@ -2,10 +2,18 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { router, publicProcedure, sellerProcedure } from '../trpc'
+import { httpUrl } from '@/lib/validators/common'
 import { createListingInput, updateListingInput } from '@/lib/validators/listing'
 import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
+import { checkUrlSafety } from '@/lib/utils/safe-browsing'
 
 export const listingRouter = router({
+  checkPostUrl: sellerProcedure
+    .input(z.object({ url: httpUrl }))
+    .mutation(async ({ input }) => {
+      return checkUrlSafety(input.url)
+    }),
+
   create: sellerProcedure
     .input(createListingInput)
     .mutation(async ({ ctx, input }) => {
@@ -93,6 +101,15 @@ export const listingRouter = router({
 
       // Validate required fields for publish
       if (!listing.post_url) throw new TRPCError({ code: 'BAD_REQUEST', message: '貼文連結為必填' })
+
+      // Safe Browsing double-check on publish
+      const urlCheck = await checkUrlSafety(listing.post_url)
+      if (!urlCheck.safe) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `此貼文連結被 Google 標記為危險網站（${urlCheck.threat}），請改用其他連結`,
+        })
+      }
       if (!listing.shipping_date) throw new TRPCError({ code: 'BAD_REQUEST', message: '出貨日期為必填' })
       if (listing.price === null && !listing.is_price_on_request) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: '請填寫價格或選擇私訊報價' })

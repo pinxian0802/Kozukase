@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
 
 export const cursorPaginationInput = z.object({
   cursor: z.string().optional(),
@@ -13,5 +14,5 @@ export type CursorPaginationInput = z.infer<typeof cursorPaginationInput>
 
 export const httpUrl = z
   .string()
-  .url()
-  .refine((u) => /^https?:\/\//i.test(u), { message: '只允許 http(s) 連結' })
+  .trim()
+  .refine((value) => parseSafeHttpUrl(value) !== null, { message: '只允許安全的 http(s) 連結' })

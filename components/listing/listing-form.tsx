@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2, Loader2, Package } from 'lucide-react'
+import { Plus, Trash2, Loader2, Package, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,6 +15,7 @@ import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { buttonVariants } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
+import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
 import { toast } from 'sonner'
 
 const SPEC_TYPES = [
@@ -73,9 +74,15 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [isCreatingProduct, setIsCreatingProduct] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCheckingUrl, setIsCheckingUrl] = useState(false)
+  const [isPreparingImages, setIsPreparingImages] = useState(false)
+  const [postUrlSafe, setPostUrlSafe] = useState<boolean | null>(null)
   const [errors, setErrors] = useState<{ price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string }>({})
+  const isCheckingUrlRef = useRef(false)
+  const isPreparingImagesRef = useRef(false)
 
+  const checkPostUrl = trpc.listing.checkPostUrl.useMutation()
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
   const publishListing = trpc.listing.publish.useMutation()
@@ -90,6 +97,37 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       delete next[field]
       return next
     })
+  }
+
+  const handlePostUrlBlur = async () => {
+    const trimmed = postUrl.trim()
+    if (!trimmed) return
+
+    if (!parseSafeHttpUrl(trimmed)) {
+      setPostUrlSafe(false)
+      setErrors((current) => ({ ...current, postUrl: '請提供有效的貼文連結' }))
+      return
+    }
+
+    isCheckingUrlRef.current = true
+    setIsCheckingUrl(true)
+    try {
+      const result = await checkPostUrl.mutateAsync({ url: trimmed })
+      if (!result.safe) {
+        setPostUrlSafe(false)
+        setErrors((current) => ({
+          ...current,
+          postUrl: `此連結被 Google 標記為${result.threat}，請改用其他連結`,
+        }))
+      } else {
+        setPostUrlSafe(true)
+      }
+    } catch {
+      // API 失敗時不阻擋用戶
+    } finally {
+      isCheckingUrlRef.current = false
+      setIsCheckingUrl(false)
+    }
   }
 
   const addSpec = () => {
@@ -136,19 +174,19 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   }
 
   const handleSave = async (status: 'draft' | 'active') => {
+    if (isCheckingUrlRef.current || isPreparingImagesRef.current) {
+      return
+    }
+
     if (status === 'active') {
-      const nextErrors: { price?: string; shippingDate?: string; postUrl?: string; specs?: string } = {}
+      const nextErrors: { price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string } = {}
       const trimmedPostUrl = postUrl.trim()
       const trimmedPrice = price.trim()
 
       if (!trimmedPostUrl) {
         nextErrors.postUrl = '貼文連結為必填'
-      } else {
-        try {
-          new URL(trimmedPostUrl)
-        } catch {
-          nextErrors.postUrl = '請提供有效的貼文連結'
-        }
+      } else if (!parseSafeHttpUrl(trimmedPostUrl)) {
+        nextErrors.postUrl = '請提供有效的貼文連結'
       }
 
       if (!shippingDate) {
@@ -180,6 +218,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       setErrors({})
     }
 
+    setIsSubmitting(true)
     const toastId = toast.loading('\u8655\u7406\u4e2d...')
 
     // Track what was created so we can roll back on failure
@@ -192,7 +231,6 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         if (!onCreateProduct) {
           throw new Error('\u7f3a\u5c11\u5546\u54c1\u5efa\u7acb\u6d41\u7a0b')
         }
-        setIsCreatingProduct(true)
         resolvedProductId = await onCreateProduct()
         if (!resolvedProductId) {
           throw new Error('\u5546\u54c1\u5efa\u7acb\u5931\u6557')
@@ -281,11 +319,12 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       toast.dismiss(toastId)
       toast.error(err.message ?? '\u64cd\u4f5c\u5931\u6557')
     } finally {
-      setIsCreatingProduct(false)
+      setIsSubmitting(false)
     }
   }
 
-  const isPending = createListing.isPending || updateListing.isPending || isCreatingProduct || publishListing.isPending
+  const isPending = isSubmitting || createListing.isPending || updateListing.isPending || publishListing.isPending
+  const isSubmitDisabled = isPending || isCheckingUrl || isPreparingImages
 
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
@@ -324,6 +363,10 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           maxImages={5}
           images={images}
           invalid={!!errors.images}
+          onUploadingChange={(uploading) => {
+            isPreparingImagesRef.current = uploading
+            setIsPreparingImages(uploading)
+          }}
           onChange={(value) => {
             setImages(value)
             if (errors.images) clearError('images')
@@ -479,19 +522,39 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       {/* Post URL */}
       <div>
         <Label htmlFor="postUrl">貼文連結 <span className="text-destructive">*</span></Label>
-        <Input
-          id="postUrl"
-          type="url"
-          value={postUrl}
-          onChange={(e) => {
-            setPostUrl(e.target.value)
-            if (errors.postUrl) clearError('postUrl')
-          }}
-          placeholder="https://www.instagram.com/p/..."
-          className="mt-1"
-          aria-invalid={!!errors.postUrl}
-        />
-        <FormFieldError message={errors.postUrl} />
+        <div className="relative mt-1">
+          <Input
+            id="postUrl"
+            type="url"
+            value={postUrl}
+            onChange={(e) => {
+              setPostUrl(e.target.value)
+              setPostUrlSafe(null)
+              if (errors.postUrl) clearError('postUrl')
+            }}
+            onBlur={handlePostUrlBlur}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+              }
+            }}
+            placeholder="https://www.instagram.com/p/..."
+            className="pr-16"
+            aria-invalid={!!errors.postUrl}
+          />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs">
+            {isCheckingUrl ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            ) : postUrlSafe === true ? (
+              <><Check className="h-3.5 w-3.5 text-green-600" /><span className="text-green-600">安全</span></>
+            ) : postUrlSafe === false ? (
+              <X className="h-3.5 w-3.5 text-destructive" />
+            ) : null}
+          </span>
+        </div>
+        {isCheckingUrl
+          ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
+          : <FormFieldError message={errors.postUrl} />}
       </div>
 
       {/* Expires */}
@@ -508,12 +571,12 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Actions */}
       <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={() => handleSave('draft')} disabled={isPending}>
-          {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+        <Button type="button" variant="outline" onClick={() => handleSave('draft')} disabled={isSubmitDisabled}>
+          {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
           {mode === 'edit' ? '儲存變更' : '儲存代購'}
         </Button>
-        <button type="submit" disabled={isPending} className={buttonVariants({ className: 'flex-1' })}>
-          {isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+        <button type="submit" disabled={isSubmitDisabled} className={buttonVariants({ className: 'flex-1' })}>
+          {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
           {mode === 'create' ? '直接上架' : '更新代購'}
         </button>
       </div>

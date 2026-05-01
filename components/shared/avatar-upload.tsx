@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react'
-import { Loader2, X } from 'lucide-react'
+import { Camera, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
@@ -67,7 +66,8 @@ export function AvatarUpload({
     }
   }
 
-  const handleRemove = () => {
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (isDeferred) {
       onPendingFileChange!(null)
     }
@@ -76,70 +76,92 @@ export function AvatarUpload({
 
   return (
     <div className={cn('flex items-center gap-4', className)}>
-      {hasImage ? (
-        <div className="relative h-[72px] w-[72px] flex-shrink-0">
-          <Avatar className="h-full w-full">
-            <AvatarImage src={displayUrl} />
-            <AvatarFallback className="text-2xl">?</AvatarFallback>
-          </Avatar>
-          {uploading && (
-            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30">
-              <Loader2 className="h-5 w-5 animate-spin text-white" />
-            </span>
-          )}
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => !uploading && inputRef.current?.click()}
-          className={cn(
-            'relative h-[72px] w-[72px] flex-shrink-0 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground text-xl transition-colors',
-            uploading ? 'cursor-not-allowed opacity-60' : 'hover:border-primary hover:bg-muted/30',
-          )}
-          disabled={uploading}
-        >
-          {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : '+'}
-        </button>
-      )}
-
-      <div className="flex flex-col gap-1.5">
+      {/* Avatar circle — the single interactive focal point */}
+      <div className="group relative flex-shrink-0">
         {hasImage ? (
           <>
-            <Button
+            {/* Avatar with hover-reveal overlay */}
+            <button
               type="button"
-              variant="outline"
-              size="sm"
+              onClick={() => !uploading && inputRef.current?.click()}
               disabled={uploading}
-              onClick={() => inputRef.current?.click()}
+              className={cn(
+                'relative h-24 w-24 rounded-full overflow-hidden transition-all duration-200',
+                uploading ? 'cursor-not-allowed' : 'cursor-pointer',
+              )}
+              aria-label="更換頭貼"
             >
-              {uploading && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
-              更換頭貼
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive justify-start px-0"
-              onClick={handleRemove}
-            >
-              <X className="mr-1 h-3.5 w-3.5" />
-              刪除頭貼
-            </Button>
+              <Avatar className="h-full w-full">
+                <AvatarImage src={displayUrl} className="object-cover" />
+                <AvatarFallback className="text-2xl bg-muted">?</AvatarFallback>
+              </Avatar>
+
+              {/* Hover / loading overlay */}
+              <span
+                className={cn(
+                  'absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-black/50 backdrop-blur-[1px] transition-opacity duration-200',
+                  uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+                )}
+              >
+                {uploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                ) : (
+                  <>
+                    <Camera className="h-5 w-5 text-white" strokeWidth={1.5} />
+                    <span className="text-[10px] font-medium tracking-wide text-white/90">
+                      更換
+                    </span>
+                  </>
+                )}
+              </span>
+            </button>
+
+            {/* Floating remove badge */}
+            {!uploading && (
+              <button
+                type="button"
+                onClick={handleRemove}
+                aria-label="刪除頭貼"
+                className="absolute -right-4 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/80 text-background shadow-md backdrop-blur-sm transition-all duration-150 hover:bg-foreground hover:scale-110"
+              >
+                <X className="h-3 w-3" strokeWidth={2} />
+              </button>
+            )}
           </>
         ) : (
-          <>
-            <Button
-              type="button"
-              size="sm"
-              disabled={uploading}
-              onClick={() => inputRef.current?.click()}
-            >
-              {uploading && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
-              上傳頭貼
-            </Button>
-          </>
+          /* Empty state — dashed ring with camera prompt */
+          <button
+            type="button"
+            onClick={() => !uploading && inputRef.current?.click()}
+            disabled={uploading}
+            className={cn(
+              'relative flex h-24 w-24 flex-col items-center justify-center gap-1.5 rounded-full border-2 border-dashed transition-all duration-200',
+              uploading
+                ? 'cursor-not-allowed border-border opacity-50'
+                : 'border-border text-muted-foreground hover:border-foreground/40 hover:bg-muted/40 hover:text-foreground',
+            )}
+            aria-label="上傳頭貼"
+          >
+            {uploading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                <Camera className="h-5 w-5" strokeWidth={1.5} />
+                <span className="text-[10px] font-medium tracking-wide">上傳</span>
+              </>
+            )}
+          </button>
         )}
       </div>
+
+      {/* Format hint — only shown when no image, sits beside the circle */}
+      {!hasImage && (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-medium text-foreground/70">新增頭貼</span>
+          <span className="text-[11px] text-muted-foreground">JPG、PNG、HEIC</span>
+          <span className="text-[11px] text-muted-foreground">最大 10 MB</span>
+        </div>
+      )}
 
       <input
         ref={inputRef}

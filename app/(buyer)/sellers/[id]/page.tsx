@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use } from 'react'
 import { UserPlus, UserCheck, Camera, MessageCircle, MapPin, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -16,6 +16,7 @@ import { ReviewForm } from '@/components/review/review-form'
 import { ListingCard } from '@/components/listing/listing-card'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
+import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -82,17 +83,21 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
 
           {/* Social links */}
           <div className="flex gap-2 pt-2">
-            {seller.ig_handle && (
-              <Button variant="outline" size="sm" render={<a href={`https://instagram.com/${seller.ig_handle}`} target="_blank" rel="noopener noreferrer" />}>
-                  <Camera className="mr-1 h-4 w-4" />@{seller.ig_handle}
-                  {seller.ig_follower_count != null && ` (${seller.ig_follower_count})`}
-              </Button>
-            )}
-            {seller.threads_handle && (
-              <Button variant="outline" size="sm" render={<a href={`https://threads.net/@${seller.threads_handle}`} target="_blank" rel="noopener noreferrer" />}>
-                  <MessageCircle className="mr-1 h-4 w-4" />@{seller.threads_handle}
-              </Button>
-            )}
+            <SafeExternalLink
+              href={seller.ig_handle ? `https://instagram.com/${seller.ig_handle}` : null}
+              variant="outline"
+              size="sm"
+            >
+              <Camera className="mr-1 h-4 w-4" />@{seller.ig_handle}
+              {seller.ig_follower_count != null && ` (${seller.ig_follower_count})`}
+            </SafeExternalLink>
+            <SafeExternalLink
+              href={seller.threads_handle ? `https://threads.net/@${seller.threads_handle}` : null}
+              variant="outline"
+              size="sm"
+            >
+              <MessageCircle className="mr-1 h-4 w-4" />@{seller.threads_handle}
+            </SafeExternalLink>
           </div>
 
           <div className="flex gap-2 pt-2">

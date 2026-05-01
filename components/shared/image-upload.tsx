@@ -17,6 +17,7 @@ interface ImageUploadProps {
   onChange: (images: UploadedImage[]) => void
   pendingFiles?: File[]
   onPendingFilesChange?: (files: File[]) => void
+  onUploadingChange?: (uploading: boolean) => void
   className?: string
   invalid?: boolean
 }
@@ -128,6 +129,7 @@ export function ImageUpload({
   onChange,
   pendingFiles,
   onPendingFilesChange,
+  onUploadingChange,
   className,
   invalid,
 }: ImageUploadProps) {
@@ -139,6 +141,10 @@ export function ImageUpload({
   const [viewerOpen, setViewerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    onUploadingChange?.(uploading)
+  }, [onUploadingChange, uploading])
 
   useEffect(() => {
     if (!pendingFiles || pendingFiles.length === 0) {

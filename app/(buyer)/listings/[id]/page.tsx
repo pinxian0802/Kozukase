@@ -12,11 +12,11 @@ import { StarRating } from '@/components/shared/star-rating'
 import { CopyButton } from '@/components/shared/copy-button'
 import { ReportDialog } from '@/components/shared/report-dialog'
 import { ImageGallery } from '@/components/shared/image-gallery'
+import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatShippingDate } from '@/lib/utils/format'
-import { toast } from 'sonner'
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -104,9 +104,9 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           {/* Actions */}
           <div className="flex flex-wrap gap-2">
             <CopyButton text={inquiryText} label="複製詢問語" />
-            <Button variant="outline" size="sm" render={<a href={listing.post_url} target="_blank" rel="noopener noreferrer" />}>
-                <ExternalLink className="mr-1 h-4 w-4" />查看原始貼文
-            </Button>
+            <SafeExternalLink href={listing.post_url} variant="outline" size="sm">
+              <ExternalLink className="mr-1 h-4 w-4" />查看原始貼文
+            </SafeExternalLink>
             <Button
               variant={listing.hasBookmarked ? 'default' : 'outline'}
               size="sm"
@@ -143,16 +143,20 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 </Link>
                 <div className="mt-3 flex gap-2">
-                  {listing.seller.ig_handle && (
-                    <Button variant="outline" size="sm" render={<a href={`https://instagram.com/${listing.seller.ig_handle}`} target="_blank" rel="noopener noreferrer" />}>
-                        <Camera className="mr-1 h-4 w-4" />IG
-                    </Button>
-                  )}
-                  {listing.seller.threads_handle && (
-                    <Button variant="outline" size="sm" render={<a href={`https://threads.net/@${listing.seller.threads_handle}`} target="_blank" rel="noopener noreferrer" />}>
-                        <MessageCircle className="mr-1 h-4 w-4" />Threads
-                    </Button>
-                  )}
+                  <SafeExternalLink
+                    href={listing.seller.ig_handle ? `https://instagram.com/${listing.seller.ig_handle}` : null}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Camera className="mr-1 h-4 w-4" />IG
+                  </SafeExternalLink>
+                  <SafeExternalLink
+                    href={listing.seller.threads_handle ? `https://threads.net/@${listing.seller.threads_handle}` : null}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <MessageCircle className="mr-1 h-4 w-4" />Threads
+                  </SafeExternalLink>
                 </div>
               </CardContent>
             </Card>

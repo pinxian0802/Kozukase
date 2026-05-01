@@ -45,6 +45,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string }>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
 
@@ -101,6 +102,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     }
 
     setErrors({})
+    setIsSubmitting(true)
 
     const toastId = toast.loading('處理中...')
 
@@ -185,10 +187,12 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
       toast.dismiss(toastId)
       toast.error(error.message ?? '操作失敗')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const isPending = createConnection.isPending || updateConnection.isPending || confirmImages.isPending
+  const isPending = isSubmitting || createConnection.isPending || updateConnection.isPending || confirmImages.isPending
 
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
