@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Check, Loader2, X } from 'lucide-react'
 import { addDays, isAfter, parseISO, startOfDay } from 'date-fns'
 import { buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { TagInput } from '@/components/ui/tag-input'
@@ -14,6 +15,7 @@ import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { BrandMultiSelect } from '@/components/shared/brand-select'
 import { trpc } from '@/lib/trpc/client'
+import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
 import { toast } from 'sonner'
 
 interface ConnectionFormProps {
@@ -35,6 +37,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [shippingDate, setShippingDate] = useState<string>(initialData?.shipping_date?.split('T')[0] ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [billingMethod, setBillingMethod] = useState(initialData?.billing_method ?? '')
+  const [postLink, setPostLink] = useState(initialData?.post_link ?? '')
   const [images, setImages] = useState<UploadedImage[]>(
     (initialData?.images ?? initialData?.connection_images ?? []).map((img: any) => ({
       url: img.url ?? img.image_url,
@@ -44,8 +47,11 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string }>({})
+  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCheckingPostLink, setIsCheckingPostLink] = useState(false)
+  const [postLinkSafe, setPostLinkSafe] = useState<boolean | null>(null)
+  const isCheckingPostLinkRef = useRef(false)
 
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
 
@@ -55,6 +61,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const endDateMin = parsedStartDate ? addDays(parsedStartDate, 1) : today
 
   const createConnection = trpc.connection.create.useMutation()
+  const checkPostLink = trpc.connection.checkPostLink.useMutation()
   const updateConnection = trpc.connection.update.useMutation()
   const deleteConnection = trpc.connection.delete.useMutation()
   const confirmImages = trpc.upload.confirmConnectionImages.useMutation()
@@ -69,8 +76,41 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     })
   }
 
+  const handlePostLinkBlur = async () => {
+    const trimmed = postLink.trim()
+    if (!trimmed) return
+
+    if (!parseSafeHttpUrl(trimmed)) {
+      setPostLinkSafe(false)
+      setErrors((current) => ({ ...current, postLink: '請輸入有效且安全的網址（需為 http:// 或 https://）' }))
+      return
+    }
+
+    isCheckingPostLinkRef.current = true
+    setIsCheckingPostLink(true)
+
+    try {
+      const result = await checkPostLink.mutateAsync({ url: trimmed })
+      if (!result.safe) {
+        setPostLinkSafe(false)
+        setErrors((current) => ({
+          ...current,
+          postLink: `此連結被 Google 標記為${result.threat}，請改用其他連結`,
+        }))
+      } else {
+        setPostLinkSafe(true)
+      }
+    } catch {
+      // API 失敗時不阻擋用戶
+    } finally {
+      isCheckingPostLinkRef.current = false
+      setIsCheckingPostLink(false)
+    }
+  }
+
   const handleSubmit = async () => {
-    const nextErrors: { regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string } = {}
+    const nextErrors: { regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string } = {}
+    const trimmedPostLink = postLink.trim()
 
     if (!regionId) {
       nextErrors.regionId = '連線國家為必填'
@@ -96,6 +136,14 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       nextErrors.images = '至少需要一張圖片'
     }
 
+    if (trimmedPostLink && !parseSafeHttpUrl(trimmedPostLink)) {
+      nextErrors.postLink = '請輸入有效且安全的網址（需為 http:// 或 https://）'
+    }
+
+    if (isCheckingPostLinkRef.current) {
+      return
+    }
+
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
       return
@@ -119,6 +167,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           shipping_date: shippingDate,
           description: description || undefined,
           billing_method: billingMethod || undefined,
+          post_link: trimmedPostLink || undefined,
           brand_ids: brandIds.length > 0 ? brandIds : undefined,
         })
         createdConnectionId = result.id
@@ -155,6 +204,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           shipping_date: shippingDate || undefined,
           description: description || undefined,
           billing_method: billingMethod || undefined,
+          post_link: trimmedPostLink || null,
           brand_ids: brandIds,
         })
 
@@ -192,7 +242,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     }
   }
 
-  const isPending = isSubmitting || createConnection.isPending || updateConnection.isPending || confirmImages.isPending
+  const isPending = isSubmitting || isCheckingPostLink || createConnection.isPending || updateConnection.isPending || confirmImages.isPending
 
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
@@ -333,6 +383,44 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           maxLength={500}
           className="min-h-32 resize-none"
         />
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="postLink" className="text-sm font-medium text-foreground">貼文／群組連結（選填）</Label>
+        <div className="relative mt-1">
+          <Input
+            id="postLink"
+            type="url"
+            value={postLink}
+            onChange={(e) => {
+              setPostLink(e.target.value)
+              setPostLinkSafe(null)
+              if (errors.postLink) clearError('postLink')
+            }}
+            onBlur={handlePostLinkBlur}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+              }
+            }}
+            placeholder="https://www.facebook.com/groups/..."
+            className="pr-16"
+            aria-invalid={!!errors.postLink}
+          />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs">
+            {isCheckingPostLink ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            ) : postLinkSafe === true ? (
+              <><Check className="h-3.5 w-3.5 text-green-600" /><span className="text-green-600">安全</span></>
+            ) : postLinkSafe === false ? (
+              <X className="h-3.5 w-3.5 text-destructive" />
+            ) : null}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground">可貼上 Facebook、Instagram 貼文或代購群組等相關連結</p>
+        {isCheckingPostLink
+          ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
+          : <FormFieldError message={errors.postLink} />}
       </div>
 
       <div className="space-y-1">

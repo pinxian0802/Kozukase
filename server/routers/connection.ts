@@ -1,10 +1,18 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, publicProcedure, sellerProcedure } from '../trpc'
+import { httpUrl } from '@/lib/validators/common'
 import { createConnectionInput, updateConnectionInput } from '@/lib/validators/connection'
 import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
+import { checkUrlSafety } from '@/lib/utils/safe-browsing'
 
 export const connectionRouter = router({
+  checkPostLink: sellerProcedure
+    .input(z.object({ url: httpUrl }))
+    .mutation(async ({ input }) => {
+      return checkUrlSafety(input.url)
+    }),
+
   create: sellerProcedure
     .input(createConnectionInput)
     .mutation(async ({ ctx, input }) => {
@@ -29,6 +37,7 @@ export const connectionRouter = router({
           shipping_date: input.shipping_date,
           description: input.description ?? null,
           billing_method: input.billing_method ?? null,
+          post_link: input.post_link ?? null,
           status: 'active',
         })
         .select()

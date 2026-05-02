@@ -1,4 +1,11 @@
 import { z } from 'zod'
+import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
+
+const safeConnectionLink = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((value) => parseSafeHttpUrl(value) !== null, { message: '只允許安全的 http(s) 連結' })
 
 export const createConnectionInput = z.object({
   region_id: z.string().uuid(),
@@ -8,6 +15,7 @@ export const createConnectionInput = z.object({
   shipping_date: z.string(),
   description: z.string().max(500).optional(),
   billing_method: z.string().max(500).optional(),
+  post_link: safeConnectionLink.optional(),
   brand_ids: z.array(z.string().uuid()).optional(),
 })
 
@@ -20,5 +28,6 @@ export const updateConnectionInput = z.object({
   shipping_date: z.string().optional(),
   description: z.string().max(500).nullable().optional(),
   billing_method: z.string().max(500).nullable().optional(),
+  post_link: safeConnectionLink.nullable().optional(),
   brand_ids: z.array(z.string().uuid()).optional(),
 })

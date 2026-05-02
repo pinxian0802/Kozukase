@@ -1,0 +1,1 @@
+ALTER TABLE connections ADD COLUMN IF NOT EXISTS post_link TEXT;

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
+import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -187,6 +188,19 @@ export default function SellerConnectionsPage() {
                       <p className="text-xs font-medium tracking-[0.16em] text-muted-foreground">結算方式</p>
                       <p className="line-clamp-2 text-sm text-foreground/80">{conn.billing_method ? conn.billing_method : '未設定'}</p>
                     </div>
+                    {(conn as any).post_link && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium tracking-[0.16em] text-muted-foreground">貼文 / 群組連結</p>
+                        <SafeExternalLink
+                          href={(conn as any).post_link}
+                          variant="outline"
+                          size="sm"
+                          className="h-auto w-full justify-start gap-1 px-3 py-2 text-sm"
+                        >
+                          <span className="truncate">開啟連結</span>
+                        </SafeExternalLink>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
