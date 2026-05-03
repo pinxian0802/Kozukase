@@ -28,6 +28,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const utils = trpc.useUtils()
 
   const [regionId, setRegionId] = useState(initialData?.region_id ?? '')
+  const [title, setTitle] = useState(initialData?.title ?? '')
   const [brandIds, setBrandIds] = useState<string[]>(
     (initialData?.connection_brands ?? []).map((cb: { brand_id: string }) => cb.brand_id)
   )
@@ -47,7 +48,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [errors, setErrors] = useState<{ regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string }>({})
+  const [errors, setErrors] = useState<{ title?: string; regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isCheckingPostLink, setIsCheckingPostLink] = useState(false)
   const [postLinkSafe, setPostLinkSafe] = useState<boolean | null>(null)
@@ -109,8 +110,12 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   }
 
   const handleSubmit = async () => {
-    const nextErrors: { regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string } = {}
+    const nextErrors: { title?: string; regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string } = {}
     const trimmedPostLink = postLink.trim()
+
+    if (!title.trim()) {
+      nextErrors.title = '標題為必填'
+    }
 
     if (!regionId) {
       nextErrors.regionId = '連線國家為必填'
@@ -160,6 +165,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     try {
       if (mode === 'create') {
         const result = await createConnection.mutateAsync({
+          title: title.trim(),
           region_id: regionId,
           locations: locations.length > 0 ? locations : undefined,
           start_date: startDate,
@@ -197,6 +203,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
         await updateConnection.mutateAsync({
           id: initialData.id,
+          title: title.trim() || undefined,
           region_id: regionId || undefined,
           locations,
           start_date: startDate || undefined,
@@ -246,6 +253,22 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
+      <div className="space-y-1">
+        <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">標題 <span className="text-destructive">*</span></Label>
+        <Input
+          id="connection-title"
+          value={title}
+          onChange={(e) => {
+            setTitle(e.target.value)
+            if (errors.title) clearError('title')
+          }}
+          placeholder="為這筆連線公告取個名稱（最多 30 字）"
+          maxLength={30}
+          aria-invalid={!!errors.title}
+        />
+        <FormFieldError message={errors.title} />
+      </div>
+
       <div className="space-y-1">
         <Label className="text-sm font-medium text-foreground">連線國家 *</Label>
         <SearchableSelect

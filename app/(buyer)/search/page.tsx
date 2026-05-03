@@ -2,10 +2,7 @@
 
 import { Suspense, useState, type ReactNode } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { SlidersHorizontal, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
+import { SlidersHorizontal, ChevronDown, X, ListFilter } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,6 +13,17 @@ import type { ProductCategory } from '@/lib/validators/product'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { Package } from 'lucide-react'
+
+// Kozukase brand palette from logo
+const KZ = {
+  teal:   '#26C8C2',
+  pink:   '#F0387A',
+  purple: '#8B24C0',
+  orange: '#F97316',
+  yellow: '#F5C200',
+  gray:   '#9CA3AF',
+  green:  '#7DC83A',
+} as const
 
 export default function SearchPage() {
   return (
@@ -62,8 +70,14 @@ function SearchContent() {
     const params = new URLSearchParams(searchParams.toString())
     if (value) params.set(key, value)
     else params.delete(key)
-    // Reset to page 1 on filter/sort/size changes
     params.set('page', '1')
+    router.push(`/search?${params.toString()}`)
+  }
+
+  const clearAllFilters = () => {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    params.set('pageSize', String(pageSize))
     router.push(`/search?${params.toString()}`)
   }
 
@@ -79,97 +93,125 @@ function SearchContent() {
   const firstHalf = categoryEntries.slice(0, half)
   const secondHalf = categoryEntries.slice(half)
 
-  const FilterContent = () => (
-    <div className="space-y-6">
-      <FilterSectionCard title="商品類別">
-        <div className="space-y-2 p-4">
-          {firstHalf.map(([key, label]) => (
-            <div key={key} className="flex items-center gap-2">
-              <Checkbox
-                id={`cat-${key}`}
-                checked={category === key}
-                onCheckedChange={(checked) => updateParam('category', checked ? key : null)}
-              />
-              <Label htmlFor={`cat-${key}`} className="text-sm">{label}</Label>
-            </div>
-          ))}
-        </div>
-        <div
-          className="overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ maxHeight: categoryExpanded ? `${secondHalf.length * 32}px` : '0px' }}
-        >
-          <div className="space-y-2 px-4 pb-4">
-            {secondHalf.map(([key, label]) => (
-              <div key={key} className="flex items-center gap-2">
-                <Checkbox
-                  id={`cat-${key}`}
-                  checked={category === key}
-                  onCheckedChange={(checked) => updateParam('category', checked ? key : null)}
-                />
-                <Label htmlFor={`cat-${key}`} className="text-sm">{label}</Label>
-              </div>
-            ))}
-          </div>
-        </div>
-        <button
-          className="flex w-full cursor-pointer items-center justify-center gap-1 px-4 pb-4 text-xs text-muted-foreground"
-          onClick={() => setCategoryExpanded((v) => !v)}
-        >
-          {categoryExpanded ? '收合' : '展開更多'}
-          <ChevronDown className={`size-3 transition-transform duration-300 ${categoryExpanded ? 'rotate-180' : ''}`} />
-        </button>
-      </FilterSectionCard>
+  const activeFilters: { key: string; label: string; color: string; onRemove: () => void }[] = []
+  if (category) {
+    activeFilters.push({
+      key: 'category',
+      label: `類別：${PRODUCT_CATEGORY_LABELS[category as ProductCategory] ?? category}`,
+      color: KZ.teal,
+      onRemove: () => updateParam('category', null),
+    })
+  }
+  if (brandId) {
+    const brandName = brands.find((b) => b.id === brandId)?.name ?? brandId
+    activeFilters.push({
+      key: 'brand',
+      label: `品牌：${brandName}`,
+      color: KZ.pink,
+      onRemove: () => updateParam('brand', null),
+    })
+  }
 
-      <FilterSectionCard title="品牌">
-        <div className="space-y-2 p-4">
-          {brands.length > 0 ? (
-            brands.map((brand) => (
-              <div key={brand.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`brand-${brand.id}`}
-                  checked={brandId === brand.id}
-                  onCheckedChange={(checked) => updateParam('brand', checked ? brand.id : null)}
-                />
-                <Label htmlFor={`brand-${brand.id}`} className="text-sm">{brand.name}</Label>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">目前沒有品牌資料</p>
-          )}
-        </div>
-        {brandId && (
+  const FilterPanel = () => (
+    <div>
+      {/* Panel header */}
+      <div className="mb-4 flex items-center justify-between">
+        <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <ListFilter className="h-4 w-4" style={{ color: KZ.teal }} />
+          篩選條件
+        </span>
+        {activeFilters.length > 0 && (
           <button
-            className="w-full px-4 pb-4 text-left text-xs text-muted-foreground underline underline-offset-2"
-            onClick={() => updateParam('brand', null)}
+            onClick={clearAllFilters}
+            className="text-xs font-medium transition-colors hover:opacity-70"
+            style={{ color: KZ.purple }}
           >
-            清除品牌篩選
+            清除全部
           </button>
         )}
-      </FilterSectionCard>
+      </div>
+
+      {/* Category section */}
+      <FilterSection title="商品類別" accentColor={KZ.teal} active={!!category}>
+        <div className="flex flex-wrap gap-2 pt-3">
+          {firstHalf.map(([key, label]) => (
+            <FilterChip
+              key={key}
+              label={label}
+              active={category === key}
+              activeColor={KZ.teal}
+              onClick={() => updateParam('category', category === key ? null : key)}
+            />
+          ))}
+          {categoryExpanded &&
+            secondHalf.map(([key, label]) => (
+              <FilterChip
+                key={key}
+                label={label}
+                active={category === key}
+                activeColor={KZ.teal}
+                onClick={() => updateParam('category', category === key ? null : key)}
+              />
+            ))}
+        </div>
+        {secondHalf.length > 0 && (
+          <button
+            className="mt-3 flex items-center gap-1 text-xs font-medium transition-opacity hover:opacity-70"
+            style={{ color: KZ.gray }}
+            onClick={() => setCategoryExpanded((v) => !v)}
+          >
+            {categoryExpanded ? '收合' : `展開更多（${secondHalf.length}）`}
+            <ChevronDown
+              className={`size-3 transition-transform duration-200 ${categoryExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+        )}
+      </FilterSection>
+
+      {/* Brand section */}
+      {brands.length > 0 && (
+        <FilterSection title="品牌" accentColor={KZ.pink} active={!!brandId}>
+          <div className="flex flex-wrap gap-2 pt-3">
+            {brands.map((brand) => (
+              <FilterChip
+                key={brand.id}
+                label={brand.name}
+                active={brandId === brand.id}
+                activeColor={KZ.pink}
+                onClick={() => updateParam('brand', brandId === brand.id ? null : brand.id)}
+              />
+            ))}
+          </div>
+        </FilterSection>
+      )}
     </div>
   )
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-heading">
+          <h1 className="font-heading text-2xl font-bold">
             {q ? `「${q}」的搜尋結果` : '瀏覽商品'}
           </h1>
           {!isLoading && (
-            <p className="text-sm text-muted-foreground mt-1">共 {total} 件商品</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              共{' '}
+              <span className="font-medium text-foreground">{total}</span> 件商品
+              {activeFilters.length > 0 && (
+                <span className="ml-2 text-xs">・{activeFilters.length} 個篩選中</span>
+              )}
+            </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {/* Page size selector */}
-          <Select
-            value={String(pageSize)}
-            onValueChange={(v) => updateParam('pageSize', v)}
-          >
-            <SelectTrigger className="w-24">
+
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Page size */}
+          <Select value={String(pageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
+            <SelectTrigger className="h-9 w-24 text-sm">
               <SelectValue>
-                {(v: string) => v ? `${v} 筆` : undefined}
+                {(v: string) => (v ? `${v} 筆` : undefined)}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -179,33 +221,63 @@ function SearchContent() {
             </SelectContent>
           </Select>
 
-          {/* Mobile filter */}
+          {/* Mobile filter button */}
           <Sheet>
             <SheetTrigger
-              render={<Button variant="outline" size="icon" className="md:hidden"><SlidersHorizontal className="h-4 w-4" /></Button>}
+              render={
+                <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:bg-gray-50 md:hidden">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {activeFilters.length > 0 && (
+                    <span
+                      className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      style={{ backgroundColor: KZ.teal }}
+                    >
+                      {activeFilters.length}
+                    </span>
+                  )}
+                </button>
+              }
             />
-            <SheetContent side="left">
+            <SheetContent side="left" className="w-80">
               <SheetHeader>
-                <SheetTitle>篩選</SheetTitle>
+                <SheetTitle>篩選條件</SheetTitle>
               </SheetHeader>
-              <div className="mt-4">
-                {FilterContent()}
-              </div>
+              <div className="mt-6 px-1">{FilterPanel()}</div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
 
-      <div className="flex items-start gap-8">
-        {/* Desktop sidebar filter */}
-        <aside className="hidden w-72 flex-shrink-0 self-start md:sticky md:top-24 md:block">
-          <div className="max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
-            {FilterContent()}
+      {/* Active filter pills */}
+      {activeFilters.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          {activeFilters.map((f) => (
+            <ActiveFilterPill
+              key={f.key}
+              label={f.label}
+              color={f.color}
+              onRemove={f.onRemove}
+            />
+          ))}
+          <button
+            onClick={clearAllFilters}
+            className="text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+          >
+            清除全部
+          </button>
+        </div>
+      )}
+
+      <div className="flex items-start gap-6">
+        {/* Desktop sidebar */}
+        <aside className="hidden w-60 flex-shrink-0 md:sticky md:top-24 md:block md:self-start">
+          <div className="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm">
+            {FilterPanel()}
           </div>
         </aside>
 
         {/* Results */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
@@ -243,13 +315,88 @@ function SearchContent() {
   )
 }
 
-function FilterSectionCard({ title, children }: { title: string; children: ReactNode }) {
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+function FilterSection({
+  title,
+  accentColor,
+  active,
+  children,
+}: {
+  title: string
+  accentColor: string
+  active: boolean
+  children: ReactNode
+}) {
   return (
-    <section className="overflow-hidden rounded-[18px] border border-[#dedad4] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-      <div className="border-b border-[#e6e1da] bg-[#f6f4f1] px-4 py-4">
-        <h3 className="font-medium">{title}</h3>
+    <div className="border-t border-gray-100 py-4 first:border-t-0 first:pt-0">
+      <div className="flex items-center gap-2">
+        <span
+          className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+          style={{ backgroundColor: accentColor }}
+        />
+        <span className="text-sm font-semibold text-gray-800">{title}</span>
+        {active && (
+          <span
+            className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+            style={{ backgroundColor: accentColor }}
+          >
+            已選
+          </span>
+        )}
       </div>
       {children}
-    </section>
+    </div>
+  )
+}
+
+function FilterChip({
+  label,
+  active,
+  activeColor,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  activeColor: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150"
+      style={
+        active
+          ? { backgroundColor: activeColor, borderColor: activeColor, color: '#fff' }
+          : { backgroundColor: '#fff', borderColor: '#e5e7eb', color: '#4b5563' }
+      }
+    >
+      {label}
+    </button>
+  )
+}
+
+function ActiveFilterPill({
+  label,
+  color,
+  onRemove,
+}: {
+  label: string
+  color: string
+  onRemove: () => void
+}) {
+  return (
+    <span
+      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-white"
+      style={{ backgroundColor: color }}
+    >
+      {label}
+      <button
+        onClick={onRemove}
+        className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/25 transition-colors hover:bg-white/40"
+      >
+        <X className="h-2.5 w-2.5" />
+      </button>
+    </span>
   )
 }

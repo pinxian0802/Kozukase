@@ -136,6 +136,7 @@ export type Listing = {
   post_url: string
   shipping_date: string | null
   expires_at: string | null
+  title: string | null
   created_at: string
   updated_at: string
 }
@@ -229,6 +230,7 @@ export type Connection = {
   status: ConnectionStatus
   ended_reason: EndedReason | null
   admin_note: string | null
+  title: string | null
   created_at: string
   updated_at: string
 }

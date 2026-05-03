@@ -30,6 +30,7 @@ export const connectionRouter = router({
         .from('connections')
         .insert({
           seller_id: ctx.seller.id,
+          title: input.title,
           region_id: input.region_id,
           locations: input.locations ?? [],
           start_date: input.start_date,
@@ -259,7 +260,7 @@ export const connectionRouter = router({
           *,
           region:regions(id, name),
           connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order),
-          connection_brands(brand_id)
+          connection_brands(brand_id, brand:brands(id, name))
         `)
         .eq('seller_id', ctx.seller.id)
         .order('created_at', { ascending: false })

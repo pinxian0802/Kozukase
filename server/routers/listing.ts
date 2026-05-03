@@ -31,6 +31,7 @@ export const listingRouter = router({
         .from('listings')
         .insert({
           product_id: input.product_id,
+          title: input.title,
           seller_id: ctx.seller.id,
           status: input.status,
           price: input.price ?? null,

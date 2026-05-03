@@ -10,6 +10,7 @@ import { formatDate } from '@/lib/utils/format'
 interface ConnectionCardProps {
   connection: {
     id: string
+    title?: string | null
     start_date: string
     end_date: string
     shipping_date?: string | null
@@ -52,6 +53,11 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
           </div>
         )}
         <CardContent className="space-y-2 p-4">
+          {/* Title */}
+          {connection.title && (
+            <h3 className="font-semibold leading-tight line-clamp-1">{connection.title}</h3>
+          )}
+
           {/* Location */}
           <div className="flex items-center gap-1 text-sm">
             <MapPin className="h-4 w-4 text-primary" />

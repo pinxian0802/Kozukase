@@ -3,13 +3,14 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Calendar, Clock3, ExternalLink, FileText, Images, Package, Plus, Tag } from 'lucide-react'
+import { Calendar, Clock3, ExternalLink, FileText, Images, Maximize2, Package, Plus, Tag } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
+import { ImageLightbox } from '@/components/shared/image-lightbox'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -41,6 +42,66 @@ type ListingSpec = {
   type: string
   is_all: boolean
   options: string[]
+}
+
+type ListingImage = {
+  url: string
+  alt?: string
+}
+
+function ListingThumbnail({ images, title }: { images: ListingImage[]; title: string }) {
+  const [viewerOpen, setViewerOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  if (images.length === 0) {
+    return (
+      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-muted/40">
+        <div className="flex h-full items-center justify-center text-muted-foreground/50">
+          <Package className="h-7 w-7" />
+        </div>
+      </div>
+    )
+  }
+
+  const currentIndex = Math.min(activeIndex, Math.max(images.length - 1, 0))
+  const activeImage = images[currentIndex] ?? images[0]
+  const isLocalPreviewUrl = activeImage.url.startsWith('blob:') || activeImage.url.startsWith('data:')
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setViewerOpen(true)}
+        className="group relative h-24 w-24 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-muted/40 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        aria-label={`預覽 ${title}`}
+      >
+        <Image
+          src={activeImage.url}
+          alt={activeImage.alt ?? title}
+          fill
+          sizes="96px"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          unoptimized={isLocalPreviewUrl}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+        <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span className="inline-flex min-w-0 items-center gap-1 truncate">
+            <Images className="h-3.5 w-3.5 shrink-0" />
+            {images.length}
+          </span>
+          <Maximize2 className="h-3.5 w-3.5 shrink-0" />
+        </div>
+      </button>
+
+      <ImageLightbox
+        open={viewerOpen}
+        images={images}
+        activeIndex={currentIndex}
+        onActiveIndexChange={setActiveIndex}
+        onOpenChange={setViewerOpen}
+      />
+    </>
+  )
 }
 
 function formatSpecSummary(spec?: ListingSpec | null) {
@@ -114,12 +175,13 @@ export default function SellerListingsPage() {
           </div>
 
           {data.items.map((listing) => {
-            const firstListingImage = [...(listing.listing_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)[0]
-            const imageUrl = firstListingImage?.thumbnail_url
-              ?? firstListingImage?.url
-              ?? listing.product?.catalog_image?.thumbnail_url
-              ?? listing.product?.catalog_image?.url
-              ?? null
+            const sortedImages = [...(listing.listing_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
+            const displayImages: ListingImage[] = sortedImages.length > 0
+              ? sortedImages.map((img) => ({ url: img.thumbnail_url ?? img.url, alt: listing.product?.name ?? '商品圖片' }))
+              : (() => {
+                  const catalogUrl = listing.product?.catalog_image?.thumbnail_url ?? listing.product?.catalog_image?.url
+                  return catalogUrl ? [{ url: catalogUrl, alt: listing.product?.name ?? '商品圖片' }] : []
+                })()
             const brandLabel = typeof listing.product?.brand === 'string'
               ? listing.product.brand
               : listing.product?.brand?.name
@@ -131,21 +193,7 @@ export default function SellerListingsPage() {
             >
               <div className={`${listingGridClass} lg:items-center`}>
                 <div className="flex min-w-0 gap-4">
-                  <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-muted/40">
-                    {imageUrl ? (
-                      <Image
-                        src={imageUrl}
-                        alt={listing.product?.name ?? '商品圖片'}
-                        fill
-                        sizes="96px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-muted-foreground/50">
-                        <Package className="h-7 w-7" />
-                      </div>
-                    )}
-                  </div>
+                  <ListingThumbnail images={displayImages} title={listing.product?.name ?? '商品'} />
 
                   <div className="min-w-0 space-y-3">
                     <div className="space-y-1">
@@ -166,7 +214,6 @@ export default function SellerListingsPage() {
                       </h2>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                         {listing.product?.model_number && <span>型號 {listing.product.model_number}</span>}
-                        <span className="inline-flex items-center gap-1"><Images className="h-3.5 w-3.5" />{listing.listing_images?.length ?? 0} 張圖片</span>
                       </div>
                     </div>
 
@@ -178,7 +225,7 @@ export default function SellerListingsPage() {
                     <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                       <Tag className="h-3.5 w-3.5" />規格摘要
                     </p>
-                    <div className="space-y-1.5 text-sm text-foreground/85">
+                    <div className="space-y-1.5 text-sm text-foreground">
                       {(listing.specs ?? []).length > 0 ? (
                         (listing.specs ?? []).slice(0, 3).map((spec: ListingSpec, index: number) => (
                           <p key={`${listing.id}-spec-line-${index}`} className="truncate">{formatSpecSummary(spec)}</p>
@@ -193,7 +240,7 @@ export default function SellerListingsPage() {
                     <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                       <FileText className="h-3.5 w-3.5" />備註
                     </p>
-                    <p className="line-clamp-2 text-sm text-foreground/80">
+                    <p className="line-clamp-2 text-sm text-foreground">
                       {listing.note ? listing.note : '未填寫備註'}
                     </p>
                   </div>
@@ -204,7 +251,7 @@ export default function SellerListingsPage() {
                     <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                       <Clock3 className="h-3.5 w-3.5" />預計出貨
                     </p>
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-sm text-foreground">
                       {listing.shipping_date ? formatDate(listing.shipping_date) : '未設定'}
                     </p>
                   </div>
@@ -212,7 +259,7 @@ export default function SellerListingsPage() {
                     <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5" />截止日期
                     </p>
-                    <p className="text-sm text-foreground/80">
+                    <p className="text-sm text-foreground">
                       {listing.expires_at ? formatDate(listing.expires_at) : '未設定'}
                     </p>
                   </div>

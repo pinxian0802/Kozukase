@@ -56,6 +56,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
     ? initialData.product.brand
     : initialData?.product?.brand?.name ?? null
 
+  const [title, setTitle] = useState(initialData?.title ?? '')
   const [price, setPrice] = useState<string>(initialData?.price?.toString() ?? '')
   const [isPriceOnRequest, setIsPriceOnRequest] = useState(initialData?.is_price_on_request ?? false)
   const [specs, setSpecs] = useState<SpecEntry[]>(
@@ -78,7 +79,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const [isCheckingUrl, setIsCheckingUrl] = useState(false)
   const [isPreparingImages, setIsPreparingImages] = useState(false)
   const [postUrlSafe, setPostUrlSafe] = useState<boolean | null>(null)
-  const [errors, setErrors] = useState<{ price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string }>({})
+  const [errors, setErrors] = useState<{ title?: string; price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string }>({})
   const isCheckingUrlRef = useRef(false)
   const isPreparingImagesRef = useRef(false)
 
@@ -162,6 +163,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
     const specsClean = specs.map(({ _optionInput, ...rest }) => rest)
     return {
       product_id: resolvedProductId,
+      title: title.trim(),
       status,
       price: price ? Number(price) : undefined,
       is_price_on_request: isPriceOnRequest,
@@ -179,9 +181,13 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
     }
 
     if (status === 'active') {
-      const nextErrors: { price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string } = {}
+      const nextErrors: { title?: string; price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string } = {}
       const trimmedPostUrl = postUrl.trim()
       const trimmedPrice = price.trim()
+
+      if (!title.trim()) {
+        nextErrors.title = '標題為必填'
+      }
 
       if (!trimmedPostUrl) {
         nextErrors.postUrl = '貼文連結為必填'
@@ -328,6 +334,24 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
+      {/* Title */}
+      <div>
+        <Label htmlFor="listing-title">標題 <span className="text-destructive">*</span></Label>
+        <Input
+          id="listing-title"
+          value={title}
+          onChange={(e) => {
+            setTitle(e.target.value)
+            if (errors.title) clearError('title')
+          }}
+          placeholder="為這筆代購取個名稱（最多 30 字）"
+          maxLength={30}
+          className="mt-1"
+          aria-invalid={!!errors.title}
+        />
+        <FormFieldError message={errors.title} />
+      </div>
+
       {mode === 'edit' && initialData?.product && (
         <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">

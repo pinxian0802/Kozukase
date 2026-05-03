@@ -6,6 +6,7 @@ import { formatPrice, formatShippingDate } from '@/lib/utils/format'
 interface ListingCardProps {
   listing: {
     id: string
+    title?: string | null
     price: number | null
     is_price_on_request: boolean
     shipping_date: string | null
@@ -58,7 +59,7 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
                 )}
               </div>
               <div className="h-[1.15rem] overflow-hidden">
-                <h3 className="line-clamp-1 text-sm font-semibold leading-tight">{listing.product.name}</h3>
+                <h3 className="line-clamp-1 text-sm font-semibold leading-tight">{listing.title || listing.product.name}</h3>
               </div>
               <div className="h-3.5 overflow-hidden">
                 {listing.product.model_number ? (

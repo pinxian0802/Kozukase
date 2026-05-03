@@ -8,6 +8,7 @@ const safeConnectionLink = z
   .refine((value) => parseSafeHttpUrl(value) !== null, { message: '只允許安全的 http(s) 連結' })
 
 export const createConnectionInput = z.object({
+  title: z.string().min(1).max(30),
   region_id: z.string().uuid(),
   locations: z.array(z.string().max(50)).max(10).optional(),
   start_date: z.string(),
@@ -21,6 +22,7 @@ export const createConnectionInput = z.object({
 
 export const updateConnectionInput = z.object({
   id: z.string().uuid(),
+  title: z.string().min(1).max(30).optional(),
   region_id: z.string().uuid().optional(),
   locations: z.array(z.string().max(50)).max(10).nullable().optional(),
   start_date: z.string().optional(),
