@@ -182,10 +182,6 @@ export default function SellerListingsPage() {
                   const catalogUrl = listing.product?.catalog_image?.thumbnail_url ?? listing.product?.catalog_image?.url
                   return catalogUrl ? [{ url: catalogUrl, alt: listing.product?.name ?? '商品圖片' }] : []
                 })()
-            const brandLabel = typeof listing.product?.brand === 'string'
-              ? listing.product.brand
-              : listing.product?.brand?.name
-
             return (
             <div
               key={listing.id}
@@ -202,19 +198,18 @@ export default function SellerListingsPage() {
                         {listing.status === 'pending_approval' && (
                           <Badge variant="outline">審核中</Badge>
                         )}
-                        <span className="text-xs text-muted-foreground">建立於 {formatDate(listing.created_at)}</span>
                       </div>
-                      {brandLabel && (
-                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                          {brandLabel}
-                        </p>
-                      )}
                       <h2 className="truncate text-lg font-semibold text-foreground">
-                        {listing.product?.name ?? '未知商品'}
+                        {listing.title || listing.product?.name || '未知商品'}
                       </h2>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                        {listing.product?.model_number && <span>型號 {listing.product.model_number}</span>}
-                      </div>
+                      {listing.product?.name && (
+                        <Link
+                          href={`/products/${listing.product_id}`}
+                          className="truncate text-sm text-muted-foreground hover:text-foreground hover:underline"
+                        >
+                          {listing.product.name}
+                        </Link>
+                      )}
                     </div>
 
                   </div>
