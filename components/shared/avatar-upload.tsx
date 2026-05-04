@@ -122,7 +122,7 @@ export function AvatarUpload({
                 type="button"
                 onClick={handleRemove}
                 aria-label="刪除頭貼"
-                className="absolute -right-4 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/80 text-background shadow-md backdrop-blur-sm transition-all duration-150 hover:bg-foreground hover:scale-110"
+                className="absolute -right-4 -top-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-foreground/80 text-background shadow-md backdrop-blur-sm transition-all duration-150 hover:bg-foreground hover:scale-110"
               >
                 <X className="h-3 w-3" strokeWidth={2} />
               </button>
@@ -138,7 +138,7 @@ export function AvatarUpload({
               'relative flex h-24 w-24 flex-col items-center justify-center gap-1.5 rounded-full border-2 border-dashed transition-all duration-200',
               uploading
                 ? 'cursor-not-allowed border-border opacity-50'
-                : 'border-border text-muted-foreground hover:border-foreground/40 hover:bg-muted/40 hover:text-foreground',
+                : 'cursor-pointer border-border text-muted-foreground hover:border-foreground/40 hover:bg-muted/40 hover:text-foreground',
             )}
             aria-label="上傳頭貼"
           >

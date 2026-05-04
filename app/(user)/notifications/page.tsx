@@ -66,7 +66,7 @@ export default function NotificationsPage() {
               key={n.id}
               className={cn(
                 'rounded-lg border p-4 transition-colors',
-                !n.is_read && 'bg-primary/5 border-primary/20'
+                !n.is_read && 'bg-primary/5 border-primary/20 cursor-pointer'
               )}
               onClick={() => !n.is_read && markRead.mutate({ id: n.id })}
             >

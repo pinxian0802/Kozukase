@@ -29,14 +29,9 @@ export const productRouter = router({
         .select(`
           id, name, brand:brands(name), model_number, category, wish_count, created_at,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
-          listings!inner(id, price, is_price_on_request, shipping_date, created_at,
-            seller:sellers!inner(id, is_social_verified, is_suspended)
-          )
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
         `, { count: 'exact' })
         .eq('is_removed', false)
-        .eq('listings.status', 'active')
-        .eq('listings.seller.is_suspended', false)
 
       // Apply filters
       if (input.query) {

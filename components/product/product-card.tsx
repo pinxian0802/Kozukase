@@ -32,11 +32,11 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
     <div
       className={cn(
         'group overflow-hidden rounded-md border border-border bg-white transition-colors duration-200 hover:border-foreground/30',
-        variant === 'compact' ? 'flex items-center gap-3 p-3' : 'p-3',
+        variant === 'compact' ? 'flex items-center gap-4 p-5' : 'p-3',
         className
       )}
     >
-      <div className={variant === 'compact' ? 'relative h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-muted' : 'pb-0'}>
+      <div className={variant === 'compact' ? 'relative h-24 w-24 shrink-0 overflow-hidden rounded-sm bg-muted' : 'pb-0'}>
         {variant !== 'compact' && (
           <div className="relative aspect-square overflow-hidden rounded-sm bg-muted">
             {imageUrl ? (
@@ -76,18 +76,27 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       </div>
 
       <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'pt-2'}>
-        <div className="grid gap-0.5">
-          {brandLabel && (
-            <p className="truncate text-xs text-muted-foreground">{brandLabel}</p>
-          )}
-          <p className={cn(
-            'line-clamp-2 font-medium leading-snug text-foreground',
-            variant === 'compact' ? 'text-sm' : 'text-sm'
-          )}>{product.name}</p>
-          {product.model_number && (
-            <p className="truncate text-xs text-muted-foreground">{product.model_number}</p>
-          )}
-        </div>
+        {variant === 'compact' ? (
+          <div>
+            {brandLabel && (
+              <p className="truncate text-xs text-muted-foreground mb-1.5">{brandLabel}</p>
+            )}
+            <p className="line-clamp-2 font-medium leading-snug text-foreground text-base">{product.name}</p>
+            {product.model_number && (
+              <p className="text-xs text-muted-foreground mt-0.5 break-all">{product.model_number}</p>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-0">
+            {brandLabel && (
+              <p className="truncate text-xs text-muted-foreground mb-0.5">{brandLabel}</p>
+            )}
+            <p className="line-clamp-2 font-medium leading-tight text-foreground text-sm">{product.name}</p>
+            {product.model_number && (
+              <p className="truncate text-xs leading-tight text-muted-foreground">{product.model_number}</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -97,7 +106,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       <button
         type="button"
         onClick={onClick}
-        className="block w-full text-left focus-visible:outline-none"
+        className="block w-full cursor-pointer text-left focus-visible:outline-none"
       >
         {card}
       </button>

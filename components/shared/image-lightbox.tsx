@@ -109,7 +109,7 @@ export function ImageLightbox({
           event.stopPropagation()
           onOpenChange(false)
         }}
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        className="absolute right-4 top-4 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
       >
         <X className="h-5 w-5" />
       </button>
@@ -122,7 +122,7 @@ export function ImageLightbox({
             event.stopPropagation()
             onActiveIndexChange((current) => (current - 1 + images.length) % images.length)
           }}
-          className="absolute left-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          className="absolute left-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -151,7 +151,7 @@ export function ImageLightbox({
             event.stopPropagation()
             onActiveIndexChange((current) => (current + 1) % images.length)
           }}
-          className="absolute right-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          className="absolute right-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         >
           <ChevronRight className="h-6 w-6" />
         </button>

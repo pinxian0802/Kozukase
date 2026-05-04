@@ -36,9 +36,10 @@ export const connectionRouter = router({
           start_date: input.start_date,
           end_date: input.end_date,
           shipping_date: input.shipping_date,
-          description: input.description ?? null,
-          billing_method: input.billing_method ?? null,
+          description: input.description,
+          billing_method: input.billing_method,
           post_link: input.post_link ?? null,
+          can_wish: input.can_wish ?? false,
           status: 'active',
         })
         .select()

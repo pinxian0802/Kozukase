@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { ProductCard } from '@/components/product/product-card'
 import { ProductSearch, type ProductSearchResult } from '@/components/product/product-search'
 import { ProductForm, type ProductFormData } from '@/components/product/product-form'
@@ -177,17 +178,23 @@ export default function NewListingPage() {
         <h1 className="text-2xl font-bold font-heading">新增代購</h1>
       </div>
       <div className="space-y-4">
-        <ProductCard
-          product={{
-            id: product.id ?? 'draft-product',
-            name: product.name,
-            brand: product.brand_name,
-            model_number: product.model_number,
-            catalog_image_url: product.catalog_image_url,
-          }}
-          linkToProduct={false}
-          variant="compact"
-        />
+        <div>
+          <Label>商品</Label>
+          <div className="mt-1 w-fit">
+            <ProductCard
+              product={{
+                id: product.id ?? 'draft-product',
+                name: product.name,
+                brand: product.brand_name,
+                model_number: product.model_number,
+                catalog_image_url: product.catalog_image_url,
+              }}
+              linkToProduct={false}
+              variant="compact"
+              className="w-fit"
+            />
+          </div>
+        </div>
 
         <Button type="button" variant="ghost" size="sm" onClick={() => setStep({ type: 'select' })} className="w-full">
           重新選擇

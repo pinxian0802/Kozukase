@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Loader2, X } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { addDays, isAfter, parseISO, startOfDay } from 'date-fns'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,6 +41,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [billingMethod, setBillingMethod] = useState(initialData?.billing_method ?? '')
   const [postLink, setPostLink] = useState(initialData?.post_link ?? '')
+  const [canWish, setCanWish] = useState<boolean>(initialData?.can_wish ?? false)
   const [images, setImages] = useState<UploadedImage[]>(
     (initialData?.images ?? initialData?.connection_images ?? []).map((img: any) => ({
       url: img.url ?? img.image_url,
@@ -49,7 +51,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     })) ?? []
   )
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [errors, setErrors] = useState<{ title?: string; regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string }>({})
+  const [errors, setErrors] = useState<{ title?: string; regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; description?: string; billingMethod?: string; images?: string; postLink?: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isCheckingPostLink, setIsCheckingPostLink] = useState(false)
   const [postLinkSafe, setPostLinkSafe] = useState<boolean | null>(null)
@@ -111,7 +113,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   }
 
   const handleSubmit = async () => {
-    const nextErrors: { title?: string; regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; images?: string; postLink?: string } = {}
+    const nextErrors: { title?: string; regionId?: string; startDate?: string; endDate?: string; shippingDate?: string; description?: string; billingMethod?: string; images?: string; postLink?: string } = {}
     const trimmedPostLink = postLink.trim()
 
     if (!title.trim()) {
@@ -136,6 +138,14 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
     if (startDate && endDate && parsedStartDate && parsedEndDate && !isAfter(parsedEndDate, parsedStartDate)) {
       nextErrors.endDate = '結束日期必須晚於開始日期'
+    }
+
+    if (!description.trim()) {
+      nextErrors.description = '說明為必填'
+    }
+
+    if (!billingMethod.trim()) {
+      nextErrors.billingMethod = '計費方式為必填'
     }
 
     if (images.length + pendingFiles.length === 0) {
@@ -177,6 +187,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           billing_method: billingMethod || undefined,
           post_link: trimmedPostLink || undefined,
           brand_ids: brandIds.length > 0 ? brandIds : undefined,
+          can_wish: canWish,
         })
         createdConnectionId = result.id
 
@@ -215,6 +226,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           billing_method: billingMethod || undefined,
           post_link: trimmedPostLink || null,
           brand_ids: brandIds,
+          can_wish: canWish,
         })
 
         await confirmImages.mutateAsync({
@@ -265,7 +277,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             if (errors.title) clearError('title')
           }}
           onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-          placeholder="為這筆連線公告取個名稱（最多 30 字）"
+          placeholder="輸入標題"
           maxLength={30}
           aria-invalid={!!errors.title}
         />
@@ -306,7 +318,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         <TagInput
           value={locations}
           onValueChange={setLocations}
-          placeholder="例：稻荷神社、上野動物園"
+          placeholder="例：札幌、上野動物園"
           maxTags={10}
         />
       </div>
@@ -388,27 +400,37 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="description" className="text-sm font-medium text-foreground">說明（選填）</Label>
+        <Label htmlFor="description" className="text-sm font-medium text-foreground">說明 <span className="text-destructive">*</span></Label>
         <Textarea
           id="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value)
+            if (errors.description) clearError('description')
+          }}
           placeholder="補充連線行程說明..."
           maxLength={500}
           className="min-h-32 resize-none"
+          aria-invalid={!!errors.description}
         />
+        <FormFieldError message={errors.description} />
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="billingMethod" className="text-sm font-medium text-foreground">計費方法（選填）</Label>
+        <Label htmlFor="billingMethod" className="text-sm font-medium text-foreground">計費方法 <span className="text-destructive">*</span></Label>
         <Textarea
           id="billingMethod"
           value={billingMethod}
-          onChange={(e) => setBillingMethod(e.target.value)}
+          onChange={(e) => {
+            setBillingMethod(e.target.value)
+            if (errors.billingMethod) clearError('billingMethod')
+          }}
           placeholder="說明收費方式、付款方式..."
           maxLength={500}
           className="min-h-32 resize-none"
+          aria-invalid={!!errors.billingMethod}
         />
+        <FormFieldError message={errors.billingMethod} />
       </div>
 
       <div className="space-y-1">
@@ -447,6 +469,21 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         {isCheckingPostLink
           ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
           : <FormFieldError message={errors.postLink} />}
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">許願</h3>
+        <div className="flex items-center gap-3">
+          <Checkbox
+            id="canWish"
+            checked={canWish}
+            onCheckedChange={(checked) => setCanWish(checked === true)}
+          />
+          <div>
+            <Label htmlFor="canWish" className="text-sm font-medium text-foreground cursor-pointer">可許願</Label>
+            <p className="text-xs text-muted-foreground">允許買家對此連線送出許願商品需求</p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-1">

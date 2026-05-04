@@ -14,10 +14,11 @@ export const createConnectionInput = z.object({
   start_date: z.string(),
   end_date: z.string(),
   shipping_date: z.string(),
-  description: z.string().max(500).optional(),
-  billing_method: z.string().max(500).optional(),
+  description: z.string().min(1).max(500),
+  billing_method: z.string().min(1).max(500),
   post_link: safeConnectionLink.optional(),
   brand_ids: z.array(z.string().uuid()).optional(),
+  can_wish: z.boolean().optional(),
 })
 
 export const updateConnectionInput = z.object({
@@ -32,4 +33,5 @@ export const updateConnectionInput = z.object({
   billing_method: z.string().max(500).nullable().optional(),
   post_link: safeConnectionLink.nullable().optional(),
   brand_ids: z.array(z.string().uuid()).optional(),
+  can_wish: z.boolean().optional(),
 })

@@ -123,7 +123,7 @@ function SearchContent() {
         {activeFilters.length > 0 && (
           <button
             onClick={clearAllFilters}
-            className="text-xs font-medium transition-colors hover:opacity-70"
+            className="cursor-pointer text-xs font-medium transition-colors hover:opacity-70"
             style={{ color: KZ.purple }}
           >
             清除全部
@@ -156,7 +156,7 @@ function SearchContent() {
         </div>
         {secondHalf.length > 0 && (
           <button
-            className="mt-3 flex items-center gap-1 text-xs font-medium transition-opacity hover:opacity-70"
+            className="mt-3 flex cursor-pointer items-center gap-1 text-xs font-medium transition-opacity hover:opacity-70"
             style={{ color: KZ.gray }}
             onClick={() => setCategoryExpanded((v) => !v)}
           >
@@ -225,7 +225,7 @@ function SearchContent() {
           <Sheet>
             <SheetTrigger
               render={
-                <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:bg-gray-50 md:hidden">
+                <button className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:bg-gray-50 md:hidden">
                   <SlidersHorizontal className="h-4 w-4" />
                   {activeFilters.length > 0 && (
                     <span
@@ -261,7 +261,7 @@ function SearchContent() {
           ))}
           <button
             onClick={clearAllFilters}
-            className="text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+            className="cursor-pointer text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
           >
             清除全部
           </button>
@@ -364,7 +364,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className="rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150"
+      className="cursor-pointer rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150"
       style={
         active
           ? { backgroundColor: activeColor, borderColor: activeColor, color: '#fff' }
@@ -393,7 +393,7 @@ function ActiveFilterPill({
       {label}
       <button
         onClick={onRemove}
-        className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/25 transition-colors hover:bg-white/40"
+        className="flex h-3.5 w-3.5 cursor-pointer items-center justify-center rounded-full bg-white/25 transition-colors hover:bg-white/40"
       >
         <X className="h-2.5 w-2.5" />
       </button>

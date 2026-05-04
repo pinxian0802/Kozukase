@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Calendar, Clock3, CreditCard, ExternalLink, FileText, Globe, Images, MapPin, Maximize2, Plus, Tag } from 'lucide-react'
+import { Calendar, Clock3, CreditCard, ExternalLink, Globe, Images, Maximize2, Plus, Sparkles, Tag } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -33,7 +33,7 @@ const rowStyles: Record<string, string> = {
   pending_approval: 'border-border bg-white',
 }
 
-const connectionGridClass = 'grid gap-5 lg:grid-cols-[minmax(0,3.6fr)_minmax(0,2.7fr)_minmax(0,2.8fr)_minmax(0,1.6fr)_minmax(0,1.1fr)_max-content]'
+const connectionGridClass = 'grid gap-5 lg:grid-cols-[minmax(0,4.2fr)_minmax(0,2fr)_minmax(0,2.8fr)_minmax(0,1.6fr)_max-content]'
 
 type ConnectionImage = {
   url: string
@@ -152,9 +152,8 @@ export default function SellerConnectionsPage() {
         <div className="space-y-4">
           <div className={`hidden items-center gap-4 px-4 text-xs font-medium tracking-[0.18em] text-muted-foreground/80 lg:${connectionGridClass}`}>
             <span className="justify-self-start">標題 / 地點</span>
-            <span className="justify-self-start">說明</span>
-            <span className="justify-self-start">連線日期</span>
-            <span className="justify-self-start">預計出貨 / 計費方式</span>
+            <span className="justify-self-start">計費方式 / 品牌</span>
+            <span className="justify-self-start">連線日期 / 預計出貨</span>
             <span className="justify-self-start">連結</span>
             <span className="justify-self-end text-center">操作</span>
           </div>
@@ -185,6 +184,11 @@ export default function SellerConnectionsPage() {
                     <div className="min-w-0 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="secondary" className={statusColors[conn.status]}>{statusLabels[conn.status]}</Badge>
+                        {(conn as any).can_wish && (
+                          <span className="flex items-center gap-1 text-xs text-purple-700">
+                            <Sparkles className="h-3 w-3" />可許願
+                          </span>
+                        )}
                         {conn.status === 'pending_approval' && (
                           <Badge variant="outline">審核中</Badge>
                         )}
@@ -214,18 +218,23 @@ export default function SellerConnectionsPage() {
 
                   <div className="space-y-3 rounded-2xl bg-background/70 p-3 min-w-0 lg:bg-transparent lg:p-0">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                        <FileText className="h-3.5 w-3.5" />說明
-                      </div>
-                      <p className="line-clamp-2 text-sm text-foreground">
-                        {conn.description || <span className="text-muted-foreground">--</span>}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
                       <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                         <CreditCard className="h-3.5 w-3.5" />計費方式
                       </p>
                       <p className="line-clamp-2 text-sm text-foreground">{conn.billing_method || <span className="text-muted-foreground">--</span>}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
+                        <Tag className="h-3.5 w-3.5" />品牌
+                      </p>
+                      <div className="flex min-w-0 items-center gap-1">
+                        <span className="min-w-0 truncate text-sm text-foreground">
+                          {visibleBrands.length > 0 ? visibleBrands.join('、') : <span className="text-muted-foreground">--</span>}
+                        </span>
+                        {extraBrandCount > 0 && (
+                          <span className="shrink-0 text-xs text-muted-foreground">+{extraBrandCount}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -241,19 +250,6 @@ export default function SellerConnectionsPage() {
                         <Clock3 className="h-3.5 w-3.5" />預計出貨
                       </p>
                       <p className="whitespace-nowrap text-sm text-foreground">{conn.shipping_date ? formatDate(conn.shipping_date) : <span className="text-muted-foreground">--</span>}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                        <Tag className="h-3.5 w-3.5" />品牌
-                      </p>
-                      <div className="flex min-w-0 items-center gap-1">
-                        <span className="min-w-0 truncate text-sm text-foreground">
-                          {visibleBrands.length > 0 ? visibleBrands.join('、') : <span className="text-muted-foreground">--</span>}
-                        </span>
-                        {extraBrandCount > 0 && (
-                          <span className="shrink-0 text-xs text-muted-foreground">+{extraBrandCount}</span>
-                        )}
-                      </div>
                     </div>
                   </div>
 

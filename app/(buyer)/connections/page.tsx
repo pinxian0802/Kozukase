@@ -73,7 +73,7 @@ export default function ConnectionsPage() {
         {regionId && (
           <button
             type="button"
-            className="text-left text-xs text-muted-foreground underline underline-offset-2"
+            className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
             onClick={() => setRegionId('')}
           >
             清除
@@ -103,7 +103,7 @@ export default function ConnectionsPage() {
         {(activeDuringStart || activeDuringEnd) && (
           <button
             type="button"
-            className="text-left text-xs text-muted-foreground underline underline-offset-2"
+            className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
             onClick={() => {
               setActiveDuringStart('')
               setActiveDuringEnd('')
@@ -171,7 +171,7 @@ export default function ConnectionsPage() {
               {regionLabel && (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
                   onClick={() => setRegionId('')}
                 >
                   {regionLabel}
@@ -182,7 +182,7 @@ export default function ConnectionsPage() {
               {activeDateLabel && (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
                   onClick={() => {
                     setActiveDuringStart('')
                     setActiveDuringEnd('')
@@ -196,7 +196,7 @@ export default function ConnectionsPage() {
               {locationText && (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
                   onClick={() => setLocationQuery('')}
                 >
                   地點：{locationText}

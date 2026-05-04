@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Loader2, Package, Check, X } from 'lucide-react'
+import { ProductCard } from '@/components/product/product-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -408,7 +409,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
       {/* Title */}
       <div>
-        <Label htmlFor="listing-title">標題 <span className="text-destructive">*</span></Label>
+        <Label htmlFor="listing-title">標題 *</Label>
         <Input
           id="listing-title"
           value={title}
@@ -417,7 +418,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             if (errors.title) clearError('title')
           }}
           onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-          placeholder="為這筆代購取個名稱（最多 30 字）"
+          placeholder="輸入標題"
           maxLength={30}
           className="mt-1"
           aria-invalid={!!errors.title}
@@ -426,26 +427,20 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       </div>
 
       {mode === 'edit' && initialData?.product && (
-        <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-            {selectedProductImageUrl ? (
-              <img
-                src={selectedProductImageUrl}
-                alt={initialData.product.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <Package className="h-6 w-6 text-muted-foreground/40" />
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{initialData.product.name}</p>
-            {selectedProductBrandLabel && (
-              <p className="truncate text-xs text-muted-foreground">{selectedProductBrandLabel}</p>
-            )}
-          </div>
+        <div>
+          <Label>商品</Label>
+          <ProductCard
+            product={{
+              id: initialData.product.id,
+              name: initialData.product.name,
+              brand: selectedProductBrandLabel,
+              model_number: initialData.product.model_number,
+              catalog_image_url: selectedProductImageUrl,
+            }}
+            linkToProduct={false}
+            variant="compact"
+            className="mt-1 w-fit"
+          />
         </div>
       )}
 
@@ -480,7 +475,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Price */}
       <div>
-        <Label htmlFor="price">價格 (NT$) <span className="text-destructive">*</span></Label>
+        <Label htmlFor="price">價格 (NT$) *</Label>
         {!isPriceOnRequest && (
           <>
             <Input
@@ -504,7 +499,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Shipping */}
       <div>
-        <Label>預計出貨日期 <span className="text-destructive">*</span></Label>
+        <Label>預計出貨日期 *</Label>
         <DatePicker
           value={shippingDate}
           onValueChange={(value) => {
@@ -608,7 +603,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Post URL */}
       <div>
-        <Label htmlFor="postUrl">貼文連結 <span className="text-destructive">*</span></Label>
+        <Label htmlFor="postUrl">貼文連結 *</Label>
         <div className="relative mt-1">
           <Input
             id="postUrl"

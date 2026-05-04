@@ -199,7 +199,7 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
                         <button
                           type="button"
                           onClick={() => removeAlias(alias)}
-                          className="ml-1 rounded-full hover:bg-muted"
+                          className="ml-1 cursor-pointer rounded-full hover:bg-muted"
                         >
                           <X className="h-3 w-3" />
                         </button>

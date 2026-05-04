@@ -141,8 +141,8 @@ export const listingRouter = router({
       if (!listing || listing.seller_id !== ctx.seller.id) {
         throw new TRPCError({ code: 'NOT_FOUND' })
       }
-      if (listing.status !== 'draft') {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: '只能刪除草稿' })
+      if (listing.status !== 'draft' && listing.status !== 'inactive') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '只能刪除草稿或已下架的代購' })
       }
 
       await ctx.db.from('listing_images').delete().eq('listing_id', input.id)
