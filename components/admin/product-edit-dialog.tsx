@@ -119,6 +119,7 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
                     setName(e.target.value)
                     if (nameError) setNameError('')
                   }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                   aria-invalid={!!nameError}
                 />
                 <FormFieldError message={nameError} />
@@ -135,7 +136,7 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
 
               <div className="space-y-2">
                 <Label htmlFor="admin-product-model">型號</Label>
-                <Input id="admin-product-model" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)} placeholder="可留空" />
+                <Input id="admin-product-model" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="可留空" />
               </div>
 
               <div className="space-y-2">

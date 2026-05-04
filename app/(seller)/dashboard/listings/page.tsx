@@ -105,11 +105,11 @@ function ListingThumbnail({ images, title }: { images: ListingImage[]; title: st
 }
 
 function formatSpecSummary(spec?: ListingSpec | null) {
-  if (!spec) return '未設定'
+  if (!spec) return '--'
   if (spec.is_all) return `${spec.type}：都有`
 
   const options = spec.options?.filter(Boolean) ?? []
-  if (options.length === 0) return `${spec.type}：未設定`
+  if (options.length === 0) return '--'
 
   return `${spec.type}：${options.slice(0, 3).join(' / ')}`
 }
@@ -200,7 +200,7 @@ export default function SellerListingsPage() {
                         )}
                       </div>
                       <h2 className="truncate text-lg font-semibold text-foreground">
-                        {listing.title || listing.product?.name || '未知商品'}
+                        {listing.title || <span className="font-normal text-muted-foreground">--</span>}
                       </h2>
                       {listing.product?.name && (
                         <Link
@@ -226,7 +226,7 @@ export default function SellerListingsPage() {
                           <p key={`${listing.id}-spec-line-${index}`} className="truncate">{formatSpecSummary(spec)}</p>
                         ))
                       ) : (
-                        <p className="text-muted-foreground">尚未設定規格</p>
+                        <p className="text-muted-foreground">--</p>
                       )}
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export default function SellerListingsPage() {
                       <FileText className="h-3.5 w-3.5" />備註
                     </p>
                     <p className="line-clamp-2 text-sm text-foreground">
-                      {listing.note ? listing.note : '未填寫備註'}
+                      {listing.note || <span className="text-muted-foreground">--</span>}
                     </p>
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export default function SellerListingsPage() {
                       <Clock3 className="h-3.5 w-3.5" />預計出貨
                     </p>
                     <p className="text-sm text-foreground">
-                      {listing.shipping_date ? formatDate(listing.shipping_date) : '未設定'}
+                      {listing.shipping_date ? formatDate(listing.shipping_date) : <span className="text-muted-foreground">--</span>}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -255,7 +255,7 @@ export default function SellerListingsPage() {
                       <Calendar className="h-3.5 w-3.5" />截止日期
                     </p>
                     <p className="text-sm text-foreground">
-                      {listing.expires_at ? formatDate(listing.expires_at) : '未設定'}
+                      {listing.expires_at ? formatDate(listing.expires_at) : <span className="text-muted-foreground">--</span>}
                     </p>
                   </div>
                 </div>

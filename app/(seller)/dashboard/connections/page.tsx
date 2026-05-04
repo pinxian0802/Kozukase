@@ -163,9 +163,9 @@ export default function SellerConnectionsPage() {
             const sortedImages = [...(conn.connection_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
             const displayImages = sortedImages.map((image) => ({
               url: image.thumbnail_url ?? image.url,
-              alt: conn.title ?? conn.region?.name ?? '連線圖片',
+              alt: conn.title ?? '連線圖片',
             }))
-            const regionName = conn.region?.name ?? '未設定'
+            const regionName = conn.region?.name ?? '--'
             const visibleLocations = conn.locations?.slice(0, 2) ?? []
             const extraLocationCount = (conn.locations?.length ?? 0) - 2
             const brandNames = (conn.connection_brands ?? []).map((cb: { brand_id: string; brand?: { id: string; name: string } | null }) => cb.brand?.name).filter(Boolean) as string[]
@@ -180,7 +180,7 @@ export default function SellerConnectionsPage() {
               >
                 <div className={`${connectionGridClass} lg:items-center`}>
                   <div className="flex items-center min-w-0 gap-4">
-                    <ConnectionThumbnail images={displayImages} title={conn.title ?? '未命名連線'} />
+                    <ConnectionThumbnail images={displayImages} title={conn.title ?? '--'} />
 
                     <div className="min-w-0 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
@@ -190,7 +190,7 @@ export default function SellerConnectionsPage() {
                         )}
                       </div>
                       <h2 className="truncate text-xl font-semibold text-foreground">
-                        {conn.title ?? '未命名連線'}
+                        {conn.title ?? <span className="font-normal text-muted-foreground">--</span>}
                       </h2>
                       <div className="grid gap-1 text-sm text-muted-foreground">
                         <div className="flex min-w-0 items-center gap-2">
@@ -201,7 +201,7 @@ export default function SellerConnectionsPage() {
                           <span className="shrink-0">地點</span>
                           <div className="flex min-w-0 items-center gap-1">
                             <span className="min-w-0 truncate font-medium text-foreground/85">
-                              {visibleLocations.length > 0 ? visibleLocations.join('、') : '未設定'}
+                              {visibleLocations.length > 0 ? visibleLocations.join('、') : <span className="text-muted-foreground">--</span>}
                             </span>
                             {extraLocationCount > 0 && (
                               <span className="shrink-0 text-xs text-muted-foreground">+{extraLocationCount}</span>
@@ -218,14 +218,14 @@ export default function SellerConnectionsPage() {
                         <FileText className="h-3.5 w-3.5" />說明
                       </div>
                       <p className="line-clamp-2 text-sm text-foreground">
-                        {conn.description ? conn.description : '未填寫連線說明'}
+                        {conn.description || <span className="text-muted-foreground">--</span>}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                         <CreditCard className="h-3.5 w-3.5" />計費方式
                       </p>
-                      <p className="line-clamp-2 text-sm text-foreground">{conn.billing_method ? conn.billing_method : '未設定'}</p>
+                      <p className="line-clamp-2 text-sm text-foreground">{conn.billing_method || <span className="text-muted-foreground">--</span>}</p>
                     </div>
                   </div>
 
@@ -240,7 +240,7 @@ export default function SellerConnectionsPage() {
                       <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                         <Clock3 className="h-3.5 w-3.5" />預計出貨
                       </p>
-                      <p className="whitespace-nowrap text-sm text-foreground">{conn.shipping_date ? formatDate(conn.shipping_date) : '未設定'}</p>
+                      <p className="whitespace-nowrap text-sm text-foreground">{conn.shipping_date ? formatDate(conn.shipping_date) : <span className="text-muted-foreground">--</span>}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
@@ -248,7 +248,7 @@ export default function SellerConnectionsPage() {
                       </p>
                       <div className="flex min-w-0 items-center gap-1">
                         <span className="min-w-0 truncate text-sm text-foreground">
-                          {visibleBrands.length > 0 ? visibleBrands.join('、') : '未設定'}
+                          {visibleBrands.length > 0 ? visibleBrands.join('、') : <span className="text-muted-foreground">--</span>}
                         </span>
                         {extraBrandCount > 0 && (
                           <span className="shrink-0 text-xs text-muted-foreground">+{extraBrandCount}</span>
@@ -273,7 +273,7 @@ export default function SellerConnectionsPage() {
                           <ExternalLink className="h-3.5 w-3.5" />
                         </SafeExternalLink>
                       ) : (
-                        <p className="truncate text-sm text-muted-foreground">未設定</p>
+                        <p className="truncate text-sm text-muted-foreground">--</p>
                       )}
                   </div>
                   </div>

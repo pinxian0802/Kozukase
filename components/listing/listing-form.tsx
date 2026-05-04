@@ -2,15 +2,13 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2, Loader2, Package, Check, X } from 'lucide-react'
+import { Plus, Loader2, Package, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { buttonVariants } from '@/components/ui/button'
@@ -20,15 +18,19 @@ import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 import { toast } from 'sonner'
 
 const SPEC_TYPES = [
-  { value: '顏色', label: '顏色' },
-  { value: '尺寸', label: '尺寸' },
-  { value: '口味', label: '口味' },
-  { value: '容量', label: '容量' },
-  { value: '材質', label: '材質' },
-  { value: '款式', label: '款式' },
-  { value: '重量', label: '重量' },
-  { value: '自訂', label: '自訂' },
+  { value: '顏色', label: '顏色', placeholder: '如：紅色、藍色、白色' },
+  { value: '尺寸', label: '尺寸', placeholder: '如：S、M、L、XL' },
+  { value: '口味', label: '口味', placeholder: '如：原味、草莓、巧克力' },
+  { value: '容量', label: '容量', placeholder: '如：250ml、500ml、1L' },
+  { value: '材質', label: '材質', placeholder: '如：棉、麻、聚酯纖維' },
+  { value: '款式', label: '款式', placeholder: '如：經典款、限定款' },
+  { value: '重量', label: '重量', placeholder: '如：100g、200g、500g' },
+  { value: '自訂', label: '自訂', placeholder: '輸入選項後按 Enter' },
 ]
+
+const SPEC_PLACEHOLDER: Record<string, string> = Object.fromEntries(
+  SPEC_TYPES.map((t) => [t.value, t.placeholder])
+)
 
 interface SpecEntry {
   type: string
@@ -36,6 +38,64 @@ interface SpecEntry {
   options: string[]
   is_all: boolean
   _optionInput: string
+}
+
+function SpecTagInput({
+  specType,
+  options,
+  inputValue,
+  onInputChange,
+  onAdd,
+  onRemove,
+  onRemoveLast,
+}: {
+  specType: string
+  options: string[]
+  inputValue: string
+  onInputChange: (val: string) => void
+  onAdd: () => void
+  onRemove: (index: number) => void
+  onRemoveLast: () => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const placeholder = options.length === 0
+    ? (SPEC_PLACEHOLDER[specType] ?? '輸入後按 Enter，留空為該規格皆有')
+    : '輸入後按 Enter…'
+  return (
+    <div
+      className="flex min-h-9 flex-wrap items-center gap-1 rounded-md border border-input bg-background px-2 py-1 cursor-text focus-within:ring-1 focus-within:ring-ring"
+      onClick={() => inputRef.current?.focus()}
+    >
+      {options.map((opt, i) => (
+        <span key={i} className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs">
+          {opt}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onRemove(i) }}
+            className="text-muted-foreground hover:text-destructive leading-none"
+            aria-label={`移除 ${opt}`}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        ref={inputRef}
+        value={inputValue}
+        onChange={(e) => onInputChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            onAdd()
+          } else if (e.key === 'Backspace' && !inputValue) {
+            onRemoveLast()
+          }
+        }}
+        placeholder={placeholder}
+        className="min-w-[80px] flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/70 py-0.5"
+      />
+    </div>
+  )
 }
 
 interface ListingFormProps {
@@ -80,7 +140,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const [isCheckingUrl, setIsCheckingUrl] = useState(false)
   const [isPreparingImages, setIsPreparingImages] = useState(false)
   const [postUrlSafe, setPostUrlSafe] = useState<boolean | null>(null)
-  const [errors, setErrors] = useState<{ title?: string; price?: string; shippingDate?: string; postUrl?: string; specs?: string; images?: string }>({})
+  const [errors, setErrors] = useState<{ title?: string; price?: string; shippingDate?: string; postUrl?: string; images?: string }>({})
   const isCheckingUrlRef = useRef(false)
   const isPreparingImagesRef = useRef(false)
 
@@ -161,7 +221,11 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   }
 
   const buildInput = (status: 'draft' | 'active', resolvedProductId: string) => {
-    const specsClean = specs.map(({ _optionInput, ...rest }) => rest)
+    const specsClean = specs.map(({ _optionInput, options, ...rest }) => ({
+      ...rest,
+      options,
+      is_all: options.length === 0,
+    }))
     return {
       product_id: resolvedProductId,
       title: title.trim(),
@@ -179,6 +243,14 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const handleSave = async (status: 'draft' | 'active') => {
     if (isCheckingUrlRef.current || isPreparingImagesRef.current) {
       return
+    }
+
+    if (status === 'draft') {
+      const isFormEmpty = !title.trim() && !price.trim() && !isPriceOnRequest && specs.length === 0 && !note.trim() && !postUrl.trim() && !shippingDate && !expiresAt && images.length === 0 && pendingFiles.length === 0
+      if (isFormEmpty) {
+        router.push('/dashboard/listings')
+        return
+      }
     }
 
     if (status === 'active') {
@@ -206,11 +278,6 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         } else if (Number(trimmedPrice) < 1) {
           nextErrors.price = '價格不得為0或負數'
         }
-      }
-
-      const invalidSpec = specs.find(s => !s.is_all && s.options.length === 0)
-      if (invalidSpec) {
-        nextErrors.specs = `規格「${invalidSpec.type}」尚未填寫選項，請新增選項或勾選「都有」`
       }
 
       if (images.length + pendingFiles.length === 0) {
@@ -311,6 +378,9 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       utils.listing.myListings.invalidate()
       utils.listing.myListingCount.invalidate()
+      if (mode === 'edit' && initialData?.id) {
+        utils.listing.getById.invalidate({ id: initialData.id })
+      }
       router.push('/dashboard/listings')
     } catch (err: any) {
       // ── Compensating rollback (create mode only) ─────────────────────────
@@ -346,6 +416,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             setTitle(e.target.value)
             if (errors.title) clearError('title')
           }}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
           placeholder="為這筆代購取個名稱（最多 30 字）"
           maxLength={30}
           className="mt-1"
@@ -421,6 +492,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
                 setPrice(e.target.value)
                 if (errors.price) clearError('price')
               }}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
               placeholder="輸入價格"
               className="mt-1"
               aria-invalid={!!errors.price}
@@ -449,87 +521,76 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Specs */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <Label>規格</Label>
-          <Button type="button" variant="outline" size="sm" onClick={addSpec}>
-            <Plus className="mr-1 h-3 w-3" />新增規格
-          </Button>
-        </div>
-        <FormFieldError message={errors.specs} />
-        {specs.map((spec, index) => (
-          <div key={index} className="mb-4 rounded-lg border p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Select
-                value={spec.type}
-                onValueChange={(val) => val && updateSpec(index, {
-                  type: val,
-                  is_custom: val === '自訂',
-                })}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SPEC_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {spec.is_custom && (
-                <Input
-                  value={spec.type === '自訂' ? '' : spec.type}
-                  onChange={(e) => updateSpec(index, { type: e.target.value })}
-                  placeholder="自訂規格名"
-                  className="flex-1"
-                />
-              )}
-              <Button type="button" variant="ghost" size="icon" onClick={() => removeSpec(index)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+        <Label className="mb-2 block">規格</Label>
+        {specs.length > 0 && (
+          <div className="mb-2">
+            <div className="grid gap-1.5 mb-1 px-0.5" style={{ gridTemplateColumns: '100px 1fr 32px' }}>
+              <span className="text-xs text-muted-foreground">規格</span>
+              <span className="text-xs text-muted-foreground">選項 <span className="font-normal">（空白為該規格皆有）</span></span>
+              <span />
             </div>
-
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id={`is_all_${index}`}
-                checked={spec.is_all}
-                onCheckedChange={(checked) => updateSpec(index, { is_all: !!checked })}
-              />
-              <Label htmlFor={`is_all_${index}`} className="text-sm">都有（全部選項）</Label>
-            </div>
-
-            {!spec.is_all && (
-              <div className="space-y-2">
-                <div className="flex gap-2">
+            {specs.map((spec, index) => {
+              const usedTypes = new Set(
+                specs.filter((_, i) => i !== index && !specs[i].is_custom).map((s) => s.type)
+              )
+              return (
+              <div key={index} className="grid gap-1.5 mb-2 items-start" style={{ gridTemplateColumns: '100px 1fr 32px' }}>
+                {spec.is_custom && spec.type !== '自訂' ? (
                   <Input
-                    value={spec._optionInput}
-                    onChange={(e) => updateSpec(index, { _optionInput: e.target.value })}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOption(index))}
-                    placeholder="輸入選項，按 Enter 新增"
-                    className="flex-1"
+                    value={spec.type}
+                    onChange={(e) => updateSpec(index, { type: e.target.value })}
+                    onBlur={() => { if (!spec.type.trim()) updateSpec(index, { type: '顏色', is_custom: false }) }}
+                    placeholder="自訂名稱"
+                    className="h-9 text-sm"
                   />
-                  <Button type="button" variant="outline" size="sm" onClick={() => addOption(index)}>新增</Button>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {spec.options.map((opt, oi) => (
-                    <Badge key={oi} variant="secondary" className="gap-1">
-                      {opt}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => removeOption(index, oi)}
-                        className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive"
-                        aria-label={`移除選項 ${opt}`}
-                      >
-                        ×
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
+                ) : (
+                  <Select
+                    value={spec.is_custom ? '自訂' : spec.type}
+                    onValueChange={(val) => {
+                      if (!val) return
+                      if (val === '自訂') {
+                        updateSpec(index, { type: '', is_custom: true })
+                      } else {
+                        updateSpec(index, { type: val, is_custom: false })
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SPEC_TYPES.map((t) => (
+                        <SelectItem key={t.value} value={t.value} disabled={usedTypes.has(t.value)}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <SpecTagInput
+                  specType={spec.is_custom ? '自訂' : spec.type}
+                  options={spec.options}
+                  inputValue={spec._optionInput}
+                  onInputChange={(val) => updateSpec(index, { _optionInput: val })}
+                  onAdd={() => addOption(index)}
+                  onRemove={(oi) => removeOption(index, oi)}
+                  onRemoveLast={() => { if (spec.options.length > 0) removeOption(index, spec.options.length - 1) }}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeSpec(index)}
+                  className="h-9 w-8 text-muted-foreground hover:text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-            )}
+              )
+            })}
           </div>
-        ))}
+        )}
+        <Button type="button" variant="outline" size="sm" onClick={addSpec} className="w-full border-dashed">
+          <Plus className="mr-1 h-3 w-3" />新增規格
+        </Button>
       </div>
 
       {/* Note */}

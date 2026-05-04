@@ -113,6 +113,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
               setName(e.target.value)
               if (nameError) setNameError('')
             }}
+            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
             placeholder="輸入商品名稱"
             aria-invalid={!!nameError}
           />
@@ -135,6 +136,7 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
             id="product-model"
             value={modelNumber}
             onChange={(e) => setModelNumber(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
             placeholder="輸入型號"
           />
         </div>

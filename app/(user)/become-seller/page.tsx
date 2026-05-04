@@ -143,6 +143,7 @@ export default function SettingsPage() {
                     })
                   }
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                 placeholder="你的店家名稱"
                 maxLength={50}
                 aria-invalid={!!errors.sellerName}
@@ -166,6 +167,7 @@ export default function SettingsPage() {
                     })
                   }
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                 placeholder="0912345678"
                 type="tel"
                 aria-invalid={!!errors.phone}

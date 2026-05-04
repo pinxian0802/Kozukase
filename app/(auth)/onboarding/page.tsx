@@ -194,6 +194,7 @@ export default function OnboardingPage() {
                     setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))
                     setErrors(prev => { const n = { ...prev }; delete n.username; return n })
                   }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                   placeholder="a-z 0-9，3–20 字元"
                   aria-invalid={!!errors.username}
                   className="pl-7 pr-16"
@@ -222,6 +223,7 @@ export default function OnboardingPage() {
                   setDisplayName(e.target.value)
                   setErrors(prev => { const n = { ...prev }; delete n.displayName; return n })
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                 placeholder="顯示名稱"
                 aria-invalid={!!errors.displayName}
                 className="mt-1"
@@ -242,6 +244,7 @@ export default function OnboardingPage() {
                       setPassword(e.target.value)
                       setErrors(prev => { const n = { ...prev }; delete n.password; return n })
                     }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                     placeholder="至少 6 個字元"
                     aria-invalid={!!errors.password}
                     className="mt-1"
@@ -260,6 +263,7 @@ export default function OnboardingPage() {
                       setConfirmPassword(e.target.value)
                       setErrors(prev => { const n = { ...prev }; delete n.confirmPassword; return n })
                     }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                     placeholder="再次輸入密碼"
                     aria-invalid={!!errors.confirmPassword}
                     className="mt-1"

@@ -264,6 +264,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             setTitle(e.target.value)
             if (errors.title) clearError('title')
           }}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
           placeholder="為這筆連線公告取個名稱（最多 30 字）"
           maxLength={30}
           aria-invalid={!!errors.title}

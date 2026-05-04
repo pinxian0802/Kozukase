@@ -109,6 +109,7 @@ export default function AccountPage() {
                   setDisplayName(e.target.value)
                   if (displayNameError) setDisplayNameError('')
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                 maxLength={50}
                 className="mt-1"
                 aria-invalid={!!displayNameError}

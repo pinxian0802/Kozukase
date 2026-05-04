@@ -222,6 +222,7 @@ export default function SellerProfilePage() {
                       setName(e.target.value)
                       if (nameError) setNameError('')
                     }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                     maxLength={50}
                     className="mt-1"
                     aria-invalid={!!nameError}
