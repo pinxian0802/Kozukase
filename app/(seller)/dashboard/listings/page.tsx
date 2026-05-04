@@ -22,11 +22,11 @@ const statusLabels: Record<string, string> = {
   pending_approval: '待審核',
 }
 
-const statusColors: Record<string, string> = {
-  draft: 'bg-yellow-100 text-yellow-700',
-  active: 'bg-green-100 text-green-700',
-  inactive: 'bg-gray-100 text-gray-600',
-  pending_approval: 'bg-blue-100 text-blue-700',
+const statusDotColors: Record<string, string> = {
+  draft: 'bg-yellow-400',
+  active: 'bg-green-500',
+  inactive: 'bg-gray-400',
+  pending_approval: 'bg-red-500',
 }
 
 const rowStyles: Record<string, string> = {
@@ -194,10 +194,10 @@ export default function SellerListingsPage() {
                   <div className="min-w-0 space-y-3">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="secondary" className={statusColors[listing.status]}>{statusLabels[listing.status]}</Badge>
-                        {listing.status === 'pending_approval' && (
-                          <Badge variant="outline">審核中</Badge>
-                        )}
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+                          <span className={`h-2 w-2 shrink-0 rounded-full ${statusDotColors[listing.status] ?? 'bg-gray-400'}`} />
+                          {statusLabels[listing.status]}
+                        </span>
                       </div>
                       <h2 className="truncate text-lg font-semibold text-foreground">
                         {listing.title || <span className="font-normal text-muted-foreground">--</span>}
