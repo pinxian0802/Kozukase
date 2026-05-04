@@ -16,6 +16,7 @@ import { FormFieldError } from '@/components/shared/form-field-error'
 import { BrandMultiSelect } from '@/components/shared/brand-select'
 import { trpc } from '@/lib/trpc/client'
 import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 import { toast } from 'sonner'
 
 interface ConnectionFormProps {
@@ -151,6 +152,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
+      scrollToFirstError()
       return
     }
 

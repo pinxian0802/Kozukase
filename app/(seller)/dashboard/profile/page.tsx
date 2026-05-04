@@ -19,6 +19,7 @@ import { uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -143,7 +144,10 @@ export default function SellerProfilePage() {
     } else {
       setRegionError('')
     }
-    if (hasError) return
+    if (hasError) {
+      scrollToFirstError()
+      return
+    }
 
     setIsSubmitting(true)
     let finalAvatarUrl: string | null | undefined = avatarImage?.url ?? null

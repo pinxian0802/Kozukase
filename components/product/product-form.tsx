@@ -11,6 +11,7 @@ import { SingleImageUpload } from '@/components/shared/single-image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { BrandSelect } from '@/components/shared/brand-select'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 import { trpc } from '@/lib/trpc/client'
 import type { ProductCategory } from '@/lib/validators/product'
 
@@ -60,7 +61,10 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
       setImageError('')
     }
 
-    if (hasError) return
+    if (hasError) {
+      scrollToFirstError()
+      return
+    }
 
     onContinue({
       name: trimmedName,

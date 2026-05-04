@@ -13,6 +13,7 @@ import { AvatarUpload } from '@/components/shared/avatar-upload'
 import { uploadImageFiles } from '@/components/shared/image-upload'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { getAuthErrorMessage, getSafeNextPath } from '@/lib/supabase/auth-error'
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 import { trpc } from '@/lib/trpc/client'
 
 const USERNAME_REGEX = /^[a-z0-9]{3,20}$/
@@ -107,6 +108,7 @@ export default function OnboardingPage() {
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
+      scrollToFirstError()
       return
     }
 

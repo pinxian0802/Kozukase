@@ -13,6 +13,7 @@ import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 
 export default function AccountPage() {
   const session = useSession()
@@ -43,6 +44,7 @@ export default function AccountPage() {
     e.preventDefault()
     if (!displayName.trim()) {
       setDisplayNameError('顯示名稱為必填')
+      scrollToFirstError()
       return
     }
     setDisplayNameError('')

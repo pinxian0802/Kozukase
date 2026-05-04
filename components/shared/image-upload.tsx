@@ -244,7 +244,7 @@ export function ImageUpload({
   }
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn('space-y-3', className)} aria-invalid={invalid || undefined}>
       {previewItems.length === 0 && (
         <Card className="overflow-hidden bg-transparent shadow-none ring-0 py-0 gap-0">
           <CardContent className="p-0">

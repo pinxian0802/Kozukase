@@ -73,6 +73,7 @@ export function SingleImageUpload({
       <button
         type="button"
         onClick={() => !uploading && inputRef.current?.click()}
+        aria-invalid={invalid || undefined}
         className={cn(
           'relative h-32 w-32 overflow-hidden rounded-xl border-2 transition-colors',
           displayUrl

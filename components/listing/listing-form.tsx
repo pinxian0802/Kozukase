@@ -16,6 +16,7 @@ import { FormFieldError } from '@/components/shared/form-field-error'
 import { buttonVariants } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 import { toast } from 'sonner'
 
 const SPEC_TYPES = [
@@ -218,6 +219,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       if (Object.keys(nextErrors).length > 0) {
         setErrors(nextErrors)
+        scrollToFirstError()
         return
       }
 
