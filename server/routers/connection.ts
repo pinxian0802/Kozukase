@@ -159,6 +159,30 @@ export const connectionRouter = router({
       return { success: true }
     }),
 
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db
+        .from('connections')
+        .select(`
+          *,
+          region:regions(id, name),
+          seller:sellers(
+            id, name, ig_handle, threads_handle, is_social_verified,
+            profile:profiles(display_name, avatar_url)
+          ),
+          connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
+        `)
+        .eq('id', input.id)
+        .single()
+
+      if (error || !data) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: '連線不存在' })
+      }
+
+      return data
+    }),
+
   getBySeller: publicProcedure
     .input(z.object({ sellerId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

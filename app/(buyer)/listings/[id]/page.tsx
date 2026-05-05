@@ -29,7 +29,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+      <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
         <Skeleton className="h-96 w-full rounded-xl" />
         <Skeleton className="h-8 w-64" />
       </div>
@@ -46,7 +46,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const inquiryText = `你好，我想詢問 ${listing.product?.name ?? '商品'} 的代購，請問還有在收單嗎？`
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-4xl px-4 py-6">
       <Button variant="ghost" size="sm" render={<Link href={listing.product ? `/products/${listing.product.id}` : '/search'} />} className="mb-4">
           <ArrowLeft className="mr-1 h-4 w-4" />返回
       </Button>
