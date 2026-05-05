@@ -201,71 +201,77 @@ export default function SellerProfilePage() {
               <CardTitle>賣家資料</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                <div>
-                  <Label>頭貼</Label>
+              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                  <Label className="pt-2">頭貼</Label>
                   <AvatarUpload
                     value={avatarImage}
                     onChange={setAvatarImage}
                     pendingFile={pendingFile}
                     onPendingFileChange={setPendingFile}
-                    className="mt-1"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="name">賣家名稱 <span className="text-destructive">*</span></Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value)
-                      if (nameError) setNameError('')
-                    }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    maxLength={50}
-                    className="mt-1"
-                    aria-invalid={!!nameError}
-                  />
-                  <FormFieldError message={nameError} />
+                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                  <Label htmlFor="name" className="pt-2">賣家名稱 <span className="text-destructive">*</span></Label>
+                  <div>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value)
+                        if (nameError) setNameError('')
+                      }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                      maxLength={50}
+                      aria-invalid={!!nameError}
+                    />
+                    <FormFieldError message={nameError} />
+                  </div>
                 </div>
 
-                <div>
-                  <Label>代購地區 <span className="text-destructive">*</span></Label>
-                  <MultiSelect
-                    value={selectedRegions}
-                    onValueChange={(v) => {
-                      setSelectedRegions(v)
-                      if (regionError) setRegionError('')
-                    }}
-                    options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
-                    placeholder="選擇代購地區"
-                    searchPlaceholder="搜尋地區..."
-                    emptyText="找不到相符的地區"
-                    invalid={!!regionError}
-                    className="mt-1"
-                  />
-                  <FormFieldError message={regionError} />
+                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                  <Label className="pt-2">代購地區 <span className="text-destructive">*</span></Label>
+                  <div>
+                    <MultiSelect
+                      value={selectedRegions}
+                      onValueChange={(v) => {
+                        setSelectedRegions(v)
+                        if (regionError) setRegionError('')
+                      }}
+                      options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
+                      placeholder="選擇代購地區"
+                      searchPlaceholder="搜尋地區..."
+                      emptyText="找不到相符的地區"
+                      invalid={!!regionError}
+                    />
+                    <FormFieldError message={regionError} />
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="bio">簡介</Label>
-                  <Textarea
-                    id="bio"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="介紹你的代購服務、專長地區或購物風格…"
-                    maxLength={300}
-                    rows={4}
-                    className="mt-1 resize-none"
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                  <Label htmlFor="bio" className="pt-2">簡介</Label>
+                  <div>
+                    <Textarea
+                      id="bio"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="介紹你的代購服務、專長地區或購物風格…"
+                      maxLength={300}
+                      rows={4}
+                      className="resize-none"
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+                  </div>
                 </div>
 
-                <button type="submit" className={buttonVariants()} disabled={isSubmitting || updateSeller.isPending || getPresignedUrl.isPending}>
-                  {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
-                  儲存變更
-                </button>
+                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                  <div />
+                  <button type="submit" className={buttonVariants({ className: 'w-fit justify-self-end' })} disabled={isSubmitting || updateSeller.isPending || getPresignedUrl.isPending}>
+                    {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+                    儲存變更
+                  </button>
+                </div>
               </form>
             </CardContent>
           </Card>

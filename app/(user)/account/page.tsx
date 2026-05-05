@@ -78,57 +78,60 @@ export default function AccountPage() {
           <CardTitle>個人資料</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            <div>
-              <Label>頭貼</Label>
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <Label className="pt-2">頭貼</Label>
               <AvatarUpload
                 value={avatarValue}
                 onChange={setAvatarValue}
                 pendingFile={pendingFile}
                 onPendingFileChange={setPendingFile}
-                className="mt-1"
               />
             </div>
 
-            <div>
+            <div className="grid grid-cols-[140px_1fr] items-center gap-x-4">
               <Label htmlFor="username">ID</Label>
               <Input
                 id="username"
                 value={`@${session.profile.username}`}
                 readOnly
-                className="mt-1 text-muted-foreground"
+                className="text-muted-foreground"
               />
             </div>
 
-            <div>
-              <Label htmlFor="display-name">顯示名稱 <span className="text-destructive">*</span></Label>
-              <Input
-                id="display-name"
-                value={displayName}
-                onChange={(e) => {
-                  setDisplayName(e.target.value)
-                  if (displayNameError) setDisplayNameError('')
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                maxLength={50}
-                className="mt-1"
-                aria-invalid={!!displayNameError}
-              />
-              <FormFieldError message={displayNameError} />
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <Label htmlFor="display-name" className="pt-2">顯示名稱 <span className="text-destructive">*</span></Label>
+              <div>
+                <Input
+                  id="display-name"
+                  value={displayName}
+                  onChange={(e) => {
+                    setDisplayName(e.target.value)
+                    if (displayNameError) setDisplayNameError('')
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                  maxLength={50}
+                  aria-invalid={!!displayNameError}
+                />
+                <FormFieldError message={displayNameError} />
+              </div>
             </div>
 
-            <button
-              type="submit"
-              className={buttonVariants({ className: 'w-full' })}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-1 h-4 w-4" />
-              )}
-              儲存變更
-            </button>
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <div />
+              <button
+                type="submit"
+                className={buttonVariants({ className: 'w-fit justify-self-end' })}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-1 h-4 w-4" />
+                )}
+                儲存變更
+              </button>
+            </div>
           </form>
         </CardContent>
       </Card>

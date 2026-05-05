@@ -36,7 +36,7 @@ const rowStyles: Record<string, string> = {
   pending_approval: 'border-border bg-white',
 }
 
-const listingGridClass = 'grid gap-4 lg:grid-cols-[minmax(0,4.1fr)_minmax(152px,0.88fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(124px,0.78fr)]'
+const listingGridClass = 'grid gap-4 lg:grid-cols-[minmax(0,3.5fr)_minmax(152px,1.58fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(124px,0.78fr)]'
 
 type ListingSpec = {
   type: string
@@ -104,14 +104,16 @@ function ListingThumbnail({ images, title }: { images: ListingImage[]; title: st
   )
 }
 
-function formatSpecSummary(spec?: ListingSpec | null) {
-  if (!spec) return '--'
-  if (spec.is_all) return `${spec.type}：都有`
+function formatSpecSummary(spec?: ListingSpec | null): { text: string; extra: number } {
+  if (!spec) return { text: '--', extra: 0 }
+  if (spec.is_all) return { text: `${spec.type}：都有`, extra: 0 }
 
   const options = spec.options?.filter(Boolean) ?? []
-  if (options.length === 0) return '--'
+  if (options.length === 0) return { text: '--', extra: 0 }
 
-  return `${spec.type}：${options.slice(0, 3).join(' / ')}`
+  const visible = options.slice(0, 2)
+  const extra = Math.max(0, options.length - 2)
+  return { text: `${spec.type}：${visible.join('、')}`, extra }
 }
 
 export default function SellerListingsPage() {
@@ -194,7 +196,7 @@ export default function SellerListingsPage() {
                   <div className="min-w-0 space-y-3">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                           <span className={`h-2 w-2 shrink-0 rounded-full ${statusDotColors[listing.status] ?? 'bg-gray-400'}`} />
                           {statusLabels[listing.status]}
                         </span>
@@ -229,9 +231,15 @@ export default function SellerListingsPage() {
                     </p>
                     <div className="space-y-1.5 text-sm text-foreground">
                       {(listing.specs ?? []).length > 0 ? (
-                        (listing.specs ?? []).slice(0, 3).map((spec: ListingSpec, index: number) => (
-                          <p key={`${listing.id}-spec-line-${index}`} className="truncate">{formatSpecSummary(spec)}</p>
-                        ))
+                        (listing.specs ?? []).slice(0, 3).map((spec: ListingSpec, index: number) => {
+                          const { text, extra } = formatSpecSummary(spec)
+                          return (
+                            <div key={`${listing.id}-spec-line-${index}`} className="flex min-w-0 items-center gap-1">
+                              <p className="truncate">{text}</p>
+                              {extra > 0 && <span className="shrink-0 text-xs text-muted-foreground">+{extra}</span>}
+                            </div>
+                          )
+                        })
                       ) : (
                         <p className="text-muted-foreground">--</p>
                       )}

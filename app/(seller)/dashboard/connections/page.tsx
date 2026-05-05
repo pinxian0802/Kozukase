@@ -183,7 +183,7 @@ export default function SellerConnectionsPage() {
 
                     <div className="min-w-0 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.16em] text-muted-foreground">
                           <span className={`h-2 w-2 shrink-0 rounded-full ${statusDotColors[conn.status] ?? 'bg-gray-400'}`} />
                           {statusLabels[conn.status]}
                         </span>
@@ -198,13 +198,13 @@ export default function SellerConnectionsPage() {
                       </h2>
                       <div className="grid gap-1 text-sm text-muted-foreground">
                         <div className="flex min-w-0 items-center gap-2">
-                          <span className="shrink-0">國家</span>
-                          <span className="min-w-0 truncate font-medium text-foreground/85">{regionName}</span>
+                          <span className="shrink-0 text-xs font-medium tracking-[0.16em]">國家</span>
+                          <span className="min-w-0 truncate text-sm text-foreground">{regionName}</span>
                         </div>
                         <div className="flex min-w-0 items-center gap-2">
-                          <span className="shrink-0">地點</span>
+                          <span className="shrink-0 text-xs font-medium tracking-[0.16em]">地點</span>
                           <div className="flex min-w-0 items-center gap-1">
-                            <span className="min-w-0 truncate font-medium text-foreground/85">
+                            <span className="min-w-0 truncate text-sm text-foreground">
                               {visibleLocations.length > 0 ? visibleLocations.join('、') : <span className="text-muted-foreground">--</span>}
                             </span>
                             {extraLocationCount > 0 && (

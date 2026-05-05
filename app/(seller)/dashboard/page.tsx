@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { Package, Globe, Plus, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 
@@ -18,11 +17,17 @@ function getGreeting() {
   return '晚安'
 }
 
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
-  active: { label: '上架中', variant: 'default' },
-  draft: { label: '草稿', variant: 'secondary' },
-  pending_approval: { label: '待審核', variant: 'outline' },
-  inactive: { label: '已下架', variant: 'secondary' },
+const listingStatusConfig: Record<string, { label: string; dot: string }> = {
+  active:           { label: '上架中', dot: 'bg-green-500' },
+  draft:            { label: '草稿',   dot: 'bg-muted-foreground/40' },
+  pending_approval: { label: '待審核', dot: 'bg-amber-400' },
+  inactive:         { label: '已下架', dot: 'bg-red-400' },
+}
+
+const connectionStatusConfig: Record<string, { label: string; dot: string }> = {
+  active:           { label: '連線中', dot: 'bg-green-500' },
+  pending_approval: { label: '待審核', dot: 'bg-amber-400' },
+  ended:            { label: '已結束', dot: 'bg-muted-foreground/40' },
 }
 
 export default function SellerDashboardPage() {
@@ -37,7 +42,7 @@ export default function SellerDashboardPage() {
   const inactive = counts?.inactive ?? 0
   const remaining = MAX_LISTINGS - total
 
-  const activeConnections = connections?.filter((c: any) => c.status === 'active') ?? []
+  const recentConnections = connections?.slice(0, 5) ?? []
 
   const today = new Date().toLocaleDateString('zh-TW', {
     month: 'long',
@@ -157,7 +162,7 @@ export default function SellerDashboardPage() {
             {recentListings && recentListings.items.length > 0 ? (
               <div className="divide-y divide-border -mx-6">
                 {recentListings.items.map((l: any) => {
-                  const sc = statusConfig[l.status] ?? { label: l.status, variant: 'secondary' as const }
+                  const sc = listingStatusConfig[l.status] ?? { label: l.status, dot: 'bg-muted-foreground/40' }
                   return (
                     <Link
                       key={l.id}
@@ -165,9 +170,9 @@ export default function SellerDashboardPage() {
                       className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{l.product?.name ?? '未知商品'}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {l.product?.brand?.name ?? ''}
+                        <p className="text-sm font-medium truncate">{l.title ?? l.product?.name ?? '未知商品'}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {l.product?.name ?? ''}
                           {l.price != null
                             ? `・NT$ ${l.price.toLocaleString()}`
                             : l.is_price_on_request
@@ -175,9 +180,10 @@ export default function SellerDashboardPage() {
                             : ''}
                         </p>
                       </div>
-                      <Badge variant={sc.variant} className="ml-3 shrink-0 text-xs">
+                      <span className="ml-3 shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />
                         {sc.label}
-                      </Badge>
+                      </span>
                     </Link>
                   )
                 })}
@@ -215,28 +221,29 @@ export default function SellerDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-0 pb-2">
-            {activeConnections.length > 0 ? (
+            {recentConnections.length > 0 ? (
               <div className="divide-y divide-border -mx-6">
-                {activeConnections.slice(0, 5).map((c: any) => (
-                  <Link
-                    key={c.id}
-                    href={`/dashboard/connections/${c.id}/edit`}
-                    className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">
-                        {c.region?.name}
-                        {c.locations?.length > 0
-                          ? ` — ${c.locations.slice(0, 2).join('・')}${c.locations.length > 2 ? ` +${c.locations.length - 2}` : ''}`
-                          : ''}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {c.start_date} ～ {c.end_date}
-                      </p>
-                    </div>
-                    <span className="ml-3 shrink-0 h-2 w-2 rounded-full bg-green-500" />
-                  </Link>
-                ))}
+                {recentConnections.map((c: any) => {
+                  const cs = connectionStatusConfig[c.status] ?? { label: c.status, dot: 'bg-muted-foreground/40' }
+                  return (
+                    <Link
+                      key={c.id}
+                      href={`/dashboard/connections/${c.id}/edit`}
+                      className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{c.title ?? c.region?.name ?? '未知地區'}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {c.region?.name ?? ''}・至 {c.end_date}
+                        </p>
+                      </div>
+                      <span className="ml-3 shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className={`h-1.5 w-1.5 rounded-full ${cs.dot}`} />
+                        {cs.label}
+                      </span>
+                    </Link>
+                  )
+                })}
               </div>
             ) : (
               <div className="py-10 flex flex-col items-center text-center gap-2">
