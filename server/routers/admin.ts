@@ -10,6 +10,14 @@ function buildAdminDisplayName(user: {
   return profile?.display_name ?? user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'User'
 }
 
+// Returns today's midnight in UTC+8 (Asia/Taipei, no DST) as a UTC ISO string.
+function getTodayStartUTC8(): string {
+  const now = new Date()
+  const utc8Now = new Date(now.getTime() + 8 * 60 * 60 * 1000)
+  utc8Now.setUTCHours(0, 0, 0, 0)
+  return new Date(utc8Now.getTime() - 8 * 60 * 60 * 1000).toISOString()
+}
+
 export const adminRouter = router({
   // Product management
   removeProduct: adminProcedure
@@ -601,5 +609,191 @@ export const adminRouter = router({
 
       if (updateError) throw updateError
       return updatedUser.user
+    }),
+
+  todayProducts: adminProcedure
+    .query(async ({ ctx }) => {
+      const todayStart = getTodayStartUTC8()
+      const { data, error } = await ctx.db
+        .from('products')
+        .select(`
+          *,
+          brand:brands(name),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
+        `)
+        .gte('created_at', todayStart)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data ?? []
+    }),
+
+  todayBrands: adminProcedure
+    .query(async ({ ctx }) => {
+      const todayStart = getTodayStartUTC8()
+      const { data, error } = await ctx.db
+        .from('brands')
+        .select('id, name, created_at, products:products(count)')
+        .gte('created_at', todayStart)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return (data ?? []).map(b => ({
+        ...b,
+        // Supabase count aggregate returns [{count}]; type-gen emits never[] so we cast.
+        productCount: (b.products as unknown as { count: number }[])[0]?.count ?? 0,
+      }))
+    }),
+
+  todayListings: adminProcedure
+    .query(async ({ ctx }) => {
+      const todayStart = getTodayStartUTC8()
+      const { data, error } = await ctx.db
+        .from('listings')
+        .select(`
+          *,
+          product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
+          seller:sellers(id, name)
+        `)
+        .gte('created_at', todayStart)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data ?? []
+    }),
+
+  todayConnections: adminProcedure
+    .query(async ({ ctx }) => {
+      const todayStart = getTodayStartUTC8()
+      const { data, error } = await ctx.db
+        .from('connections')
+        .select(`
+          *,
+          region:regions(name),
+          seller:sellers(id, name)
+        `)
+        .gte('created_at', todayStart)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data ?? []
+    }),
+
+  renameBrand: adminProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).max(100).refine(s => s.trim().length > 0, { message: '品牌名稱不能為空白' }),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db
+        .from('brands')
+        .update({ name: input.name.trim() })
+        .eq('id', input.id)
+        .select('id, name')
+        .single()
+      if (error) throw error
+      return data
+    }),
+
+  deleteBrand: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { error: updateError } = await ctx.db
+        .from('products')
+        .update({ brand_id: null })
+        .eq('brand_id', input.id)
+      if (updateError) throw updateError
+      const { error } = await ctx.db
+        .from('brands')
+        .delete()
+        .eq('id', input.id)
+      if (error) throw error
+      return { success: true }
+    }),
+
+  mergeBrand: adminProcedure
+    .input(z.object({
+      sourceId: z.string().uuid(),
+      targetId: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.sourceId === input.targetId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '來源與目標品牌不能相同' })
+      }
+      const { data: targetBrand } = await ctx.db
+        .from('brands')
+        .select('id')
+        .eq('id', input.targetId)
+        .single()
+      if (!targetBrand) throw new TRPCError({ code: 'NOT_FOUND', message: '目標品牌不存在' })
+      const { error: updateError } = await ctx.db
+        .from('products')
+        .update({ brand_id: input.targetId })
+        .eq('brand_id', input.sourceId)
+      if (updateError) throw updateError
+      const { error } = await ctx.db
+        .from('brands')
+        .delete()
+        .eq('id', input.sourceId)
+      if (error) throw error
+      return { success: true }
+    }),
+
+  mergeProduct: adminProcedure
+    .input(z.object({
+      sourceId: z.string().uuid(),
+      targetId: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.sourceId === input.targetId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '來源與目標商品不能相同' })
+      }
+
+      const { data: target } = await ctx.db
+        .from('products')
+        .select('id')
+        .eq('id', input.targetId)
+        .single()
+      if (!target) throw new TRPCError({ code: 'NOT_FOUND', message: '目標商品不存在' })
+
+      // Transfer listings
+      const { error: listingsError } = await ctx.db
+        .from('listings')
+        .update({ product_id: input.targetId })
+        .eq('product_id', input.sourceId)
+      if (listingsError) throw listingsError
+
+      // Transfer wishes — delete duplicates first (user already wishes for target)
+      const { data: conflictWishes } = await ctx.db
+        .from('wishes')
+        .select('user_id')
+        .eq('product_id', input.targetId)
+      if (conflictWishes?.length) {
+        await ctx.db
+          .from('wishes')
+          .delete()
+          .eq('product_id', input.sourceId)
+          .in('user_id', conflictWishes.map((w: { user_id: string }) => w.user_id))
+      }
+      await ctx.db.from('wishes').update({ product_id: input.targetId }).eq('product_id', input.sourceId)
+
+      // Transfer bookmarks — delete duplicates first
+      const { data: conflictBookmarks } = await ctx.db
+        .from('product_bookmarks')
+        .select('user_id')
+        .eq('product_id', input.targetId)
+      if (conflictBookmarks?.length) {
+        await ctx.db
+          .from('product_bookmarks')
+          .delete()
+          .eq('product_id', input.sourceId)
+          .in('user_id', conflictBookmarks.map((b: { user_id: string }) => b.user_id))
+      }
+      await ctx.db.from('product_bookmarks').update({ product_id: input.targetId }).eq('product_id', input.sourceId)
+
+      // Mark source product as removed
+      await ctx.db
+        .from('products')
+        .update({ is_removed: true, removed_at: new Date().toISOString(), removed_by: ctx.user.id })
+        .eq('id', input.sourceId)
+
+      return { success: true }
     }),
 })

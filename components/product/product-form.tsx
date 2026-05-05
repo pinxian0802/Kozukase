@@ -28,9 +28,10 @@ interface ProductFormProps {
   initialName: string
   onBack: () => void
   onContinue: (data: ProductFormData) => void
+  isSubmitting?: boolean
 }
 
-export function ProductForm({ initialName, onBack, onContinue }: ProductFormProps) {
+export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: ProductFormProps) {
   const [name, setName] = useState(initialName)
   const [brandId, setBrandId] = useState('none')
   const [modelNumber, setModelNumber] = useState('')
@@ -173,8 +174,8 @@ export function ProductForm({ initialName, onBack, onContinue }: ProductFormProp
           <Button type="button" variant="outline" onClick={onBack}>
             取消
           </Button>
-          <Button type="button" onClick={handleContinue}>
-            下一步
+          <Button type="button" onClick={handleContinue} disabled={isSubmitting}>
+            {isSubmitting ? '處理中...' : '下一步'}
           </Button>
         </div>
       </div>

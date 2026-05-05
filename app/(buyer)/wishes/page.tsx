@@ -1,13 +1,18 @@
 'use client'
 
-import { Heart } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Heart, Plus } from 'lucide-react'
 import { ProductCard } from '@/components/product/product-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
+import { useSession } from '@/lib/context/session-context'
 
 export default function WishesPage() {
+  const router = useRouter()
+  const session = useSession()
+
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     trpc.wish.topWished.useInfiniteQuery(
       { limit: 20 },
@@ -18,10 +23,20 @@ export default function WishesPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
-      <h1 className="text-2xl font-bold font-heading mb-2">許願榜</h1>
-      <p className="text-muted-foreground mb-8">
-        大家最想要代購的商品，許願越多越容易有人上架
-      </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold font-heading mb-2">許願榜</h1>
+          <p className="text-muted-foreground">
+            大家最想要代購的商品，許願越多越容易有人上架
+          </p>
+        </div>
+        {session && (
+          <Button onClick={() => router.push('/wishes/new')} className="shrink-0 gap-2">
+            <Plus className="h-4 w-4" />
+            新增商品
+          </Button>
+        )}
+      </div>
 
       {isLoading ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">

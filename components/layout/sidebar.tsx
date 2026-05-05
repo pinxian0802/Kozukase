@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users } from 'lucide-react'
+import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users, CalendarDays } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +24,7 @@ const sellerLinks = [
 
 const adminLinks = [
   { href: '/admin', label: '總覽', icon: LayoutDashboard },
+  { href: '/admin/today', label: '今日新增', icon: CalendarDays },
   { href: '/admin/users', label: '使用者管理', icon: Shield },
   { href: '/admin/products', label: '商品管理', icon: Package },
   { href: '/admin/listings', label: '代購審核', icon: Package },

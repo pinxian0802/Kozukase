@@ -1,9 +1,15 @@
 import Link from 'next/link'
-import { ArrowRight, Package, Shield, Users, Flag, Globe } from 'lucide-react'
+import { ArrowRight, Package, Shield, Users, Flag, Globe, CalendarDays } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 const adminCards = [
+  {
+    href: '/admin/today',
+    title: '今日新增',
+    description: '查看並處理今天新增的商品、品牌、代購與連線。',
+    icon: CalendarDays,
+  },
   {
     href: '/admin/users',
     title: '使用者管理',
