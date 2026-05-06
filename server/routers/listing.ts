@@ -208,7 +208,7 @@ export const listingRouter = router({
           product:products(id, name, brand:brands(name), model_number, category, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
           seller:sellers(
             id, name, ig_handle, threads_handle, ig_follower_count,
-            threads_follower_count, is_social_verified, avg_rating, review_count,
+            threads_follower_count, is_social_verified, avg_rating, review_count, avatar_url,
             seller_regions(region:regions(id, name))
           ),
           listing_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)

@@ -126,7 +126,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               <CardContent className="p-4">
                 <Link href={`/sellers/${listing.seller.id}`} className="flex items-center gap-3 hover:opacity-80">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={listing.seller.profile?.avatar_url ?? undefined} />
+                    <AvatarImage src={(listing.seller as any).avatar_url ?? undefined} />
                     <AvatarFallback>{listing.seller.name?.[0]}</AvatarFallback>
                   </Avatar>
                   <div>

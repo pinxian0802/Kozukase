@@ -207,14 +207,14 @@ export default function ConnectionsPage() {
           )}
 
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
                 <Skeleton key={i} className="h-64 rounded-xl" />
               ))}
             </div>
           ) : connections.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {connections.map((c: any) => (
                   <ConnectionCard key={c.id} connection={c} />
                 ))}

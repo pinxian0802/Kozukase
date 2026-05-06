@@ -13,6 +13,7 @@ interface SellerCardProps {
     is_social_verified: boolean
     ig_handle?: string | null
     threads_handle?: string | null
+    avatar_url?: string | null
     profile?: { display_name: string; avatar_url?: string | null } | null
   }
 }
@@ -23,7 +24,7 @@ export function SellerCard({ seller }: SellerCardProps) {
       <Card className="shadow-none transition-colors hover:border-foreground/30">
         <CardContent className="flex items-center gap-3 p-4">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={seller.profile?.avatar_url ?? undefined} />
+            <AvatarImage src={seller.avatar_url ?? seller.profile?.avatar_url ?? undefined} />
             <AvatarFallback>{seller.name[0]}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">

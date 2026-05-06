@@ -51,7 +51,7 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
       {/* Profile header */}
       <div className="flex flex-col md:flex-row items-start gap-6">
         <Avatar className="h-20 w-20">
-          <AvatarImage src={seller.profile?.avatar_url ?? undefined} />
+          <AvatarImage src={seller.avatar_url ?? seller.profile?.avatar_url ?? undefined} />
           <AvatarFallback className="text-2xl">{seller.name[0]}</AvatarFallback>
         </Avatar>
         <div className="flex-1 space-y-2">

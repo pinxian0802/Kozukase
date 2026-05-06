@@ -37,7 +37,7 @@ export const followRouter = router({
           id, created_at,
           seller:sellers(
             id, name, avg_rating, review_count, is_social_verified,
-            ig_handle, threads_handle,
+            ig_handle, threads_handle, avatar_url,
             profile:profiles(display_name, avatar_url)
           )
         `)

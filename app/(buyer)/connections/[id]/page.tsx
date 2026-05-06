@@ -146,7 +146,7 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
               <CardContent className="p-4">
                 <Link href={`/sellers/${seller.id}`} className="flex items-center gap-3 hover:opacity-80">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={seller.profile?.avatar_url ?? undefined} />
+                    <AvatarImage src={seller.avatar_url ?? seller.profile?.avatar_url ?? undefined} />
                     <AvatarFallback>{seller.name?.[0]}</AvatarFallback>
                   </Avatar>
                   <div>

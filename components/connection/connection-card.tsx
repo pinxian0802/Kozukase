@@ -21,6 +21,7 @@ interface ConnectionCardProps {
       id: string
       name: string
       is_social_verified: boolean
+      avatar_url?: string | null
       profile?: { display_name: string; avatar_url?: string | null } | null
     } | null
     connection_images?: { url: string; thumbnail_url?: string | null; sort_order: number }[]
@@ -33,9 +34,9 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
 
   return (
     <Link href={`/connections/${connection.id}`} aria-label={connection.title ?? '查看連線代購詳情'}>
-    <Card className="group flex h-[360px] flex-col overflow-hidden py-0 transition-shadow hover:shadow-md">
+    <Card className="group flex flex-col gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
       <div className="flex h-full flex-col">
-        <div className="aspect-video w-full shrink-0 overflow-hidden bg-muted">
+        <div className="h-[180px] w-full shrink-0 overflow-hidden bg-muted">
           {imageUrl && (
             <img
               src={imageUrl}
@@ -46,10 +47,10 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
         </div>
         <CardContent className="flex flex-1 flex-col p-4 min-h-0">
           {/* Title + Location + Date */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <span className="text-xs text-muted-foreground">{formatDate(connection.start_date)} ~ {formatDate(connection.end_date)}</span>
             {connection.title && (
-              <h3 className="text-lg font-semibold leading-tight line-clamp-1">{connection.title}</h3>
+              <h3 className="text-xl font-semibold leading-tight line-clamp-1">{connection.title}</h3>
             )}
             <div className="flex items-center gap-1 text-sm">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -61,18 +62,18 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
           </div>
 
           {/* Description */}
-          {connection.description && (
-            <p className="mt-2.5 line-clamp-2 text-sm text-gray-700">{connection.description}</p>
-          )}
+          <p className="mt-2.5 line-clamp-2 text-xs text-gray-700 min-h-[2rem]">
+            {connection.description ?? ''}
+          </p>
 
           {/* Seller */}
           {connection.seller && (
-            <div className="mt-auto flex items-center gap-2 pt-3">
+            <div className="mt-auto flex items-center gap-2 pt-3 pb-1">
               <Avatar className="h-7 w-7">
-                <AvatarImage src={connection.seller.profile?.avatar_url ?? undefined} />
+                <AvatarImage src={connection.seller.avatar_url ?? connection.seller.profile?.avatar_url ?? undefined} />
                 <AvatarFallback className="text-xs">{connection.seller.name[0]}</AvatarFallback>
               </Avatar>
-              <span className="text-sm text-muted-foreground truncate">{connection.seller.name}</span>
+              <span className="text-sm truncate">{connection.seller.name}</span>
               {connection.seller.is_social_verified && <SocialBadge className="h-3.5 w-3.5 text-primary" />}
             </div>
           )}
