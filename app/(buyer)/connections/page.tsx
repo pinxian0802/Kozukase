@@ -2,7 +2,8 @@
 
 import { useState, type ReactNode } from 'react'
 import { format, isValid, parseISO } from 'date-fns'
-import { Check, Globe, Info, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Globe, Info, Search, SlidersHorizontal, X } from 'lucide-react'
+import { FilterCheckbox } from '@/components/ui/filter-checkbox'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -86,23 +87,12 @@ export default function ConnectionsPage() {
           const isSelected = regionId === region.id
 
           return (
-            <button
+            <FilterCheckbox
               key={region.id}
-              type="button"
-              className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
-                isSelected ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
-              }`}
+              label={region.name}
+              checked={isSelected}
               onClick={() => setRegionId(isSelected ? '' : region.id)}
-            >
-              <span
-                className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
-                  isSelected ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
-                }`}
-              >
-                {isSelected && <Check className="size-3.5 text-white" />}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{region.name}</span>
-            </button>
+            />
           )
         })
       : (
@@ -147,53 +137,21 @@ export default function ConnectionsPage() {
               </Button>
             )}
 
-            {regionId && (
-              <button
-                type="button"
-                className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
-                onClick={() => setRegionId('')}
-              >
-                清除
-              </button>
-            )}
           </div>
         </FilterSectionCard>
 
         {brands.length > 0 && (
           <FilterSectionCard title="品牌">
             <div className="space-y-3">
-              {brands.map((brand: any) => {
-                const isSelected = brandId === brand.id
-                return (
-                  <button
-                    key={brand.id}
-                    type="button"
-                    className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
-                      isSelected ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
-                    }`}
-                    onClick={() => setBrandId(isSelected ? '' : brand.id)}
-                  >
-                    <span
-                      className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
-                        isSelected ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
-                      }`}
-                    >
-                      {isSelected && <Check className="size-3.5 text-white" />}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{brand.name}</span>
-                  </button>
-                )
-              })}
+              {brands.map((brand: any) => (
+                <FilterCheckbox
+                  key={brand.id}
+                  label={brand.name}
+                  checked={brandId === brand.id}
+                  onClick={() => setBrandId(brandId === brand.id ? '' : brand.id)}
+                />
+              ))}
             </div>
-            {brandId && (
-              <button
-                type="button"
-                className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
-                onClick={() => setBrandId('')}
-              >
-                清除
-              </button>
-            )}
           </FilterSectionCard>
         )}
 
@@ -219,18 +177,6 @@ export default function ConnectionsPage() {
               />
             </div>
 
-            {(activeDuringStart || activeDuringEnd) && (
-              <button
-                type="button"
-                className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
-                onClick={() => {
-                  setActiveDuringStart('')
-                  setActiveDuringEnd('')
-                }}
-              >
-                清除
-              </button>
-            )}
           </div>
         </FilterSectionCard>
 
@@ -247,22 +193,11 @@ export default function ConnectionsPage() {
         </FilterSectionCard>
 
         <FilterSectionCard title="付款方式">
-          <button
-            type="button"
-            className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
-              hasBillingMethod ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
-            }`}
+          <FilterCheckbox
+            label="提供付款方式"
+            checked={hasBillingMethod}
             onClick={() => setHasBillingMethod(!hasBillingMethod)}
-          >
-            <span
-              className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
-                hasBillingMethod ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
-              }`}
-            >
-              {hasBillingMethod && <Check className="size-3.5 text-white" />}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">提供付款方式</span>
-          </button>
+          />
         </FilterSectionCard>
 
         <FilterSectionCard
@@ -280,55 +215,19 @@ export default function ConnectionsPage() {
             </TooltipProvider>
           }
         >
-          <button
-            type="button"
-            className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
-              canWish ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
-            }`}
+          <FilterCheckbox
+            label="接受許願"
+            checked={canWish}
             onClick={() => setCanWish(!canWish)}
-          >
-            <span
-              className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
-                canWish ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
-              }`}
-            >
-              {canWish && <Check className="size-3.5 text-white" />}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">接受許願</span>
-          </button>
+          />
         </FilterSectionCard>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-[#FAFAFD]">
     <div className="mx-auto max-w-7xl px-4 py-6">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold font-heading">連線代購</h1>
-          {!isLoading && (
-            <p className="mt-1 text-sm text-muted-foreground">共 {total} 個連線</p>
-          )}
-        </div>
-
-        <Sheet>
-          <SheetTrigger
-            render={<Button variant="outline" size="icon" className="md:hidden"><SlidersHorizontal className="h-4 w-4" /></Button>}
-          />
-          <SheetContent side="left" className="border-r border-[#e8e3dc] bg-[#fbfaf8] p-0 gap-0">
-            <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin] [scrollbar-color:#d4cfc9_transparent] [&::-webkit-scrollbar]:w-0.75 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d4cfc9]">
-              <SheetHeader className="px-0 py-0">
-                <SheetTitle>篩選條件</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4">
-                {FilterContent()}
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-
       <div className="flex items-start gap-6">
         <aside className="hidden w-64 shrink-0 md:block">
           <div className="pr-2">
@@ -337,67 +236,101 @@ export default function ConnectionsPage() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          {activeFilterCount > 0 && (
-            <div className="mb-4 flex flex-wrap gap-2">
-              {regionLabel && (
-                <button
-                  type="button"
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
-                  onClick={() => setRegionId('')}
-                >
-                  {regionLabel}
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-
-              {activeDateLabel && (
-                <button
-                  type="button"
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
-                  onClick={() => {
-                    setActiveDuringStart('')
-                    setActiveDuringEnd('')
-                  }}
-                >
-                  {activeDateLabel}
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-
-              {locationText && (
-                <button
-                  type="button"
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
-                  onClick={() => setLocationQuery('')}
-                >
-                  地點：{locationText}
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-
-              {brandLabel && (
-                <button
-                  type="button"
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
-                  onClick={() => setBrandId('')}
-                >
-                  {brandLabel}
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-
-              {canWish && (
-                <button
-                  type="button"
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
-                  onClick={() => setCanWish(false)}
-                >
-                  接受許願
-                  <X className="h-3 w-3" />
-                </button>
-              )}
+          <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 pb-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-bold font-heading">連線代購</h1>
+                <div className="mt-3 flex min-h-7 flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+                    {activeFilterCount > 0 ? (
+                      <>
+                        <span>以下是</span>
+                        {regionLabel && (
+                          <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                            onClick={() => setRegionId('')}
+                          >
+                            {regionLabel}
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                        {activeDateLabel && (
+                          <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                            onClick={() => {
+                              setActiveDuringStart('')
+                              setActiveDuringEnd('')
+                            }}
+                          >
+                            {activeDateLabel}
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                        {locationText && (
+                          <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                            onClick={() => setLocationQuery('')}
+                          >
+                            地點：{locationText}
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                        {brandLabel && (
+                          <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                            onClick={() => setBrandId('')}
+                          >
+                            {brandLabel}
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                        {canWish && (
+                          <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                            onClick={() => setCanWish(false)}
+                          >
+                            接受許願
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                        {hasBillingMethod && (
+                          <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                            onClick={() => setHasBillingMethod(false)}
+                          >
+                            提供付款方式
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                        <span>的搜尋結果，共 {isLoading ? '' : total} 筆</span>
+                      </>
+                    ) : (
+                      <span>共 {isLoading ? '' : total} 筆</span>
+                    )}
+                  </div>
+              </div>
+              <Sheet>
+                <SheetTrigger
+                  render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}
+                />
+                <SheetContent side="left" className="border-r border-[#e8e3dc] bg-[#fbfaf8] p-0 gap-0">
+                  <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin] [scrollbar-color:#d4cfc9_transparent] [&::-webkit-scrollbar]:w-0.75 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d4cfc9]">
+                    <SheetHeader className="px-0 py-0">
+                      <SheetTitle>篩選條件</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4">
+                      {FilterContent()}
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
-          )}
+          </section>
 
           {isLoading ? (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

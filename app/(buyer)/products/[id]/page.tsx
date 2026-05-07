@@ -1,7 +1,7 @@
 'use client'
 
 import { use, useState, type ReactNode } from 'react'
-import { Heart, Bookmark, ArrowLeft, SlidersHorizontal, X } from 'lucide-react'
+import { Heart, Bookmark, SlidersHorizontal, X } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { toast } from 'sonner'
+import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -105,7 +106,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f5]">
+      <div className="min-h-screen bg-[#FAFAFD]">
         <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-64 w-full rounded-lg" />
@@ -116,7 +117,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#f5f5f5]">
+      <div className="min-h-screen bg-[#FAFAFD]">
         <div className="mx-auto max-w-7xl px-4 py-6">
           <EmptyState icon={Heart} title="找不到此商品" />
         </div>
@@ -132,103 +133,108 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   ]
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
-      <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-        <Button variant="ghost" size="sm" render={<Link href="/search" />}>
-          <ArrowLeft className="mr-1 h-4 w-4" />返回搜尋
-        </Button>
-
-        {/* Product Info */}
-        <div className="overflow-hidden rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-            <div className="w-full sm:w-48 shrink-0">
-              <ImageGallery
-                images={galleryImages}
-                title="商品圖片"
-                emptyTitle="暫無商品圖片"
-                emptyDescription="這個商品目前還沒有圖片"
-              />
-            </div>
-
-            <div className="flex-1 space-y-3">
-              <Badge variant="secondary">{PRODUCT_CATEGORY_LABELS[product.category] ?? product.category}</Badge>
-              <h1 className="text-2xl font-bold font-heading">{product.name}</h1>
-              {brandLabel && <p className="text-sm text-muted-foreground">{brandLabel}</p>}
-
-              <div className="flex gap-3 pt-1">
-                <Button
-                  variant={product.hasWished ? 'default' : 'outline'}
-                  onClick={() => wishToggle.mutate({ product_id: id })}
-                  disabled={wishToggle.isPending}
-                >
-                  <Heart className={`mr-2 h-4 w-4 ${product.hasWished ? 'fill-current' : ''}`} />
-                  許願 ({product.wish_count})
-                </Button>
-                <Button
-                  variant={product.hasBookmarked ? 'default' : 'outline'}
-                  onClick={() => bookmarkToggle.mutate({ product_id: id })}
-                  disabled={bookmarkToggle.isPending}
-                >
-                  <Bookmark className={`mr-2 h-4 w-4 ${product.hasBookmarked ? 'fill-current' : ''}`} />
-                  收藏
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Listings section */}
-        <div>
-          <div className="mb-6 flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold font-heading">尋找代購</h2>
-              <p className="mt-1 text-sm text-muted-foreground">共 {filteredListings.length} 位代購</p>
-            </div>
-
-            <Sheet>
-              <SheetTrigger
-                render={<Button variant="outline" size="icon" className="md:hidden"><SlidersHorizontal className="h-4 w-4" /></Button>}
-              />
-              <SheetContent side="left" className="border-r border-[#e8e3dc] bg-[#fbfaf8] p-0 gap-0">
-                <div className="h-full overflow-y-auto p-4">
-                  <SheetHeader className="px-0 py-0">
-                    <SheetTitle>篩選條件</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4">
-                    {FilterContent()}
+    <div className="min-h-screen bg-[#FAFAFD]">
+      <div className="mx-auto max-w-7xl px-4 py-6">
+        <PageBreadcrumb items={[
+          { label: '商品', href: '/search' },
+          { label: product.name },
+        ]} />
+        <div className="flex items-start gap-6">
+          {/* Left sidebar */}
+          <aside className="hidden w-64 shrink-0 md:block">
+            <div className="space-y-4 pr-2">
+              {/* Product info card */}
+              <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+                <div className="space-y-3">
+                  <ImageGallery
+                    images={galleryImages}
+                    title="商品圖片"
+                    emptyTitle="暫無商品圖片"
+                    emptyDescription="這個商品目前還沒有圖片"
+                  />
+                  <div className="space-y-0.5">
+                    {brandLabel && <p className="text-xs text-muted-foreground">{brandLabel}</p>}
+                    <h1 className="text-lg font-bold font-heading leading-snug">{product.name}</h1>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant={product.hasWished ? 'default' : 'outline'}
+                      className="flex-1 min-w-0"
+                      onClick={() => wishToggle.mutate({ product_id: id })}
+                      disabled={wishToggle.isPending}
+                    >
+                      <Heart className={`mr-2 h-4 w-4 shrink-0 ${product.hasWished ? 'fill-current' : ''}`} />
+                      許願
+                    </Button>
+                    <Button
+                      variant={product.hasBookmarked ? 'default' : 'outline'}
+                      className="flex-1 min-w-0"
+                      onClick={() => bookmarkToggle.mutate({ product_id: id })}
+                      disabled={bookmarkToggle.isPending}
+                    >
+                      <Bookmark className={`mr-2 h-4 w-4 shrink-0 ${product.hasBookmarked ? 'fill-current' : ''}`} />
+                      收藏
+                    </Button>
                   </div>
                 </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+              </section>
 
-          <div className="flex items-start gap-6">
-            <aside className="hidden w-64 shrink-0 md:block">
-              <div className="pr-2">
-                {FilterContent()}
-              </div>
-            </aside>
-
-            <div className="min-w-0 flex-1">
-              {priceRangeLabel && (
-                <div className="mb-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
-                    onClick={() => { setMinPrice(0); setMaxPrice(PRICE_MAX) }}
-                  >
-                    {priceRangeLabel} <X className="h-3 w-3" />
-                  </button>
-                </div>
-              )}
-
-              <ListingComparison listings={filteredListings} />
+              {FilterContent()}
             </div>
+          </aside>
+
+          {/* Right content */}
+          <div className="min-w-0 flex-1 space-y-4">
+            {/* 尋找代購 title card */}
+            <section className="overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-2xl font-bold font-heading">尋找代購</h2>
+                  <div className="mt-3 flex min-h-7 flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+                    {isPriceFiltered ? (
+                      <>
+                        <span>以下是</span>
+                        <button
+                          type="button"
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                          onClick={() => { setMinPrice(0); setMaxPrice(PRICE_MAX) }}
+                        >
+                          {priceRangeLabel}
+                          <X className="h-3 w-3" />
+                        </button>
+                        <span>的篩選結果，共 {filteredListings.length} 位代購</span>
+                      </>
+                    ) : (
+                      <span>共 {filteredListings.length} 位代購</span>
+                    )}
+                  </div>
+                </div>
+
+                <Sheet>
+                  <SheetTrigger
+                    render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}
+                  />
+                  <SheetContent side="left" className="border-r border-[#e8e3dc] bg-[#fbfaf8] p-0 gap-0">
+                    <div className="h-full overflow-y-auto p-4">
+                      <SheetHeader className="px-0 py-0">
+                        <SheetTitle>篩選條件</SheetTitle>
+                      </SheetHeader>
+                      <div className="mt-4">
+                        {FilterContent()}
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </section>
+
+            <ListingComparison listings={filteredListings} />
           </div>
         </div>
       </div>
     </div>
   )
+
 }
 
 function FilterSectionCard({ title, children }: { title: string; children: ReactNode }) {

@@ -7,6 +7,7 @@ import { formatPrice, formatShippingDate } from '@/lib/utils/format'
 
 interface Listing {
   id: string
+  title?: string | null
   price: number | null
   is_price_on_request: boolean
   shipping_date: string | null
@@ -61,6 +62,11 @@ export function ListingComparison({ listings }: ListingComparisonProps) {
                       <span className="text-xs text-muted-foreground">
                         出貨 {formatShippingDate(listing.shipping_date)}
                       </span>
+                    )}
+                    {listing.title && (
+                      <h3 className="line-clamp-1 text-base font-bold leading-snug" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>
+                        {listing.title}
+                      </h3>
                     )}
                     <span className="text-xl font-semibold leading-tight">
                       {formatPrice(listing.price, listing.is_price_on_request)}

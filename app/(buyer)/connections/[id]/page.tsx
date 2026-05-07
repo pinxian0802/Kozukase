@@ -2,8 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Calendar, Truck, CreditCard, Star } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { MapPin, Calendar, Truck, CreditCard, Star } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -13,6 +12,7 @@ import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
+import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 
 export default function ConnectionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -40,9 +40,10 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <Button variant="ghost" size="sm" render={<Link href="/connections" />} className="mb-4">
-        <ArrowLeft className="mr-1 h-4 w-4" />返回
-      </Button>
+      <PageBreadcrumb items={[
+        { label: '連線', href: '/connections' },
+        { label: connection.title },
+      ]} />
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* Images */}

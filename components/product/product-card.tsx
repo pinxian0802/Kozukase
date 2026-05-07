@@ -82,7 +82,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
             {brandLabel && (
               <p className="truncate text-xs text-muted-foreground mb-1.5">{brandLabel}</p>
             )}
-            <p className="line-clamp-2 font-medium leading-snug text-foreground text-base">{product.name}</p>
+            <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
             {product.model_number && (
               <p className="text-xs text-muted-foreground mt-0.5 break-all">{product.model_number}</p>
             )}
@@ -92,7 +92,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
             {brandLabel && (
               <p className="truncate text-xs text-muted-foreground mb-0.5">{brandLabel}</p>
             )}
-            <p className="line-clamp-2 font-medium leading-tight text-foreground text-sm">{product.name}</p>
+            <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
             {product.model_number && (
               <p className="truncate text-xs leading-tight text-muted-foreground">{product.model_number}</p>
             )}

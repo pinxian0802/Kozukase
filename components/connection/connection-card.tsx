@@ -50,7 +50,7 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
           <div className="flex flex-col gap-1.5">
             <span className="text-xs text-muted-foreground">{formatDate(connection.start_date)} ~ {formatDate(connection.end_date)}</span>
             {connection.title && (
-              <h3 className="text-xl font-semibold leading-tight line-clamp-1">{connection.title}</h3>
+              <h3 className="text-base font-bold leading-snug line-clamp-1" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{connection.title}</h3>
             )}
             <div className="flex items-center gap-1 text-sm">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />

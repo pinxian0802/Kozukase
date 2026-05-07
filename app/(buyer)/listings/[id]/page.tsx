@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import { ArrowLeft, Bookmark, ExternalLink, Camera, MessageCircle } from 'lucide-react'
+import { Bookmark, ExternalLink, Camera, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,7 @@ import { SocialBadge } from '@/components/seller/social-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatShippingDate } from '@/lib/utils/format'
+import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -47,9 +48,11 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <Button variant="ghost" size="sm" render={<Link href={listing.product ? `/products/${listing.product.id}` : '/search'} />} className="mb-4">
-          <ArrowLeft className="mr-1 h-4 w-4" />返回
-      </Button>
+      <PageBreadcrumb items={[
+        { label: '代購', href: '/search' },
+        { label: listing.product?.name ?? '代購詳情', href: listing.product ? `/products/${listing.product.id}` : undefined },
+        { label: listing.title ?? '代購詳情' },
+      ]} />
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* Images */}

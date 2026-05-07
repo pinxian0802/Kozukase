@@ -21,6 +21,7 @@ import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import { Package, Star, Globe } from 'lucide-react'
+import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 
 export default function SellerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -48,6 +49,10 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
+      <PageBreadcrumb items={[
+        { label: '賣家', href: '/search' },
+        { label: seller.name },
+      ]} />
       {/* Profile header */}
       <div className="flex flex-col md:flex-row items-start gap-6">
         <Avatar className="h-20 w-20">
