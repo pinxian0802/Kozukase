@@ -34,7 +34,7 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
 
   return (
     <Link href={`/connections/${connection.id}`} aria-label={connection.title ?? '查看連線代購詳情'}>
-    <Card className="group flex flex-col gap-0 overflow-hidden rounded-2xl py-0 transition-shadow hover:shadow-md">
+    <Card className="group flex flex-col gap-0 overflow-hidden rounded-2xl py-0 ring-0 shadow-[0_2px_12px_rgba(15,23,42,0.08)] transition-shadow hover:shadow-lg">
       <div className="flex h-full flex-col">
         <div className="h-[180px] w-full shrink-0 overflow-hidden bg-muted">
           {imageUrl && (

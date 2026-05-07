@@ -210,6 +210,9 @@ export const connectionRouter = router({
         start: z.string().optional(),
         end: z.string().optional(),
       }).optional(),
+      has_billing_method: z.boolean().optional(),
+      brand_id: z.string().uuid().optional(),
+      can_wish: z.boolean().optional(),
       cursor: z.string().optional(),
       limit: z.number().min(1).max(50).default(20),
     }))
@@ -253,6 +256,27 @@ export const connectionRouter = router({
       if (input.active_during?.start) {
         query = query.gte('end_date', input.active_during.start)
         countQuery = countQuery.gte('end_date', input.active_during.start)
+      }
+
+      if (input.has_billing_method) {
+        query = query.not('billing_method', 'is', null).neq('billing_method', '')
+        countQuery = countQuery.not('billing_method', 'is', null).neq('billing_method', '')
+      }
+
+      if (input.brand_id) {
+        const { data: brandConnections } = await ctx.db
+          .from('connection_brands')
+          .select('connection_id')
+          .eq('brand_id', input.brand_id)
+        const ids = (brandConnections ?? []).map((r) => r.connection_id)
+        const safeIds = ids.length ? ids : ['00000000-0000-0000-0000-000000000000']
+        query = query.in('id', safeIds)
+        countQuery = countQuery.in('id', safeIds)
+      }
+
+      if (input.can_wish) {
+        query = query.eq('can_wish', true)
+        countQuery = countQuery.eq('can_wish', true)
       }
 
       if (input.cursor) {
