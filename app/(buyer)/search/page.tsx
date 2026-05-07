@@ -2,9 +2,10 @@
 
 import { Suspense, useState, type ReactNode } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { SlidersHorizontal, ChevronDown, X, ListFilter } from 'lucide-react'
+import { SlidersHorizontal, X, Check } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/product/product-card'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -113,27 +114,10 @@ function SearchContent() {
   }
 
   const FilterPanel = () => (
-    <div>
-      {/* Panel header */}
-      <div className="mb-4 flex items-center justify-between">
-        <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <ListFilter className="h-4 w-4" style={{ color: KZ.teal }} />
-          篩選條件
-        </span>
-        {activeFilters.length > 0 && (
-          <button
-            onClick={clearAllFilters}
-            className="cursor-pointer text-xs font-medium transition-colors hover:opacity-70"
-            style={{ color: KZ.purple }}
-          >
-            清除全部
-          </button>
-        )}
-      </div>
-
+    <div className="space-y-4">
       {/* Category section */}
       <FilterSection title="商品類別" accentColor={KZ.teal} active={!!category}>
-        <div className="flex flex-wrap gap-2 pt-3">
+        <div className="space-y-1">
           {firstHalf.map(([key, label]) => (
             <FilterChip
               key={key}
@@ -155,23 +139,32 @@ function SearchContent() {
             ))}
         </div>
         {secondHalf.length > 0 && (
-          <button
-            className="mt-3 flex cursor-pointer items-center gap-1 text-xs font-medium transition-opacity hover:opacity-70"
-            style={{ color: KZ.gray }}
-            onClick={() => setCategoryExpanded((v) => !v)}
-          >
-            {categoryExpanded ? '收合' : `展開更多（${secondHalf.length}）`}
-            <ChevronDown
-              className={`size-3 transition-transform duration-200 ${categoryExpanded ? 'rotate-180' : ''}`}
-            />
-          </button>
+          categoryExpanded ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full rounded-[16px] border-[#e1ddd7] text-[#555] hover:bg-[#faf9f7] hover:text-[#333]"
+              onClick={() => setCategoryExpanded(false)}
+            >
+              收起分類
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full rounded-[16px] border-[#28a5cf] text-[#1a9ac4] hover:bg-[#f4fbfe] hover:text-[#168eb4]"
+              onClick={() => setCategoryExpanded(true)}
+            >
+              查看更多分類
+            </Button>
+          )
         )}
       </FilterSection>
 
       {/* Brand section */}
       {brands.length > 0 && (
         <FilterSection title="品牌" accentColor={KZ.pink} active={!!brandId}>
-          <div className="flex flex-wrap gap-2 pt-3">
+          <div className="space-y-1">
             {brands.map((brand) => (
               <FilterChip
                 key={brand.id}
@@ -188,6 +181,7 @@ function SearchContent() {
   )
 
   return (
+    <div className="min-h-screen bg-[#f5f5f5]">
     <div className="mx-auto max-w-7xl px-4 py-6">
       {/* Header */}
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -270,8 +264,8 @@ function SearchContent() {
 
       <div className="flex items-start gap-6">
         {/* Desktop sidebar */}
-        <aside className="hidden w-60 flex-shrink-0 md:sticky md:top-24 md:block md:self-start">
-          <div className="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm">
+        <aside className="hidden w-64 shrink-0 md:block">
+          <div className="pr-2">
             {FilterPanel()}
           </div>
         </aside>
@@ -312,6 +306,7 @@ function SearchContent() {
         </div>
       </div>
     </div>
+    </div>
   )
 }
 
@@ -329,24 +324,22 @@ function FilterSection({
   children: ReactNode
 }) {
   return (
-    <div className="border-t border-gray-100 py-4 first:border-t-0 first:pt-0">
-      <div className="flex items-center gap-2">
-        <span
-          className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-          style={{ backgroundColor: accentColor }}
-        />
-        <span className="text-sm font-semibold text-gray-800">{title}</span>
-        {active && (
-          <span
-            className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-            style={{ backgroundColor: accentColor }}
-          >
-            已選
-          </span>
-        )}
+    <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-[#222]">{title}</span>
+          {active && (
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+              style={{ backgroundColor: accentColor }}
+            >
+              已選
+            </span>
+          )}
+        </div>
+        {children}
       </div>
-      {children}
-    </div>
+    </section>
   )
 }
 
@@ -363,15 +356,23 @@ function FilterChip({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="cursor-pointer rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150"
-      style={
-        active
-          ? { backgroundColor: activeColor, borderColor: activeColor, color: '#fff' }
-          : { backgroundColor: '#fff', borderColor: '#e5e7eb', color: '#4b5563' }
-      }
+      className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
+        active ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
+      }`}
     >
-      {label}
+      <span
+        className="flex size-5 shrink-0 items-center justify-center rounded-lg border"
+        style={
+          active
+            ? { backgroundColor: activeColor, borderColor: activeColor }
+            : { borderColor: '#d2d7df', backgroundColor: '#fff' }
+        }
+      >
+        {active && <Check className="size-3.5 text-white" />}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
     </button>
   )
 }

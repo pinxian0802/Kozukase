@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Package } from 'lucide-react'
+import { Package, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getCardImageUrl } from '@/lib/utils/image-variants.mjs'
 
@@ -12,6 +12,7 @@ export type ProductCardProduct = {
   catalog_image?: { url: string; thumbnail_url?: string | null } | null
   catalog_image_url?: string | null
   product_images?: { url: string; thumbnail_url?: string | null }[]
+  wish_count?: number | null
 }
 
 type ProductCardProps = {
@@ -31,14 +32,14 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
   const card = (
     <div
       className={cn(
-        'group overflow-hidden rounded-md border border-border bg-white transition-colors duration-200 hover:border-foreground/30',
-        variant === 'compact' ? 'flex items-center gap-4 p-5' : 'p-3',
+        'group overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-200 hover:shadow-md',
+        variant === 'compact' ? 'flex items-center gap-4 p-5' : '',
         className
       )}
     >
-      <div className={variant === 'compact' ? 'relative h-24 w-24 shrink-0 overflow-hidden rounded-sm bg-muted' : 'pb-0'}>
+      <div className={variant === 'compact' ? 'relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-muted' : 'pb-0'}>
         {variant !== 'compact' && (
-          <div className="relative aspect-square overflow-hidden rounded-sm bg-muted">
+          <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-muted">
             {imageUrl ? (
               <Image
                 src={imageUrl}
@@ -56,7 +57,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
           </div>
         )}
         {variant === 'compact' && (
-          <div className="relative h-full w-full overflow-hidden rounded-sm bg-muted">
+          <div className="relative h-full w-full overflow-hidden rounded-xl bg-muted">
             {imageUrl ? (
               <Image
                 src={imageUrl}
@@ -75,7 +76,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
         )}
       </div>
 
-      <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'pt-2'}>
+      <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'px-3 pt-2 pb-3'}>
         {variant === 'compact' ? (
           <div>
             {brandLabel && (
@@ -94,6 +95,12 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
             <p className="line-clamp-2 font-medium leading-tight text-foreground text-sm">{product.name}</p>
             {product.model_number && (
               <p className="truncate text-xs leading-tight text-muted-foreground">{product.model_number}</p>
+            )}
+            {!!product.wish_count && (
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <Heart className="h-3 w-3 fill-current" />
+                {product.wish_count} 人許願
+              </p>
             )}
           </div>
         )}

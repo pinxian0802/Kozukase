@@ -28,17 +28,50 @@ export function AvatarUpload({
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
   const [uploading, setUploading] = useState(false)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
+  // Track blob URL for cleanup
+  const blobUrlRef = useRef<string | null>(null)
+  // Track previous pendingFile to detect File → null transition
+  const prevPendingFileRef = useRef(pendingFile)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (!pendingFile) {
-      setPendingPreview(null)
-      return
+  const clearBlobUrl = () => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current)
+      blobUrlRef.current = null
     }
-    const url = URL.createObjectURL(pendingFile)
-    setPendingPreview(url)
-    return () => URL.revokeObjectURL(url)
+  }
+
+  // Fix Flash 2: when pendingFile goes File → null (after save), preload value.url
+  // before clearing pendingPreview so there's no blank frame during the transition
+  useEffect(() => {
+    const prev = prevPendingFileRef.current
+    prevPendingFileRef.current = pendingFile
+
+    if (prev != null && !pendingFile) {
+      if (value?.url) {
+        const img = new Image()
+        const clear = () => {
+          clearBlobUrl()
+          setPendingPreview(null)
+        }
+        img.onload = clear
+        img.onerror = clear
+        img.src = value.url
+        return () => {
+          img.onload = null
+          img.onerror = null
+        }
+      } else {
+        clearBlobUrl()
+        setPendingPreview(null)
+      }
+    }
+  // value?.url intentionally omitted: we only care about the pendingFile transition
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingFile])
+
+  // Cleanup blob URL on unmount
+  useEffect(() => () => { clearBlobUrl() }, [])
 
   const hasImage = pendingFile != null || value != null
   const displayUrl = pendingPreview ?? value?.url ?? undefined
@@ -53,6 +86,12 @@ export function AvatarUpload({
       const file = await normalizeImageFile(raw)
 
       if (isDeferred) {
+        // Fix Flash 1: create blob URL synchronously so preview and pendingFile
+        // update in the same render batch — no intermediate blank frame
+        clearBlobUrl()
+        const previewUrl = URL.createObjectURL(file)
+        blobUrlRef.current = previewUrl
+        setPendingPreview(previewUrl)
         onPendingFileChange!(file)
         return
       }
@@ -68,6 +107,8 @@ export function AvatarUpload({
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation()
+    clearBlobUrl()
+    setPendingPreview(null)
     if (isDeferred) {
       onPendingFileChange!(null)
     }

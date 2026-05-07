@@ -117,6 +117,9 @@ export default function WishNewPage() {
           <p className="text-sm text-muted-foreground">
             要把「{pendingProduct?.name}」加入你的許願清單嗎？
           </p>
+          <p className="text-xs text-muted-foreground">
+            許願後，若有人上架代購此商品，系統會通知你。
+          </p>
           <DialogFooter>
             <Button variant="outline" onClick={handleWishDecline}>
               不要

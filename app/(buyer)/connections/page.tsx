@@ -2,27 +2,46 @@
 
 import { useState, type ReactNode } from 'react'
 import { format, isValid, parseISO } from 'date-fns'
-import { Globe, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Check, Globe, Info, Search, SlidersHorizontal, X } from 'lucide-react'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SearchableSelect } from '@/components/ui/searchable-select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { trpc } from '@/lib/trpc/client'
 
 export default function ConnectionsPage() {
   const [regionId, setRegionId] = useState('')
+  const [regionSearch, setRegionSearch] = useState('')
+  const [showAllRegions, setShowAllRegions] = useState(false)
   const [activeDuringStart, setActiveDuringStart] = useState('')
   const [activeDuringEnd, setActiveDuringEnd] = useState('')
   const [locationQuery, setLocationQuery] = useState('')
+  const [hasBillingMethod, setHasBillingMethod] = useState(false)
+  const [brandId, setBrandId] = useState('')
+  const [canWish, setCanWish] = useState(false)
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
+  const { data: brandsData } = trpc.brand.list.useQuery()
+  const brands = brandsData ?? []
 
   const regions = regionsData ?? []
+  const regionSearchText = regionSearch.trim().toLowerCase()
   const locationText = locationQuery.trim()
+  const filteredRegions = regionSearchText
+    ? regions.filter((region: any) => region.name.toLowerCase().includes(regionSearchText))
+    : regions
+  const defaultVisibleRegions = filteredRegions.slice(0, 4)
+  const selectedRegion = filteredRegions.find((region: any) => region.id === regionId)
+  const visibleRegions =
+    showAllRegions || regionSearchText
+      ? filteredRegions
+      : selectedRegion && !defaultVisibleRegions.some((region: any) => region.id === selectedRegion.id)
+        ? [selectedRegion, ...defaultVisibleRegions.slice(0, 3)]
+        : defaultVisibleRegions
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     trpc.connection.browse.useInfiniteQuery(
@@ -30,6 +49,9 @@ export default function ConnectionsPage() {
         limit: 20,
         region_id: regionId || undefined,
         location_query: locationText || undefined,
+        has_billing_method: hasBillingMethod || undefined,
+        brand_id: brandId || undefined,
+        can_wish: canWish || undefined,
         active_during: (activeDuringStart || activeDuringEnd)
           ? {
               start: activeDuringStart || undefined,
@@ -50,92 +72,241 @@ export default function ConnectionsPage() {
   }
 
   // date range counts as one filter, not two
-  const activeFilterCount = [regionId, activeDuringStart || activeDuringEnd, locationText].filter(Boolean).length
+  const activeFilterCount = [regionId, activeDuringStart || activeDuringEnd, locationText, hasBillingMethod, brandId, canWish].filter(Boolean).length
+  const brandLabel = brands.find((b: any) => b.id === brandId)?.name ?? ''
 
   const activeDateLabel =
     activeDuringStart || activeDuringEnd
       ? `${activeDuringStart ? formatShortDate(activeDuringStart) : ''} ~ ${activeDuringEnd ? formatShortDate(activeDuringEnd) : ''}`.trim()
       : ''
 
-  const FilterContent = () => (
-    <div className="space-y-3">
-      <div className="px-0.5 text-[11px] font-bold uppercase tracking-widest text-[#aaa]">篩選條件</div>
+  const FilterContent = () => {
+    const regionRows = visibleRegions.length > 0
+      ? visibleRegions.map((region: any) => {
+          const isSelected = regionId === region.id
 
-      <FilterSectionCard title="國家">
-        <SearchableSelect
-          value={regionId}
-          onValueChange={setRegionId}
-          options={regions.map((region: any) => ({ value: region.id, label: region.name }))}
-          placeholder="選擇國家"
-          searchPlaceholder="搜尋國家..."
-          emptyText="找不到相符的國家"
-        />
-        {regionId && (
+          return (
+            <button
+              key={region.id}
+              type="button"
+              className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
+                isSelected ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
+              }`}
+              onClick={() => setRegionId(isSelected ? '' : region.id)}
+            >
+              <span
+                className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
+                  isSelected ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
+                }`}
+              >
+                {isSelected && <Check className="size-3.5 text-white" />}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{region.name}</span>
+            </button>
+          )
+        })
+      : (
+          <div className="py-2 text-sm text-muted-foreground">找不到相符的國家</div>
+        )
+
+    return (
+      <div className="space-y-4">
+        <FilterSectionCard title="國家">
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={regionSearch}
+                onChange={(event) => setRegionSearch(event.target.value)}
+                placeholder="搜尋國家..."
+                className="h-11 rounded-[16px] border-[#e1ddd7] bg-white pl-10 shadow-[0_1px_0_rgba(15,23,42,0.03)]"
+              />
+            </div>
+
+            <div className="space-y-3">{regionRows}</div>
+
+            {!regionSearchText && filteredRegions.length > 4 && !showAllRegions && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 w-full rounded-[16px] border-[#28a5cf] text-[#1a9ac4] hover:bg-[#f4fbfe] hover:text-[#168eb4]"
+                onClick={() => setShowAllRegions(true)}
+              >
+                查看更多國家
+              </Button>
+            )}
+
+            {!regionSearchText && filteredRegions.length > 4 && showAllRegions && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 w-full rounded-[16px] border-[#e1ddd7] text-[#555] hover:bg-[#faf9f7] hover:text-[#333]"
+                onClick={() => setShowAllRegions(false)}
+              >
+                收起國家
+              </Button>
+            )}
+
+            {regionId && (
+              <button
+                type="button"
+                className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
+                onClick={() => setRegionId('')}
+              >
+                清除
+              </button>
+            )}
+          </div>
+        </FilterSectionCard>
+
+        {brands.length > 0 && (
+          <FilterSectionCard title="品牌">
+            <div className="space-y-3">
+              {brands.map((brand: any) => {
+                const isSelected = brandId === brand.id
+                return (
+                  <button
+                    key={brand.id}
+                    type="button"
+                    className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
+                      isSelected ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
+                    }`}
+                    onClick={() => setBrandId(isSelected ? '' : brand.id)}
+                  >
+                    <span
+                      className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
+                        isSelected ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
+                      }`}
+                    >
+                      {isSelected && <Check className="size-3.5 text-white" />}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{brand.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+            {brandId && (
+              <button
+                type="button"
+                className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
+                onClick={() => setBrandId('')}
+              >
+                清除
+              </button>
+            )}
+          </FilterSectionCard>
+        )}
+
+        <FilterSectionCard title="連線日期">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[11px] font-medium text-[#999]">從</Label>
+              <DatePicker
+                value={activeDuringStart}
+                onValueChange={setActiveDuringStart}
+                placeholder="選擇開始日期"
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[11px] font-medium text-[#999]">到</Label>
+              <DatePicker
+                value={activeDuringEnd}
+                onValueChange={setActiveDuringEnd}
+                placeholder="選擇結束日期"
+                className="w-full"
+              />
+            </div>
+
+            {(activeDuringStart || activeDuringEnd) && (
+              <button
+                type="button"
+                className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
+                onClick={() => {
+                  setActiveDuringStart('')
+                  setActiveDuringEnd('')
+                }}
+              >
+                清除
+              </button>
+            )}
+          </div>
+        </FilterSectionCard>
+
+        <FilterSectionCard title="地點搜尋">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={locationQuery}
+              onChange={(event) => setLocationQuery(event.target.value)}
+              placeholder="搜尋地點，例如：稻荷神社"
+              className="pl-9"
+            />
+          </div>
+        </FilterSectionCard>
+
+        <FilterSectionCard title="付款方式">
           <button
             type="button"
-            className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
-            onClick={() => setRegionId('')}
+            className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
+              hasBillingMethod ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
+            }`}
+            onClick={() => setHasBillingMethod(!hasBillingMethod)}
           >
-            清除
+            <span
+              className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
+                hasBillingMethod ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
+              }`}
+            >
+              {hasBillingMethod && <Check className="size-3.5 text-white" />}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">提供付款方式</span>
           </button>
-        )}
-      </FilterSectionCard>
+        </FilterSectionCard>
 
-      <FilterSectionCard title="連線日期">
-        <div className="space-y-2">
-          <Label className="text-[11px] font-medium text-[#999]">從</Label>
-          <DatePicker
-            value={activeDuringStart}
-            onValueChange={setActiveDuringStart}
-            placeholder="選擇開始日期"
-            className="w-full"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-[11px] font-medium text-[#999]">到</Label>
-          <DatePicker
-            value={activeDuringEnd}
-            onValueChange={setActiveDuringEnd}
-            placeholder="選擇結束日期"
-            className="w-full"
-          />
-        </div>
-        {(activeDuringStart || activeDuringEnd) && (
+        <FilterSectionCard
+          title="可許願"
+          titleExtra={
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger render={<span className="flex cursor-default items-center" />}>
+                  <Info className="size-3.5 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  允許買家對此連線送出許願商品需求
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          }
+        >
           <button
             type="button"
-            className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
-            onClick={() => {
-              setActiveDuringStart('')
-              setActiveDuringEnd('')
-            }}
+            className={`flex w-full items-center gap-3 py-2 text-left transition-colors ${
+              canWish ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
+            }`}
+            onClick={() => setCanWish(!canWish)}
           >
-            清除
+            <span
+              className={`flex size-5 shrink-0 items-center justify-center rounded-lg border ${
+                canWish ? 'border-[#2da6cf] bg-[#2da6cf]' : 'border-[#d2d7df] bg-white'
+              }`}
+            >
+              {canWish && <Check className="size-3.5 text-white" />}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">接受許願</span>
           </button>
-        )}
-      </FilterSectionCard>
-
-      <FilterSectionCard title="地點搜尋">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={locationQuery}
-            onChange={(event) => setLocationQuery(event.target.value)}
-            placeholder="搜尋地點，例如：稻荷神社"
-            className="pl-9"
-          />
-        </div>
-      </FilterSectionCard>
-    </div>
-  )
+        </FilterSectionCard>
+      </div>
+    )
+  }
 
   return (
+    <div className="min-h-screen bg-[#f5f5f5]">
     <div className="mx-auto max-w-7xl px-4 py-6">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-heading">連線代購</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            代購目前正在當地，可以即時幫你購買商品
-          </p>
           {!isLoading && (
             <p className="mt-1 text-sm text-muted-foreground">共 {total} 個連線</p>
           )}
@@ -159,8 +330,8 @@ export default function ConnectionsPage() {
       </div>
 
       <div className="flex items-start gap-6">
-        <aside className="sticky top-24 hidden w-64 shrink-0 md:block">
-          <div className="max-h-[calc(100vh-7rem)] overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:#d4cfc9_transparent] [&::-webkit-scrollbar]:w-0.75 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d4cfc9]">
+        <aside className="hidden w-64 shrink-0 md:block">
+          <div className="pr-2">
             {FilterContent()}
           </div>
         </aside>
@@ -203,6 +374,28 @@ export default function ConnectionsPage() {
                   <X className="h-3 w-3" />
                 </button>
               )}
+
+              {brandLabel && (
+                <button
+                  type="button"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
+                  onClick={() => setBrandId('')}
+                >
+                  {brandLabel}
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+
+              {canWish && (
+                <button
+                  type="button"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#e8d9b8] bg-[#f0e9d8] px-3 py-1 text-xs font-medium text-[#8a6a2e]"
+                  onClick={() => setCanWish(false)}
+                >
+                  接受許願
+                  <X className="h-3 w-3" />
+                </button>
+              )}
             </div>
           )}
 
@@ -237,16 +430,18 @@ export default function ConnectionsPage() {
         </div>
       </div>
     </div>
+    </div>
   )
 }
 
-function FilterSectionCard({ title, children }: { title: string; children: ReactNode }) {
+function FilterSectionCard({ title, titleExtra, children }: { title: string; titleExtra?: ReactNode; children: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-[14px] border border-[#e8e3dc] bg-white shadow-sm">
-      <div className="border-b border-[#f0ede8] bg-[#faf9f7] px-3.5 py-[11px] text-sm font-semibold text-[#333]">
-        {title}
-      </div>
-      <div className="flex flex-col gap-2 px-3.5 py-3">
+    <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+      <div className="space-y-4">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-[#222]">
+          {title}
+          {titleExtra}
+        </div>
         {children}
       </div>
     </section>
