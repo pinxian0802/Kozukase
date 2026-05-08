@@ -82,7 +82,7 @@ export default function SellerDashboardPage() {
       </div>
 
       {/* Listing quota overview */}
-      <Card className="shadow-none">
+      <Card className="ring-0 shadow-sm bg-white">
         <CardContent className="pt-5 pb-5">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-sm font-medium">代購刊登量</span>
@@ -144,7 +144,7 @@ export default function SellerDashboardPage() {
       {/* Recent listings + Active connections */}
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         {/* Recent listings */}
-        <Card className="shadow-none">
+        <Card className="ring-0 shadow-sm bg-white">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">最近代購</CardTitle>
@@ -206,7 +206,7 @@ export default function SellerDashboardPage() {
         </Card>
 
         {/* Active connections */}
-        <Card className="shadow-none">
+        <Card className="ring-0 shadow-sm bg-white">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">目前連線</CardTitle>

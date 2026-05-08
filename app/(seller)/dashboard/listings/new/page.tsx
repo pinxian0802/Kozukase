@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { ProductCard } from '@/components/product/product-card'
 import { ProductSearch, type ProductSearchResult } from '@/components/product/product-search'
@@ -133,24 +134,28 @@ export default function NewListingPage() {
           </Button>
           <h1 className="text-2xl font-bold font-heading">新增代購</h1>
         </div>
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">搜尋或新增商品</p>
-          <ProductSearch
-            onSelect={(p: ProductSearchResult) =>
-              setStep({
-                type: 'listing',
-                product: {
-                  id: p.id,
-                  name: p.name,
-                  brand_name: p.brand ?? null,
-                  model_number: p.model_number,
-                  catalog_image_url: p.catalog_image_url,
-                },
-              })
-            }
-            onCreateNew={handleOpenCreate}
-          />
-        </div>
+        <Card className="ring-0 shadow-sm">
+          <CardContent className="p-6 sm:p-8">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">搜尋或新增商品</p>
+              <ProductSearch
+                onSelect={(p: ProductSearchResult) =>
+                  setStep({
+                    type: 'listing',
+                    product: {
+                      id: p.id,
+                      name: p.name,
+                      brand_name: p.brand ?? null,
+                      model_number: p.model_number,
+                      catalog_image_url: p.catalog_image_url,
+                    },
+                  })
+                }
+                onCreateNew={handleOpenCreate}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -177,35 +182,37 @@ export default function NewListingPage() {
         </Button>
         <h1 className="text-2xl font-bold font-heading">新增代購</h1>
       </div>
-      <div className="space-y-4">
-        <div>
-          <Label>商品</Label>
-          <div className="mt-1 w-fit">
-            <ProductCard
-              product={{
-                id: product.id ?? 'draft-product',
-                name: product.name,
-                brand: product.brand_name,
-                model_number: product.model_number,
-                catalog_image_url: product.catalog_image_url,
-              }}
-              linkToProduct={false}
-              variant="compact"
-              className="w-fit"
-            />
+      <Card className="ring-0 shadow-sm">
+        <CardContent className="p-6 sm:p-8 space-y-4">
+          <div>
+            <Label>商品</Label>
+            <div className="mt-1 w-fit">
+              <ProductCard
+                product={{
+                  id: product.id ?? 'draft-product',
+                  name: product.name,
+                  brand: product.brand_name,
+                  model_number: product.model_number,
+                  catalog_image_url: product.catalog_image_url,
+                }}
+                linkToProduct={false}
+                variant="compact"
+                className="w-fit"
+              />
+            </div>
           </div>
-        </div>
 
-        <Button type="button" variant="ghost" size="sm" onClick={() => setStep({ type: 'select' })} className="w-full">
-          重新選擇
-        </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setStep({ type: 'select' })} className="w-full">
+            重新選擇
+          </Button>
 
-        <ListingForm
-          productId={product.id}
-          mode="create"
-          onCreateProduct={isDraftProduct ? createProductForListing : undefined}
-        />
-      </div>
+          <ListingForm
+            productId={product.id}
+            mode="create"
+            onCreateProduct={isDraftProduct ? createProductForListing : undefined}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }

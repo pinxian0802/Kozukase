@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ListingForm } from '@/components/listing/listing-form'
 import { trpc } from '@/lib/trpc/client'
@@ -32,7 +33,11 @@ export default function EditListingPage() {
         <h1 className="text-2xl font-bold font-heading">編輯代購</h1>
       </div>
 
-      <ListingForm productId={listing.product_id} mode="edit" initialData={listing} />
+      <Card className="ring-0 shadow-sm">
+        <CardContent className="p-6 sm:p-8">
+          <ListingForm productId={listing.product_id} mode="edit" initialData={listing} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

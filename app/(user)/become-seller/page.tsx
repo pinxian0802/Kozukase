@@ -40,8 +40,9 @@ export default function SettingsPage() {
 
   if (session.isSeller) {
     return (
+      <div className="min-h-screen bg-[#FAFAFD]">
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <Card>
+        <Card className="ring-0 shadow-sm bg-white">
           <CardHeader>
             <CardTitle>你已經是賣家了</CardTitle>
             <CardDescription>前往賣家後台管理你的上架商品</CardDescription>
@@ -52,6 +53,7 @@ export default function SettingsPage() {
             </Button>
           </CardContent>
         </Card>
+      </div>
       </div>
     )
   }
@@ -110,117 +112,126 @@ export default function SettingsPage() {
   }
 
   return (
+    <div className="min-h-screen bg-[#FAFAFD]">
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <Card>
+      <Card className="ring-0 shadow-sm bg-white">
         <CardHeader>
           <CardTitle>成為賣家</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            <div>
-              <Label>頭貼</Label>
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <Label className="pt-2">頭貼</Label>
               <AvatarUpload
                 value={avatarImage}
                 onChange={setAvatarImage}
                 pendingFile={pendingFile}
                 onPendingFileChange={setPendingFile}
-                className="mt-1"
               />
             </div>
 
-            <div>
-              <Label htmlFor="sellerName">賣家名稱 *</Label>
-              <Input
-                id="sellerName"
-                value={sellerName}
-                onChange={(e) => {
-                  setSellerName(e.target.value)
-                  if (errors.sellerName) {
-                    setErrors((current) => {
-                      const next = { ...current }
-                      delete next.sellerName
-                      return next
-                    })
-                  }
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                placeholder="你的店家名稱"
-                maxLength={50}
-                aria-invalid={!!errors.sellerName}
-                className="mt-1"
-              />
-              <FormFieldError message={errors.sellerName} />
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <Label htmlFor="sellerName" className="pt-2">賣家名稱 <span className="text-destructive">*</span></Label>
+              <div>
+                <Input
+                  id="sellerName"
+                  value={sellerName}
+                  onChange={(e) => {
+                    setSellerName(e.target.value)
+                    if (errors.sellerName) {
+                      setErrors((current) => {
+                        const next = { ...current }
+                        delete next.sellerName
+                        return next
+                      })
+                    }
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                  placeholder="你的店家名稱"
+                  maxLength={50}
+                  aria-invalid={!!errors.sellerName}
+                />
+                <FormFieldError message={errors.sellerName} />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="phone">手機號碼 *</Label>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value)
-                  if (errors.phone) {
-                    setErrors((current) => {
-                      const next = { ...current }
-                      delete next.phone
-                      return next
-                    })
-                  }
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                placeholder="0912345678"
-                type="tel"
-                aria-invalid={!!errors.phone}
-                className="mt-1"
-              />
-              <FormFieldError message={errors.phone} />
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <Label htmlFor="phone" className="pt-2">手機號碼 <span className="text-destructive">*</span></Label>
+              <div>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value)
+                    if (errors.phone) {
+                      setErrors((current) => {
+                        const next = { ...current }
+                        delete next.phone
+                        return next
+                      })
+                    }
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                  placeholder="0912345678"
+                  type="tel"
+                  aria-invalid={!!errors.phone}
+                />
+                <FormFieldError message={errors.phone} />
+              </div>
             </div>
 
-            <div>
-              <Label>代購地區 *</Label>
-              <MultiSelect
-                className="mt-1"
-                value={selectedRegions}
-                onValueChange={(ids) => {
-                  setSelectedRegions(ids)
-                  if (errors.regions) {
-                    setErrors((current) => {
-                      const next = { ...current }
-                      delete next.regions
-                      return next
-                    })
-                  }
-                }}
-                options={(regions ?? []).map((r: any) => ({ value: r.id, label: r.name }))}
-                placeholder="選擇代購地區"
-                searchPlaceholder="搜尋地區..."
-                emptyText="找不到相符的地區"
-                invalid={!!errors.regions}
-              />
-              <FormFieldError message={errors.regions} />
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <Label className="pt-2">代購地區 <span className="text-destructive">*</span></Label>
+              <div>
+                <MultiSelect
+                  value={selectedRegions}
+                  onValueChange={(ids) => {
+                    setSelectedRegions(ids)
+                    if (errors.regions) {
+                      setErrors((current) => {
+                        const next = { ...current }
+                        delete next.regions
+                        return next
+                      })
+                    }
+                  }}
+                  options={(regions ?? []).map((r: any) => ({ value: r.id, label: r.name }))}
+                  placeholder="選擇代購地區"
+                  searchPlaceholder="搜尋地區..."
+                  emptyText="找不到相符的地區"
+                  invalid={!!errors.regions}
+                />
+                <FormFieldError message={errors.regions} />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="bio">簡介</Label>
-              <Textarea
-                id="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="介紹你的代購服務、專長地區或購物風格…"
-                maxLength={300}
-                rows={4}
-                className="mt-1 resize-none"
-              />
-              <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <Label htmlFor="bio" className="pt-2">簡介</Label>
+              <div>
+                <Textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="介紹你的代購服務、專長地區或購物風格…"
+                  maxLength={300}
+                  rows={4}
+                  className="resize-none"
+                />
+                <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+              </div>
             </div>
 
-            <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={isSubmitting || becomeSeller.isPending || getPresignedUrl.isPending}>
-              {becomeSeller.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Store className="mr-2 h-4 w-4" />}
-              開始成為賣家
-            </button>
+            <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <div />
+              <button type="submit" className={buttonVariants({ className: 'w-fit justify-self-end' })} disabled={isSubmitting || becomeSeller.isPending || getPresignedUrl.isPending}>
+                {becomeSeller.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Store className="mr-2 h-4 w-4" />}
+                開始成為賣家
+              </button>
+            </div>
           </form>
         </CardContent>
       </Card>
+    </div>
     </div>
   )
 }

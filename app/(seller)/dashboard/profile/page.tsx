@@ -196,7 +196,7 @@ export default function SellerProfilePage() {
         </TabsList>
 
         <TabsContent value="seller-info" className="mt-4">
-          <Card>
+          <Card className="ring-0 shadow-sm bg-white">
             <CardHeader>
               <CardTitle>賣家資料</CardTitle>
             </CardHeader>
@@ -278,7 +278,7 @@ export default function SellerProfilePage() {
         </TabsContent>
 
         <TabsContent value="social" className="mt-4">
-          <Card>
+          <Card className="ring-0 shadow-sm bg-white">
             <CardHeader>
               <CardTitle>社群帳號</CardTitle>
             </CardHeader>

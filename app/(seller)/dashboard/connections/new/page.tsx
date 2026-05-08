@@ -20,7 +20,7 @@ export default function NewConnectionPage() {
         </h1>
       </div>
 
-      <Card>
+      <Card className="ring-0 shadow-sm">
         <CardContent className="p-6 sm:p-8">
           <ConnectionForm mode="create" />
         </CardContent>
