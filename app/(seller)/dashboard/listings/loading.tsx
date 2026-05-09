@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function ListingsLoading() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       <Skeleton className="h-8 w-48 mb-6" />
       <div className="space-y-4">
         {Array.from({ length: 6 }).map((_, i) => (

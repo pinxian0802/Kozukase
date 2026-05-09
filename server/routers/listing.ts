@@ -36,6 +36,7 @@ export const listingRouter = router({
           status: input.status,
           price: input.price ?? null,
           is_price_on_request: input.is_price_on_request,
+          is_in_stock: input.is_in_stock,
           specs: input.specs,
           note: input.note ?? null,
           post_url: input.post_url ?? '',

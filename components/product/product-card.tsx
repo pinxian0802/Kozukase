@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Package, Heart } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getCardImageUrl } from '@/lib/utils/image-variants.mjs'
 
@@ -32,51 +32,53 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
   const card = (
     <div
       className={cn(
-        'group overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-200 hover:shadow-md',
+        'group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-200 hover:shadow-md',
         variant === 'compact' ? 'flex items-center gap-4 p-5' : '',
         className
       )}
     >
-      <div className={variant === 'compact' ? 'relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-muted' : 'pb-0'}>
-        {variant !== 'compact' && (
-          <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-muted">
-            {imageUrl ? (
-              <Image
-                src={imageUrl}
-                alt={product.name}
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="object-cover transition-transform duration-200 group-hover:scale-105"
-                unoptimized={isLocalPreviewUrl}
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground/30">
-                <Package className="h-7 w-7" />
-              </div>
-            )}
-          </div>
-        )}
-        {variant === 'compact' && (
-          <div className="relative h-full w-full overflow-hidden rounded-xl bg-muted">
-            {imageUrl ? (
-              <Image
-                src={imageUrl}
-                alt={product.name}
-                fill
-                sizes="64px"
-                className="object-cover"
-                unoptimized={isLocalPreviewUrl}
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground/30">
-                <Package className="h-6 w-6" />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {/* Default variant: full-width square image */}
+      {variant !== 'compact' && (
+        <div className="relative aspect-[4/5] bg-muted">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover transition-transform duration-200 group-hover:scale-105"
+              unoptimized={isLocalPreviewUrl}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-muted-foreground/30">
+              <Package className="h-7 w-7" />
+            </div>
+          )}
+        </div>
+      )}
 
-      <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'px-3 pt-2 pb-3'}>
+      {/* Compact variant: small thumbnail */}
+      {variant === 'compact' && (
+        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-muted">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={product.name}
+              fill
+              sizes="96px"
+              className="object-cover"
+              unoptimized={isLocalPreviewUrl}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-muted-foreground/30">
+              <Package className="h-6 w-6" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Text content */}
+      <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'absolute bottom-0 left-0 right-0 bg-white px-3 pb-2 pt-4'}>
         {variant === 'compact' ? (
           <div>
             {brandLabel && (
@@ -88,19 +90,23 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
             )}
           </div>
         ) : (
-          <div className="grid gap-0">
+          <div>
+            {/* Brand — expands from 0 height on hover */}
             {brandLabel && (
-              <p className="truncate text-xs text-muted-foreground mb-0.5">{brandLabel}</p>
+              <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
+                <div className="overflow-hidden">
+                  <p className="truncate text-xs text-muted-foreground pb-0.5">{brandLabel}</p>
+                </div>
+              </div>
             )}
             <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+            {/* Model — expands from 0 height on hover */}
             {product.model_number && (
-              <p className="truncate text-xs leading-tight text-muted-foreground">{product.model_number}</p>
-            )}
-            {!!product.wish_count && (
-              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                <Heart className="h-3 w-3 fill-current" />
-                {product.wish_count} 人許願
-              </p>
+              <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
+                <div className="overflow-hidden">
+                  <p className="truncate text-xs leading-tight text-muted-foreground">{product.model_number}</p>
+                </div>
+              </div>
             )}
           </div>
         )}

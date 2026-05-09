@@ -1,10 +1,12 @@
 'use client'
 
-import { use, useState, type ReactNode } from 'react'
+import { use, useState, useTransition, type ReactNode } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Heart, Bookmark, SlidersHorizontal, X } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { ListingComparison } from '@/components/product/listing-comparison'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ImageGallery } from '@/components/shared/image-gallery'
@@ -17,14 +19,17 @@ import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const searchParams = useSearchParams()
+  const backHref = searchParams.get('from') ?? '/search'
   const utils = trpc.useUtils()
   const { data: product, isLoading } = trpc.product.getById.useQuery({ id })
   const brandLabel = product && (typeof product.brand === 'string' ? product.brand : product.brand?.name ?? null)
 
-  const PRICE_MAX = 10000
   const PRICE_STEP = 100
   const [minPrice, setMinPrice] = useState(0)
-  const [maxPrice, setMaxPrice] = useState(10000)
+  const [maxPrice, setMaxPrice] = useState<number | null>(null)
+  const [inStockOnly, setInStockOnly] = useState(false)
+  const [isFilterPending, startFilterTransition] = useTransition()
 
   const wishToggle = trpc.wish.toggle.useMutation({
     onSuccess: () => utils.product.getById.invalidate({ id }),
@@ -36,29 +41,41 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   })
 
   const allListings = product?.listings ?? []
-  const isPriceFiltered = minPrice > 0 || maxPrice < PRICE_MAX
+  const PRICE_MAX = Math.max(10000, ...allListings.map((l: any) => l.price ?? 0))
+  const effectiveMax = maxPrice ?? PRICE_MAX
+  const isPriceFiltered = minPrice > 0 || (maxPrice !== null && maxPrice < PRICE_MAX)
   const filteredListings = allListings.filter((listing: any) => {
+    if (inStockOnly && !listing.is_in_stock) return false
     if (isPriceFiltered && listing.is_price_on_request) return false
     if (listing.price !== null) {
       if (listing.price < minPrice) return false
-      if (listing.price > maxPrice) return false
+      if (listing.price > effectiveMax) return false
     }
     return true
   })
 
   const priceRangeLabel = isPriceFiltered
-    ? `NT$${minPrice.toLocaleString()} ~ NT$${maxPrice.toLocaleString()}`
+    ? `NT$${minPrice.toLocaleString()} ~ NT$${effectiveMax.toLocaleString()}`
     : ''
 
   const thumbCls = 'pointer-events-none absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#2da6cf] [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-track]:bg-transparent'
 
   const FilterContent = () => (
     <div className="space-y-4">
+      <FilterSectionCard
+        title="有現貨"
+        rightSlot={
+          <Switch
+            checked={inStockOnly}
+            onCheckedChange={(checked) => startFilterTransition(() => setInStockOnly(checked))}
+          />
+        }
+      />
       <FilterSectionCard title="價格區間 (NT$)">
         <div className="space-y-4">
           <div className="flex justify-between text-sm font-semibold text-[#222]">
             <span>NT${minPrice.toLocaleString()}</span>
-            <span>NT${maxPrice.toLocaleString()}</span>
+            <span>NT${effectiveMax.toLocaleString()}</span>
           </div>
 
           <div className="relative h-5">
@@ -67,7 +84,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#2da6cf]"
               style={{
                 left: `${(minPrice / PRICE_MAX) * 100}%`,
-                right: `${((PRICE_MAX - maxPrice) / PRICE_MAX) * 100}%`,
+                right: `${((PRICE_MAX - effectiveMax) / PRICE_MAX) * 100}%`,
               }}
             />
             <input
@@ -76,7 +93,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               max={PRICE_MAX}
               step={PRICE_STEP}
               value={minPrice}
-              onChange={(e) => setMinPrice(Math.min(Number(e.target.value), maxPrice - PRICE_STEP))}
+              onChange={(e) => startFilterTransition(() => setMinPrice(Math.min(Number(e.target.value), effectiveMax - PRICE_STEP)))}
               className={thumbCls}
             />
             <input
@@ -84,8 +101,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               min={0}
               max={PRICE_MAX}
               step={PRICE_STEP}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Math.max(Number(e.target.value), minPrice + PRICE_STEP))}
+              value={effectiveMax}
+              onChange={(e) => startFilterTransition(() => setMaxPrice(Math.max(Number(e.target.value), minPrice + PRICE_STEP)))}
               className={thumbCls}
             />
           </div>
@@ -94,7 +111,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <button
               type="button"
               className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
-              onClick={() => { setMinPrice(0); setMaxPrice(PRICE_MAX) }}
+              onClick={() => startFilterTransition(() => { setMinPrice(0); setMaxPrice(null) })}
             >
               清除
             </button>
@@ -107,7 +124,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FAFAFD]">
-        <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+        <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-64 w-full rounded-lg" />
         </div>
@@ -118,7 +135,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   if (!product) {
     return (
       <div className="min-h-screen bg-[#FAFAFD]">
-        <div className="mx-auto max-w-7xl px-4 py-6">
+        <div className="mx-auto max-w-6xl px-4 py-6">
           <EmptyState icon={Heart} title="找不到此商品" />
         </div>
       </div>
@@ -134,9 +151,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-[#FAFAFD]">
-      <div className="mx-auto max-w-7xl px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-6">
         <PageBreadcrumb items={[
-          { label: '商品', href: '/search' },
+          { label: '商品', href: backHref },
           { label: product.name },
         ]} />
         <div className="flex items-start gap-6">
@@ -186,28 +203,34 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           {/* Right content */}
           <div className="min-w-0 flex-1 space-y-4">
             {/* 尋找代購 title card */}
-            <section className="overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+            <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-2xl font-bold font-heading">尋找代購</h2>
-                  <div className="mt-3 flex min-h-7 flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-                    {isPriceFiltered ? (
-                      <>
-                        <span>以下是</span>
+                  <h2 className="text-2xl font-bold font-heading">尋找代購，共 {isFilterPending ? '' : filteredListings.length} 位代購</h2>
+                  {(isPriceFiltered || inStockOnly) && (
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      {inStockOnly && (
                         <button
                           type="button"
                           className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                          onClick={() => { setMinPrice(0); setMaxPrice(PRICE_MAX) }}
+                          onClick={() => startFilterTransition(() => setInStockOnly(false))}
+                        >
+                          有現貨
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                      {isPriceFiltered && (
+                        <button
+                          type="button"
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                          onClick={() => startFilterTransition(() => { setMinPrice(0); setMaxPrice(PRICE_MAX) })}
                         >
                           {priceRangeLabel}
                           <X className="h-3 w-3" />
                         </button>
-                        <span>的篩選結果，共 {filteredListings.length} 位代購</span>
-                      </>
-                    ) : (
-                      <span>共 {filteredListings.length} 位代購</span>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <Sheet>
@@ -228,7 +251,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             </section>
 
-            <ListingComparison listings={filteredListings} />
+            {isFilterPending ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-32 w-full rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <ListingComparison listings={filteredListings} />
+            )}
           </div>
         </div>
       </div>
@@ -237,11 +268,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
 }
 
-function FilterSectionCard({ title, children }: { title: string; children: ReactNode }) {
+function FilterSectionCard({ title, rightSlot, children }: { title: string; rightSlot?: ReactNode; children?: ReactNode }) {
   return (
     <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
       <div className="space-y-4">
-        <div className="text-sm font-semibold text-[#222]">{title}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-[#222]">{title}</div>
+          {rightSlot}
+        </div>
         {children}
       </div>
     </section>

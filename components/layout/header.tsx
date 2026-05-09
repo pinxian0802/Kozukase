@@ -19,8 +19,10 @@ export function Header() {
   const pathname = usePathname()
   const [searchQuery, setSearchQuery] = useState('')
 
+  const isConnectionsPage = pathname === '/connections'
+
   useEffect(() => {
-    if (pathname === '/search') {
+    if (pathname === '/search' || pathname === '/connections') {
       setSearchQuery(searchParams.get('q') ?? '')
     } else {
       setSearchQuery('')
@@ -33,10 +35,13 @@ export function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    const target = isConnectionsPage ? '/connections' : '/search'
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-      setMobileSearchOpen(false)
+      router.push(`${target}?q=${encodeURIComponent(searchQuery.trim())}`)
+    } else {
+      router.push(target)
     }
+    setMobileSearchOpen(false)
   }
 
   const handleLogout = async () => {
@@ -60,7 +65,7 @@ export function Header() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜尋商品名稱或品牌..."
+              placeholder={isConnectionsPage ? '搜尋連線標題...' : '搜尋商品名稱或品牌...'}
               className="pl-10"
             />
           </div>
@@ -188,7 +193,7 @@ export function Header() {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="搜尋商品名稱或品牌..."
+                placeholder={isConnectionsPage ? '搜尋連線標題...' : '搜尋商品名稱或品牌...'}
                 className="pl-10"
                 autoFocus
               />

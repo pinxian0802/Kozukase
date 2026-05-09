@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, type ReactNode } from 'react'
+import { Suspense, useState, useEffect, type ReactNode } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
@@ -49,11 +49,16 @@ function SearchContent() {
   })()
 
   const [categoryExpanded, setCategoryExpanded] = useState(false)
+  // Optimistic local state — updates immediately on click; syncs back when URL commits
+  const [localCategory, setLocalCategory] = useState<string | undefined>(category)
+  const [localBrandId, setLocalBrandId] = useState<string | undefined>(brandId)
+  useEffect(() => { setLocalCategory(category) }, [category])
+  useEffect(() => { setLocalBrandId(brandId) }, [brandId])
 
   const { data: brandsData } = trpc.brand.list.useQuery()
   const brands = brandsData ?? []
 
-  const { data, isLoading } = trpc.product.browse.useQuery(
+  const { data, isLoading, isFetching } = trpc.product.browse.useQuery(
     {
       query: q || undefined,
       category: category as ProductCategory | undefined,
@@ -69,6 +74,8 @@ function SearchContent() {
   const totalPages = data?.totalPages ?? 0
 
   const updateParam = (key: string, value: string | null) => {
+    if (key === 'category') setLocalCategory(value ?? undefined)
+    if (key === 'brand') setLocalBrandId(value ?? undefined)
     const params = new URLSearchParams(searchParams.toString())
     if (value) params.set(key, value)
     else params.delete(key)
@@ -77,6 +84,8 @@ function SearchContent() {
   }
 
   const clearAllFilters = () => {
+    setLocalCategory(undefined)
+    setLocalBrandId(undefined)
     const params = new URLSearchParams()
     if (q) params.set('q', q)
     params.set('pageSize', String(pageSize))
@@ -96,16 +105,16 @@ function SearchContent() {
   const secondHalf = categoryEntries.slice(half)
 
   const activeFilters: { key: string; label: string; color: string; onRemove: () => void }[] = []
-  if (category) {
+  if (localCategory) {
     activeFilters.push({
       key: 'category',
-      label: PRODUCT_CATEGORY_LABELS[category as ProductCategory] ?? category,
+      label: PRODUCT_CATEGORY_LABELS[localCategory as ProductCategory] ?? localCategory,
       color: KZ.teal,
       onRemove: () => updateParam('category', null),
     })
   }
-  if (brandId) {
-    const brandName = brands.find((b) => b.id === brandId)?.name ?? brandId
+  if (localBrandId) {
+    const brandName = brands.find((b) => b.id === localBrandId)?.name ?? localBrandId
     activeFilters.push({
       key: 'brand',
       label: brandName,
@@ -123,9 +132,9 @@ function SearchContent() {
             <FilterCheckbox
               key={key}
               label={label}
-              checked={category === key}
+              checked={localCategory === key}
               color={KZ.teal}
-              onClick={() => updateParam('category', category === key ? null : key)}
+              onClick={() => updateParam('category', localCategory === key ? null : key)}
             />
           ))}
           {categoryExpanded &&
@@ -133,9 +142,9 @@ function SearchContent() {
               <FilterCheckbox
                 key={key}
                 label={label}
-                checked={category === key}
+                checked={localCategory === key}
                 color={KZ.teal}
-                onClick={() => updateParam('category', category === key ? null : key)}
+                onClick={() => updateParam('category', localCategory === key ? null : key)}
               />
             ))}
         </div>
@@ -170,9 +179,9 @@ function SearchContent() {
               <FilterCheckbox
                 key={brand.id}
                 label={brand.name}
-                checked={brandId === brand.id}
+                checked={localBrandId === brand.id}
                 color={KZ.pink}
-                onClick={() => updateParam('brand', brandId === brand.id ? null : brand.id)}
+                onClick={() => updateParam('brand', localBrandId === brand.id ? null : brand.id)}
               />
             ))}
           </div>
@@ -183,7 +192,7 @@ function SearchContent() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFD]">
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="flex items-start gap-6">
         {/* Desktop sidebar */}
         <aside className="hidden w-64 shrink-0 md:block">
@@ -199,29 +208,23 @@ function SearchContent() {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-2xl font-bold">
-                  {q ? `「${q}」的搜尋結果` : '瀏覽商品'}
+                  {q ? `「${q}」的搜尋結果` : '瀏覽商品'}，共 {isFetching ? '' : total} 件
                 </h1>
-                <div className="mt-3 flex min-h-7 flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-                  {activeFilters.length > 0 ? (
-                    <>
-                      <span>以下是</span>
-                      {activeFilters.map((f) => (
-                        <button
-                          key={f.key}
-                          type="button"
-                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                          onClick={f.onRemove}
-                        >
-                          {f.label}
-                          <X className="h-3 w-3" />
-                        </button>
-                      ))}
-                      <span>的篩選結果，共 {isLoading ? '' : total} 件</span>
-                    </>
-                  ) : (
-                    <span>共 {isLoading ? '' : total} 件商品</span>
-                  )}
-                </div>
+                {activeFilters.length > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    {activeFilters.map((f) => (
+                      <button
+                        key={f.key}
+                        type="button"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        onClick={f.onRemove}
+                      >
+                        {f.label}
+                        <X className="h-3 w-3" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
@@ -265,7 +268,7 @@ function SearchContent() {
             </div>
           </section>
 
-          {isLoading ? (
+          {isFetching ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="space-y-3">
@@ -279,7 +282,11 @@ function SearchContent() {
             <>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    href={`/products/${product.id}?from=${encodeURIComponent(`/search?${searchParams.toString()}`)}`}
+                  />
                 ))}
               </div>
               <Pagination

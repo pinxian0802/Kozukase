@@ -204,6 +204,7 @@ export const connectionRouter = router({
   // Public browse page
   browse: publicProcedure
     .input(z.object({
+      title_query: z.string().max(100).optional(),
       region_id: z.string().uuid().optional(),
       location_query: z.string().max(50).optional(),
       active_during: z.object({
@@ -237,6 +238,11 @@ export const connectionRouter = router({
         .select('id, seller:sellers!inner(is_suspended)', { count: 'exact', head: true })
         .eq('status', 'active')
         .eq('seller.is_suspended', false)
+
+      if (input.title_query) {
+        query = query.ilike('title', `%${input.title_query}%`)
+        countQuery = countQuery.ilike('title', `%${input.title_query}%`)
+      }
 
       if (input.region_id) {
         query = query.eq('region_id', input.region_id)

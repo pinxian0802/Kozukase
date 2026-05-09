@@ -22,7 +22,7 @@ export default function WishesPage() {
   const products = data?.pages.flatMap((p: any) => p.items) ?? []
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-heading mb-2">許願榜</h1>

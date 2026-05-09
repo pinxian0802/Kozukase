@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Banknote, Calendar, Clock3, ExternalLink, Images, Maximize2, Package, Plus, Tag } from 'lucide-react'
+import { ExternalLink, Images, Maximize2, Package, Plus } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -205,7 +205,7 @@ export default function SellerListingsPage() {
                         {listing.title || <span className="font-normal text-muted-foreground">--</span>}
                       </h2>
                       <div className="space-y-1">
-                        <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground"><Package className="h-3.5 w-3.5" />商品名稱</p>
+                        <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">商品名稱</p>
                         <p className="truncate text-sm text-foreground">
                           {listing.product?.name ? (
                             <Link
@@ -226,9 +226,7 @@ export default function SellerListingsPage() {
 
                 <div className="space-y-3 rounded-2xl bg-background/70 p-3 lg:bg-transparent lg:p-0">
                   <div className="space-y-1">
-                    <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                      <Tag className="h-3.5 w-3.5" />規格摘要
-                    </p>
+                    <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">規格摘要</p>
                     <div className="space-y-1.5 text-sm text-foreground">
                       {(listing.specs ?? []).length > 0 ? (
                         (listing.specs ?? []).slice(0, 3).map((spec: ListingSpec, index: number) => {
@@ -250,17 +248,13 @@ export default function SellerListingsPage() {
 
                 <div className="space-y-3 rounded-2xl bg-background/70 p-3 lg:bg-transparent lg:p-0">
                   <div className="space-y-1">
-                    <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                      <Clock3 className="h-3.5 w-3.5" />預計出貨
-                    </p>
+                    <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">預計出貨</p>
                     <p className="text-sm text-foreground">
                       {listing.shipping_date ? formatDate(listing.shipping_date) : <span className="text-muted-foreground">--</span>}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                      <Calendar className="h-3.5 w-3.5" />截止日期
-                    </p>
+                    <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">截止日期</p>
                     <p className="text-sm text-foreground">
                       {listing.expires_at ? formatDate(listing.expires_at) : <span className="text-muted-foreground">--</span>}
                     </p>
@@ -282,7 +276,7 @@ export default function SellerListingsPage() {
                 </div>
 
                 <div className="space-y-1 lg:text-left lg:pl-2">
-                  <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground"><Banknote className="h-3.5 w-3.5" />售價</p>
+                  <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">售價</p>
                   <p className="text-2xl font-bold tracking-tight text-foreground">
                     {formatPrice(listing.price, listing.is_price_on_request)}
                   </p>

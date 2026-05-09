@@ -45,7 +45,7 @@ export default function HomePage() {
         </section>
 
         {/* Categories */}
-        <section className="mx-auto max-w-7xl px-4 py-14">
+        <section className="mx-auto max-w-6xl px-4 py-14">
           <h2 className="font-heading text-lg font-semibold mb-5 text-foreground">商品分類</h2>
           <div className="grid grid-cols-5 gap-1 md:grid-cols-8">
             {categories.map((cat) => {

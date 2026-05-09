@@ -106,7 +106,7 @@ export const productRouter = router({
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
           listings(
-            id, title, price, is_price_on_request, specs, note, post_url,
+            id, title, price, is_price_on_request, is_in_stock, specs, note, post_url,
             shipping_date, expires_at, status, created_at,
             seller:sellers(
               id, name, ig_handle, threads_handle, ig_follower_count,

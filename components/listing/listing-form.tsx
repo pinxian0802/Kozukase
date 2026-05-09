@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Loader2, Package, Check, X } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import { ProductCard } from '@/components/product/product-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -122,6 +123,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [price, setPrice] = useState<string>(initialData?.price?.toString() ?? '')
   const [isPriceOnRequest, setIsPriceOnRequest] = useState(initialData?.is_price_on_request ?? false)
+  const [isInStock, setIsInStock] = useState(initialData?.is_in_stock ?? false)
   const [specs, setSpecs] = useState<SpecEntry[]>(
     initialData?.specs?.map((s: any) => ({ ...s, _optionInput: '' })) ?? []
   )
@@ -234,6 +236,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       status,
       price: price ? Number(price) : undefined,
       is_price_on_request: isPriceOnRequest,
+      is_in_stock: isInStock,
       specs: specsClean,
       note: note || undefined,
       post_url: postUrl || undefined,
@@ -513,6 +516,16 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           invalid={!!errors.shippingDate}
         />
         <FormFieldError message={errors.shippingDate} />
+      </div>
+
+      {/* In Stock */}
+      <div className="flex items-center gap-2">
+        <Switch
+          id="is-in-stock"
+          checked={isInStock}
+          onCheckedChange={setIsInStock}
+        />
+        <Label htmlFor="is-in-stock" className="cursor-pointer">有現貨</Label>
       </div>
 
       {/* Specs */}

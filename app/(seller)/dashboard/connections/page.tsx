@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Calendar, Clock3, CreditCard, ExternalLink, Globe, Images, Maximize2, Plus, Sparkles, Tag } from 'lucide-react'
+import { ExternalLink, Globe, Images, Maximize2, Plus, Sparkles } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -182,34 +182,36 @@ export default function SellerConnectionsPage() {
                     <ConnectionThumbnail images={displayImages} title={conn.title ?? '--'} />
 
                     <div className="min-w-0 space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                          <span className={`h-2 w-2 shrink-0 rounded-full ${statusDotColors[conn.status] ?? 'bg-gray-400'}`} />
-                          {statusLabels[conn.status]}
-                        </span>
-                        {(conn as any).can_wish && (
-                          <span className="flex items-center gap-1 text-xs text-purple-700">
-                            <Sparkles className="h-3 w-3" />可許願
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.16em] text-muted-foreground">
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${statusDotColors[conn.status] ?? 'bg-gray-400'}`} />
+                            {statusLabels[conn.status]}
                           </span>
-                        )}
-                      </div>
-                      <h2 className="truncate text-xl font-semibold text-foreground">
-                        {conn.title ?? <span className="font-normal text-muted-foreground">--</span>}
-                      </h2>
-                      <div className="grid gap-1 text-sm text-muted-foreground">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="shrink-0 text-xs font-medium tracking-[0.16em]">國家</span>
-                          <span className="min-w-0 truncate text-sm text-foreground">{regionName}</span>
-                        </div>
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="shrink-0 text-xs font-medium tracking-[0.16em]">地點</span>
-                          <div className="flex min-w-0 items-center gap-1">
-                            <span className="min-w-0 truncate text-sm text-foreground">
-                              {visibleLocations.length > 0 ? visibleLocations.join('、') : <span className="text-muted-foreground">--</span>}
+                          {(conn as any).can_wish && (
+                            <span className="flex items-center gap-1 text-xs text-purple-700">
+                              <Sparkles className="h-3 w-3" />可許願
                             </span>
-                            {extraLocationCount > 0 && (
-                              <span className="shrink-0 text-xs text-muted-foreground">+{extraLocationCount}</span>
-                            )}
+                          )}
+                        </div>
+                        <h2 className="truncate text-xl font-semibold text-foreground">
+                          {conn.title ?? <span className="font-normal text-muted-foreground">--</span>}
+                        </h2>
+                        <div className="grid gap-1 text-sm text-muted-foreground">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="shrink-0 text-xs font-medium tracking-[0.16em]">國家</span>
+                            <span className="min-w-0 truncate text-sm text-foreground">{regionName}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="shrink-0 text-xs font-medium tracking-[0.16em]">地點</span>
+                            <div className="flex min-w-0 items-center gap-1">
+                              <span className="min-w-0 truncate text-sm text-foreground">
+                                {visibleLocations.length > 0 ? visibleLocations.join('、') : <span className="text-muted-foreground">--</span>}
+                              </span>
+                              {extraLocationCount > 0 && (
+                                <span className="shrink-0 text-xs text-muted-foreground">+{extraLocationCount}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -218,15 +220,11 @@ export default function SellerConnectionsPage() {
 
                   <div className="space-y-3 rounded-2xl bg-background/70 p-3 min-w-0 lg:bg-transparent lg:p-0">
                     <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                        <CreditCard className="h-3.5 w-3.5" />計費方式
-                      </p>
+                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">計費方式</p>
                       <p className="line-clamp-2 text-sm text-foreground">{conn.billing_method || <span className="text-muted-foreground">--</span>}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                        <Tag className="h-3.5 w-3.5" />品牌
-                      </p>
+                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">品牌</p>
                       <div className="flex min-w-0 items-center gap-1">
                         <span className="min-w-0 truncate text-sm text-foreground">
                           {visibleBrands.length > 0 ? visibleBrands.join('、') : <span className="text-muted-foreground">--</span>}
@@ -240,15 +238,11 @@ export default function SellerConnectionsPage() {
 
                   <div className="space-y-3 rounded-2xl bg-background/70 p-3 min-w-0 lg:bg-transparent lg:p-0">
                     <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" />連線日期
-                      </p>
+                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">連線日期</p>
                       <p className="whitespace-nowrap text-sm text-foreground">{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                        <Clock3 className="h-3.5 w-3.5" />預計出貨
-                      </p>
+                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">預計出貨</p>
                       <p className="whitespace-nowrap text-sm text-foreground">{conn.shipping_date ? formatDate(conn.shipping_date) : <span className="text-muted-foreground">--</span>}</p>
                     </div>
                   </div>

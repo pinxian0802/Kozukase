@@ -47,17 +47,28 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
         </div>
         <CardContent className="flex flex-1 flex-col p-4 min-h-0">
           {/* Title + Location + Date */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-0">
             <span className="text-xs text-muted-foreground">{formatDate(connection.start_date)} ~ {formatDate(connection.end_date)}</span>
             {connection.title && (
               <h3 className="text-base font-bold leading-snug line-clamp-1" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{connection.title}</h3>
             )}
-            <div className="flex items-center gap-1 text-sm">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
-              <span className="font-medium truncate text-sm">
-                {connection.region?.name}
-                {connection.locations && connection.locations.length > 0 && ` · ${connection.locations.slice(0, 2).join('・')}${connection.locations.length > 2 ? ` +${connection.locations.length - 2}` : ''}`}
-              </span>
+            <div className="flex flex-wrap items-center gap-1 mt-1.5">
+              {connection.region?.name && (
+                <span className="inline-flex items-center gap-0.5 text-xs font-medium text-primary mr-1">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  {connection.region.name}
+                </span>
+              )}
+              {connection.locations?.slice(0, 2).map((loc) => (
+                <span key={loc} className="rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground cursor-default">
+                  {loc}
+                </span>
+              ))}
+              {connection.locations && connection.locations.length > 2 && (
+                <span className="text-xs text-muted-foreground">
+                  +{connection.locations.length - 2}
+                </span>
+              )}
             </div>
           </div>
 
@@ -73,7 +84,7 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
                 <AvatarImage src={connection.seller.avatar_url ?? connection.seller.profile?.avatar_url ?? undefined} />
                 <AvatarFallback className="text-xs">{connection.seller.name[0]}</AvatarFallback>
               </Avatar>
-              <span className="text-sm truncate">{connection.seller.name}</span>
+              <span className="text-sm font-medium truncate">{connection.seller.name}</span>
               {connection.seller.is_social_verified && <SocialBadge className="h-3.5 w-3.5 text-primary" />}
             </div>
           )}

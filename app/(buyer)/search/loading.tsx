@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function SearchLoading() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       {/* 搜尋列 + 篩選按鈕 */}
       <div className="flex gap-3 mb-6">
         <Skeleton className="h-10 flex-1 max-w-lg" />
