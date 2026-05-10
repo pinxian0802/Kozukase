@@ -102,16 +102,6 @@ export default function ConnectionsPage() {
     return (
       <div className="space-y-4">
         <FilterSectionCard
-          title="提供付款方式"
-          rightSlot={
-            <Switch
-              checked={hasBillingMethod}
-              onCheckedChange={setHasBillingMethod}
-            />
-          }
-        />
-
-        <FilterSectionCard
           title="可許願"
           titleExtra={
             <TooltipProvider>
@@ -132,6 +122,18 @@ export default function ConnectionsPage() {
             />
           }
         />
+
+        <FilterSectionCard title="地點搜尋">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={locationQuery}
+              onChange={(event) => setLocationQuery(event.target.value)}
+              placeholder="例如：稻荷神社"
+              className="pl-9"
+            />
+          </div>
+        </FilterSectionCard>
 
         <FilterSectionCard title="國家">
           <div className="space-y-4">
@@ -216,17 +218,15 @@ export default function ConnectionsPage() {
           </div>
         </FilterSectionCard>
 
-        <FilterSectionCard title="地點搜尋">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={locationQuery}
-              onChange={(event) => setLocationQuery(event.target.value)}
-              placeholder="搜尋地點，例如：稻荷神社"
-              className="pl-9"
+        <FilterSectionCard
+          title="提供付款方式"
+          rightSlot={
+            <Switch
+              checked={hasBillingMethod}
+              onCheckedChange={setHasBillingMethod}
             />
-          </div>
-        </FilterSectionCard>
+          }
+        />
       </div>
     )
   }

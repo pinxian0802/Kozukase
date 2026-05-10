@@ -101,7 +101,7 @@ export function ImageGallery({
       </button>
 
       {hasMultipleImages && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2">
           {images.map((image, index) => {
             const isActive = index === activeIndex
             return (
@@ -110,7 +110,7 @@ export function ImageGallery({
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 className={cn(
-                  'relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-xl ring-1 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                  'relative flex-1 aspect-square cursor-pointer overflow-hidden rounded-xl ring-1 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   isActive
                     ? 'ring-primary shadow-md shadow-primary/10'
                     : 'ring-border/60 opacity-70 hover:opacity-100'

@@ -78,7 +78,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       )}
 
       {/* Text content */}
-      <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'absolute bottom-0 left-0 right-0 bg-white px-3 pb-2 pt-4'}>
+      <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'absolute bottom-0 left-0 right-0 bg-white px-4 pb-3 pt-4'}>
         {variant === 'compact' ? (
           <div>
             {brandLabel && (
