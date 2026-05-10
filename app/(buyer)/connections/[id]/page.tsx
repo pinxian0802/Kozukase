@@ -1,8 +1,8 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use } from 'react'
 import Link from 'next/link'
-import { MapPin, Truck, Sparkles, Share2, Flag, MessageSquare, ChevronRight } from 'lucide-react'
+import { MapPin, Truck, Sparkles, Share2, Flag, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SocialBadge } from '@/components/seller/social-badge'
@@ -11,6 +11,8 @@ import { ImageGallery } from '@/components/shared/image-gallery'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
+import { useSession } from '@/lib/context/session-context'
+import { useRouter } from 'next/navigation'
 
 const DateTimeline = ({ start, end, startRaw, endRaw }: { start: string; end: string; startRaw: string; endRaw: string }) => {
   const days = Math.round((new Date(endRaw).getTime() - new Date(startRaw).getTime()) / 86400000)
@@ -40,8 +42,30 @@ const DateTimeline = ({ start, end, startRaw, endRaw }: { start: string; end: st
 
 export default function ConnectionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const session = useSession()
+  const router = useRouter()
+  const utils = trpc.useUtils()
+
   const { data: connection, isLoading } = trpc.connection.getById.useQuery({ id })
-  const [wished, setWished] = useState(false)
+
+  const { data: bookmarkData } = trpc.bookmark.isConnectionBookmarked.useQuery(
+    { connection_id: id },
+    { enabled: !!session }
+  )
+
+  const toggleBookmark = trpc.bookmark.toggleConnectionBookmark.useMutation({
+    onSuccess: () => utils.bookmark.isConnectionBookmarked.invalidate({ connection_id: id }),
+  })
+
+  const isBookmarked = bookmarkData?.bookmarked ?? false
+
+  const handleBookmark = () => {
+    if (!session) {
+      router.push('/login')
+      return
+    }
+    toggleBookmark.mutate({ connection_id: id })
+  }
 
   if (isLoading) {
     return (
@@ -109,16 +133,16 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
             )}
 
             {/* Status badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {connection.can_wish && (
+            {connection.can_wish && (
+              <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-semibold"
                   style={{ background: 'rgba(74,176,169,0.12)', color: '#4ab0a9' }}
                 >
                   <Sparkles className="h-3 w-3" /> 開放許願
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Date Timeline Card */}
@@ -176,49 +200,33 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
               </SafeExternalLink>
             )}
 
-            {connection.can_wish ? (
-              <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 44px 44px' }}>
-                <button
-                  onClick={() => setWished(!wished)}
-                  className="h-11 rounded-xl border text-sm font-medium flex items-center justify-center gap-1.5 transition-all"
-                  style={{
-                    background: wished ? 'rgba(233,74,161,0.08)' : 'transparent',
-                    color: wished ? '#e94aa1' : '#444',
-                    borderColor: wished ? 'rgba(233,74,161,0.4)' : '#e2e2e2',
-                  }}
-                >
-                  <Sparkles className="h-4 w-4" />
-                  {wished ? '已加入許願' : '加入許願清單'}
-                </button>
-                <button
-                  title="分享"
-                  className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center hover:bg-muted/50 transition-colors"
-                >
-                  <Share2 className="h-4 w-4" />
-                </button>
-                <button
-                  title="檢舉"
-                  className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center hover:bg-muted/50 transition-colors"
-                >
-                  <Flag className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  title="分享"
-                  className="flex-1 h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center gap-2 text-sm hover:bg-muted/50 transition-colors"
-                >
-                  <Share2 className="h-4 w-4" /> 分享
-                </button>
-                <button
-                  title="檢舉"
-                  className="h-11 w-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center hover:bg-muted/50 transition-colors"
-                >
-                  <Flag className="h-4 w-4" />
-                </button>
-              </div>
-            )}
+            <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 44px 44px' }}>
+              <button
+                onClick={handleBookmark}
+                disabled={toggleBookmark.isPending}
+                className="h-11 rounded-xl border text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 hover:opacity-80 active:scale-[0.98]"
+                style={{
+                  background: isBookmarked ? 'rgba(74,176,169,0.08)' : 'transparent',
+                  color: isBookmarked ? '#4ab0a9' : '#444',
+                  borderColor: isBookmarked ? 'rgba(74,176,169,0.4)' : '#e2e2e2',
+                }}
+              >
+                <Bookmark className="h-4 w-4" fill={isBookmarked ? 'currentColor' : 'none'} />
+                {isBookmarked ? '已收藏' : '收藏連線'}
+              </button>
+              <button
+                title="分享"
+                className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              <button
+                title="檢舉"
+                className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all"
+              >
+                <Flag className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {/* Seller Card */}

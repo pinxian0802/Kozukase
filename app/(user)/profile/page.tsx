@@ -1,18 +1,19 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { User, Heart, Bookmark, Star, UserCheck } from 'lucide-react'
+import { Heart, Bookmark, Star, UserCheck } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/product/product-card'
 import { ListingCard } from '@/components/listing/listing-card'
+import { ConnectionCard } from '@/components/connection/connection-card'
 import { SellerCard } from '@/components/seller/seller-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
+
+type BookmarkFilter = 'all' | 'product' | 'listing' | 'connection'
 
 export default function ProfilePage() {
   return (
@@ -26,8 +27,11 @@ function ProfileContent() {
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') ?? 'bookmarks'
   const session = useSession()
+  const [bookmarkFilter, setBookmarkFilter] = useState<BookmarkFilter>('all')
+
   const { data: productBookmarks } = trpc.bookmark.myProductBookmarks.useQuery({ limit: 50 })
   const { data: listingBookmarks } = trpc.bookmark.myListingBookmarks.useQuery({ limit: 50 })
+  const { data: connectionBookmarks } = trpc.bookmark.myConnectionBookmarks.useQuery({ limit: 50 })
   const { data: wishes } = trpc.wish.myWishes.useQuery({ limit: 50 })
   const { data: follows } = trpc.follow.myFollows.useQuery({ limit: 50 })
   const { data: reviews } = trpc.review.myReviews.useQuery({ limit: 50 })
@@ -58,31 +62,85 @@ function ProfileContent() {
           <TabsTrigger value="reviews"><Star className="mr-1 h-4 w-4" />我的評價</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="bookmarks" className="mt-4 space-y-6">
-          <div>
-            <h3 className="font-medium mb-3">收藏的商品</h3>
-            {productBookmarks?.items && productBookmarks.items.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                {productBookmarks.items.map((b: any) => (
-                  <ProductCard key={b.id} product={b.product} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState icon={Bookmark} title="還沒有收藏的商品" />
-            )}
+        <TabsContent value="bookmarks" className="mt-4 space-y-5">
+          {/* Filter chips */}
+          <div className="flex gap-2 flex-wrap">
+            {(
+              [
+                { key: 'all', label: '全部' },
+                { key: 'product', label: '商品' },
+                { key: 'listing', label: '代購' },
+                { key: 'connection', label: '連線' },
+              ] as { key: BookmarkFilter; label: string }[]
+            ).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setBookmarkFilter(key)}
+                className="h-8 px-4 rounded-full text-sm font-medium transition-all cursor-pointer"
+                style={
+                  bookmarkFilter === key
+                    ? { background: '#111', color: '#fff' }
+                    : { background: 'transparent', color: '#666', border: '1px solid #e2e2e2' }
+                }
+              >
+                {label}
+              </button>
+            ))}
           </div>
-          <div>
-            <h3 className="font-medium mb-3">收藏的上架商品</h3>
-            {listingBookmarks?.items && listingBookmarks.items.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                {listingBookmarks.items.map((b: any) => (
-                  <ListingCard key={b.id} listing={b.listing} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState icon={Bookmark} title="還沒有收藏的上架商品" />
-            )}
-          </div>
+
+          {/* 商品 */}
+          {(bookmarkFilter === 'all' || bookmarkFilter === 'product') && (
+            <div>
+              {bookmarkFilter === 'all' && (
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">商品</h3>
+              )}
+              {productBookmarks?.items && productBookmarks.items.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {productBookmarks.items.map((b: any) => (
+                    <ProductCard key={b.id} product={b.product} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={Bookmark} title="還沒有收藏的商品" />
+              )}
+            </div>
+          )}
+
+          {/* 代購 */}
+          {(bookmarkFilter === 'all' || bookmarkFilter === 'listing') && (
+            <div>
+              {bookmarkFilter === 'all' && (
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">代購</h3>
+              )}
+              {listingBookmarks?.items && listingBookmarks.items.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {listingBookmarks.items.map((b: any) => (
+                    <ListingCard key={b.id} listing={b.listing} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={Bookmark} title="還沒有收藏的代購" />
+              )}
+            </div>
+          )}
+
+          {/* 連線 */}
+          {(bookmarkFilter === 'all' || bookmarkFilter === 'connection') && (
+            <div>
+              {bookmarkFilter === 'all' && (
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">連線</h3>
+              )}
+              {connectionBookmarks?.items && connectionBookmarks.items.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {connectionBookmarks.items.map((b: any) => (
+                    <ConnectionCard key={b.id} connection={b.connection} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={Bookmark} title="還沒有收藏的連線" />
+              )}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="wishes" className="mt-4">
