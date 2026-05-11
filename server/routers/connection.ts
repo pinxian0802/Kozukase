@@ -168,7 +168,7 @@ export const connectionRouter = router({
           region:regions(id, name),
           seller:sellers(
             id, name, ig_handle, threads_handle, is_social_verified, avatar_url,
-            profile:profiles(display_name, avatar_url)
+            profile:profiles(display_name, avatar_url, username)
           ),
           connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
         `)

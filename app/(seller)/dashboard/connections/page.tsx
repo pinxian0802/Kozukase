@@ -139,10 +139,10 @@ export default function SellerConnectionsPage() {
 
       <Tabs value={status} onValueChange={setStatus}>
         <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-          <TabsTrigger value="all">全部 ({counts.total})</TabsTrigger>
-          <TabsTrigger value="active">進行中 ({counts.active})</TabsTrigger>
-          <TabsTrigger value="ended">已結束 ({counts.ended})</TabsTrigger>
-          <TabsTrigger value="pending_approval">待審核 ({counts.pending_approval})</TabsTrigger>
+          <TabsTrigger value="all" className="group">全部 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.total}</span></TabsTrigger>
+          <TabsTrigger value="active" className="group">進行中 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.active}</span></TabsTrigger>
+          <TabsTrigger value="ended" className="group">已結束 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.ended}</span></TabsTrigger>
+          <TabsTrigger value="pending_approval" className="group">待審核 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.pending_approval}</span></TabsTrigger>
         </TabsList>
       </Tabs>
 

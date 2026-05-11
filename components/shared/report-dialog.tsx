@@ -1,24 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { Flag } from 'lucide-react'
+import { Flag, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { buttonVariants } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 interface ReportDialogProps {
   listing_id?: string
   review_id?: string
   connection_id?: string
   seller_id?: string
+  iconOnly?: boolean
+  triggerClassName?: string
 }
 
-export function ReportDialog(props: ReportDialogProps) {
+export function ReportDialog({ iconOnly, triggerClassName, ...props }: ReportDialogProps) {
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
   const [reasonError, setReasonError] = useState('')
@@ -37,27 +38,55 @@ export function ReportDialog(props: ReportDialogProps) {
   const handleSubmit = () => {
     const trimmedReason = reason.trim()
     if (!trimmedReason) {
-      setReasonError('檢舉原因為必填')
+      setReasonError('請填寫檢舉原因')
       return
     }
-
     setReasonError('')
     report.mutate({ ...props, reason: trimmedReason })
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger nativeButton render={<Button variant="ghost" size="sm" className="text-muted-foreground" />}>
+      {iconOnly ? (
+        <DialogTrigger nativeButton render={<Button variant="outline" size="icon" className={cn("h-11 w-11 rounded-[10px] text-[#444]", triggerClassName)} />}>
+          <Flag className="h-4 w-4" />
+        </DialogTrigger>
+      ) : (
+        <DialogTrigger nativeButton render={<Button variant="ghost" size="sm" className="text-muted-foreground" />}>
           <Flag className="mr-1 h-4 w-4" />
           檢舉
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>檢舉</DialogTitle>
-        </DialogHeader>
-        <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
-          <div>
-            <Label htmlFor="report-reason">檢舉原因</Label>
+        </DialogTrigger>
+      )}
+
+      <DialogContent showCloseButton={false} className="gap-0 p-0 overflow-hidden sm:max-w-md rounded-2xl">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-[#f0f0f0] px-5 py-4">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50">
+            <Flag className="h-3.5 w-3.5 text-red-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <DialogTitle className="text-[15px] font-semibold leading-none text-foreground">檢舉內容</DialogTitle>
+            <p className="mt-1 text-xs text-muted-foreground">我們會盡快審核並處理您的回報</p>
+          </div>
+          <DialogClose
+            render={
+              <button
+                type="button"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+              />
+            }
+          >
+            <X className="h-4 w-4" />
+          </DialogClose>
+        </div>
+
+        {/* Body */}
+        <form
+          className="flex flex-col gap-4 px-5 py-5"
+          onSubmit={(e) => { e.preventDefault(); handleSubmit() }}
+          noValidate
+        >
+          <div className="space-y-1.5">
             <Textarea
               id="report-reason"
               value={reason}
@@ -65,20 +94,47 @@ export function ReportDialog(props: ReportDialogProps) {
                 setReason(e.target.value)
                 if (reasonError) setReasonError('')
               }}
-              placeholder="請描述檢舉的原因..."
+              placeholder="請描述您的檢舉原因，例如：內容涉及詐騙、廣告不實..."
               maxLength={500}
               rows={4}
               aria-invalid={!!reasonError}
+              className={cn(
+                "resize-none rounded-xl text-sm placeholder:text-muted-foreground/50",
+                "border-[#e2e2e2] bg-[#fafafa] transition-colors",
+                "focus:border-[#28a5cf] focus:bg-white",
+                reasonError && "border-red-400"
+              )}
             />
-            <FormFieldError message={reasonError} />
-            <p className="mt-1 text-xs text-muted-foreground">{reason.length}/500</p>
+            <div className="flex min-h-[18px] items-center">
+              <FormFieldError message={reasonError} />
+              <span className={cn(
+                "ml-auto text-[11px] tabular-nums transition-colors",
+                reason.length > 450 ? "text-orange-500" : "text-muted-foreground/40"
+              )}>
+                {reason.length}/500
+              </span>
+            </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>取消</Button>
-            <button type="submit" disabled={report.isPending} className={buttonVariants()}>
+
+          <div className="flex items-center justify-end gap-2">
+            <DialogClose
+              render={
+                <button
+                  type="button"
+                  className="h-10 px-4 rounded-xl text-sm font-medium text-[#555] border border-[#e2e2e2] bg-white hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+                />
+              }
+            >
+              取消
+            </DialogClose>
+            <button
+              type="submit"
+              disabled={report.isPending}
+              className="h-10 px-5 rounded-xl text-sm font-semibold bg-red-500 text-white hover:bg-red-600 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer"
+            >
               {report.isPending ? '送出中...' : '送出檢舉'}
             </button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

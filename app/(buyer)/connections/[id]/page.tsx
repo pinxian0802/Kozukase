@@ -2,15 +2,15 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { MapPin, Truck, Sparkles, Share2, Flag, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
+import { MapPin, Truck, Sparkles, Share2, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SocialBadge } from '@/components/seller/social-badge'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
+import { ReportDialog } from '@/components/shared/report-dialog'
 import { useSession } from '@/lib/context/session-context'
 import { useRouter } from 'next/navigation'
 
@@ -168,7 +168,7 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
           {connection.description && (
             <section>
               <h2 className="font-heading text-base font-semibold mb-2.5">連線說明</h2>
-              <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
                 {connection.description}
               </p>
             </section>
@@ -220,32 +220,27 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
               >
                 <Share2 className="h-4 w-4" />
               </button>
-              <button
-                title="檢舉"
-                className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all"
-              >
-                <Flag className="h-4 w-4" />
-              </button>
+              <ReportDialog
+                connection_id={id}
+                iconOnly
+                triggerClassName="h-11 w-11 rounded-xl border-[#e2e2e2] text-muted-foreground hover:bg-muted/50 active:scale-[0.96] transition-all cursor-pointer"
+              />
             </div>
           </div>
 
           {/* Seller Card */}
           {seller && (
             <div className="bg-background border border-[#ececec] rounded-2xl p-4 flex flex-col gap-3.5">
-              <div className="text-[11px] font-medium tracking-widest uppercase text-muted-foreground">
-                賣家資訊
-              </div>
               <Link href={`/sellers/${seller.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <Avatar className="h-[52px] w-[52px] shrink-0">
+                <Avatar className="h-14 w-14 shrink-0">
                   <AvatarImage src={seller.avatar_url ?? seller.profile?.avatar_url ?? undefined} />
-                  <AvatarFallback className="font-semibold text-lg">{seller.name?.[0]}</AvatarFallback>
+                  <AvatarFallback className="font-semibold text-xl">{seller.name?.[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-foreground">{seller.name}</span>
-                    {seller.is_social_verified && <SocialBadge />}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">代購賣家</p>
+                  <span className="font-semibold text-foreground text-base">{seller.name}</span>
+                  {seller.profile?.username && (
+                    <p className="text-xs text-muted-foreground mt-0.5">@{seller.profile.username}</p>
+                  )}
                 </div>
               </Link>
               <div className="border-t border-[#f0f0f0] pt-3">

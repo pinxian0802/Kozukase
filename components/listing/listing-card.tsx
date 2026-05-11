@@ -16,9 +16,12 @@ interface ListingCardProps {
     listing_images?: { url: string; thumbnail_url?: string | null; sort_order: number }[]
   }
   showStatus?: boolean
+  showBrand?: boolean
+  showShippingDate?: boolean
+  tallImage?: boolean
 }
 
-export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
+export function ListingCard({ listing, showStatus = false, showBrand = true, showShippingDate = true, tallImage = false }: ListingCardProps) {
   const firstImage = listing.listing_images?.sort((a, b) => a.sort_order - b.sort_order)[0]
   const imageUrl = firstImage?.thumbnail_url ?? firstImage?.url ?? null
   const brandLabel = typeof listing.product?.brand === 'string' ? listing.product.brand : listing.product?.brand?.name ?? null
@@ -33,7 +36,7 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
   return (
     <Link href={`/listings/${listing.id}`}>
       <div className="group overflow-hidden rounded-2xl bg-white shadow-md transition-shadow hover:shadow-lg">
-        <div className="relative aspect-video overflow-hidden bg-white">
+        <div className={`relative overflow-hidden bg-white ${tallImage ? 'h-[180px]' : 'aspect-video'}`}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -50,24 +53,16 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
         </div>
         <div className="space-y-2 px-3 pb-3 pt-2">
           {listing.product && (
-            <div className="grid min-h-[3rem] gap-1">
-              <div className="h-3.5 overflow-hidden">
-                {brandLabel ? (
-                  <p className="truncate text-[11px] font-medium leading-none text-muted-foreground">{brandLabel}</p>
-                ) : (
-                  <span aria-hidden="true" className="block h-3.5" />
-                )}
-              </div>
-              <div className="h-[1.15rem] overflow-hidden">
-                <h3 className="line-clamp-1 text-sm font-semibold leading-tight">{listing.title || listing.product.name}</h3>
-              </div>
-              <div className="h-3.5 overflow-hidden">
-                {listing.product.model_number ? (
-                  <p className="truncate text-[11px] leading-none text-muted-foreground">{listing.product.model_number}</p>
-                ) : (
-                  <span aria-hidden="true" className="block h-3.5" />
-                )}
-              </div>
+            <div className="grid gap-0.5">
+              {showBrand && brandLabel && (
+                <p className="truncate text-[11px] font-medium leading-none text-muted-foreground">{brandLabel}</p>
+              )}
+              <h3 className="line-clamp-2 text-base font-bold leading-snug">
+                {listing.title || listing.product.name}
+              </h3>
+              {listing.title && listing.product.name && (
+                <p className="line-clamp-1 text-[12.5px] font-medium leading-normal text-muted-foreground">{listing.product.name}</p>
+              )}
             </div>
           )}
           {listing.seller && (
@@ -77,9 +72,11 @@ export function ListingCard({ listing, showStatus = false }: ListingCardProps) {
             <span className="text-sm font-semibold text-primary">
               {formatPrice(listing.price, listing.is_price_on_request)}
             </span>
-            <Badge variant="outline" className="text-[11px]">
-              {formatShippingDate(listing.shipping_date)}
-            </Badge>
+            {showShippingDate && (
+              <Badge variant="outline" className="text-[11px]">
+                {formatShippingDate(listing.shipping_date)}
+              </Badge>
+            )}
           </div>
           {showStatus && (
             <Badge variant={statusLabels[listing.status]?.variant ?? 'secondary'} className="text-[11px]">

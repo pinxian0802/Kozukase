@@ -258,7 +258,7 @@ export default function SellerProfilePage() {
                       onChange={(e) => setBio(e.target.value)}
                       placeholder="介紹你的代購服務、專長地區或購物風格…"
                       maxLength={300}
-                      rows={4}
+                      rows={8}
                       className="resize-none"
                     />
                     <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>

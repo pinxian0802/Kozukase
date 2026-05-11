@@ -155,11 +155,11 @@ export default function SellerListingsPage() {
 
       <Tabs value={status} onValueChange={setStatus}>
         <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-          <TabsTrigger value="all">全部 ({counts?.total ?? 0})</TabsTrigger>
-          <TabsTrigger value="active">上架中 ({counts?.active ?? 0})</TabsTrigger>
-          <TabsTrigger value="draft">草稿 ({counts?.draft ?? 0})</TabsTrigger>
-          <TabsTrigger value="inactive">已下架 ({counts?.inactive ?? 0})</TabsTrigger>
-          <TabsTrigger value="pending_approval">待審核 ({counts?.pending_approval ?? 0})</TabsTrigger>
+          <TabsTrigger value="all" className="group">全部 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.total ?? 0}</span></TabsTrigger>
+          <TabsTrigger value="active" className="group">上架中 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.active ?? 0}</span></TabsTrigger>
+          <TabsTrigger value="draft" className="group">草稿 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.draft ?? 0}</span></TabsTrigger>
+          <TabsTrigger value="inactive" className="group">已下架 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.inactive ?? 0}</span></TabsTrigger>
+          <TabsTrigger value="pending_approval" className="group">待審核 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.pending_approval ?? 0}</span></TabsTrigger>
         </TabsList>
       </Tabs>
 

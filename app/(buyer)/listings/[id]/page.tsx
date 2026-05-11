@@ -1,32 +1,39 @@
 'use client'
 
 import { use } from 'react'
-import { Bookmark, ExternalLink, Camera, MessageCircle } from 'lucide-react'
+import { Bookmark, ExternalLink, Share2, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { StarRating } from '@/components/shared/star-rating'
 import { CopyButton } from '@/components/shared/copy-button'
 import { ReportDialog } from '@/components/shared/report-dialog'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
-import { SocialBadge } from '@/components/seller/social-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatShippingDate } from '@/lib/utils/format'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
+import { useSession } from '@/lib/context/session-context'
+import { useRouter } from 'next/navigation'
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const session = useSession()
+  const router = useRouter()
   const utils = trpc.useUtils()
   const { data: listing, isLoading } = trpc.listing.getById.useQuery({ id })
 
   const bookmarkToggle = trpc.bookmark.toggleListingBookmark.useMutation({
     onSuccess: () => utils.listing.getById.invalidate({ id }),
   })
+
+  const handleBookmark = () => {
+    if (!session) {
+      router.push('/login')
+      return
+    }
+    bookmarkToggle.mutate({ listing_id: id })
+  }
 
   if (isLoading) {
     return (
@@ -87,12 +94,20 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           {listing.specs && listing.specs.length > 0 && (
             <div className="space-y-2">
               <h3 className="font-medium">規格</h3>
-              {listing.specs.map((spec: any, i: number) => (
-                <div key={i} className="flex gap-2 text-sm">
-                  <span className="text-muted-foreground">{spec.type}：</span>
-                  <span>{spec.is_all ? '都有' : spec.options?.join('、')}</span>
-                </div>
-              ))}
+              <div className="space-y-2.5">
+                {listing.specs.map((spec: any, i: number) => (
+                  <div key={i} className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-muted-foreground shrink-0">{spec.type}：</span>
+                    {spec.is_all ? (
+                      <span className="inline-flex items-center rounded-[min(var(--radius-md),12px)] border border-[#e2e2e2] bg-muted px-2.5 py-1 text-xs font-medium">都有</span>
+                    ) : (
+                      spec.options?.map((opt: string, j: number) => (
+                        <span key={j} className="inline-flex items-center rounded-[min(var(--radius-md),12px)] border border-[#e2e2e2] bg-muted px-2.5 py-1 text-xs font-medium">{opt}</span>
+                      ))
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -100,72 +115,72 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           {listing.note && (
             <div>
               <h3 className="font-medium mb-1">備註</h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{listing.note}</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">{listing.note}</p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2.5">
             <CopyButton text={inquiryText} label="複製詢問語" />
-            <SafeExternalLink href={listing.post_url} variant="outline" size="sm">
-              <ExternalLink className="mr-1 h-4 w-4" />查看原始貼文
-            </SafeExternalLink>
-            <Button
-              variant={listing.hasBookmarked ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => bookmarkToggle.mutate({ listing_id: id })}
-              disabled={bookmarkToggle.isPending}
-            >
-              <Bookmark className={`mr-1 h-4 w-4 ${listing.hasBookmarked ? 'fill-current' : ''}`} />
-              收藏
-            </Button>
+            {listing.post_url && (
+              <SafeExternalLink href={listing.post_url} className="w-full justify-center gap-2 h-12 rounded-xl text-sm font-semibold">
+                <ExternalLink className="h-4 w-4" /> 查看原始貼文
+              </SafeExternalLink>
+            )}
+            <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 44px 44px' }}>
+              <button
+                onClick={handleBookmark}
+                disabled={bookmarkToggle.isPending}
+                className="h-11 rounded-xl border text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 hover:opacity-80 active:scale-[0.98]"
+                style={{
+                  background: listing.hasBookmarked ? 'rgba(74,176,169,0.08)' : 'transparent',
+                  color: listing.hasBookmarked ? '#4ab0a9' : '#444',
+                  borderColor: listing.hasBookmarked ? 'rgba(74,176,169,0.4)' : '#e2e2e2',
+                }}
+              >
+                <Bookmark className="h-4 w-4" fill={listing.hasBookmarked ? 'currentColor' : 'none'} />
+                {listing.hasBookmarked ? '已收藏' : '收藏'}
+              </button>
+              <button
+                title="分享"
+                className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              <ReportDialog
+                listing_id={id}
+                iconOnly
+                triggerClassName="h-11 w-11 rounded-xl border-[#e2e2e2] text-muted-foreground hover:bg-muted/50 active:scale-[0.96] transition-all cursor-pointer"
+              />
+            </div>
           </div>
-
-          <Separator />
 
           {/* Seller info */}
           {listing.seller && (
-            <Card>
-              <CardContent className="p-4">
-                <Link href={`/sellers/${listing.seller.id}`} className="flex items-center gap-3 hover:opacity-80">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={(listing.seller as any).avatar_url ?? undefined} />
-                    <AvatarFallback>{listing.seller.name?.[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{listing.seller.name}</span>
-                      {listing.seller.is_social_verified && <SocialBadge />}
-                    </div>
-                    {listing.seller.avg_rating != null && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <StarRating value={listing.seller.avg_rating} readonly size="sm" />
-                        <span className="text-xs text-muted-foreground">({listing.seller.review_count})</span>
-                      </div>
-                    )}
-                  </div>
-                </Link>
-                <div className="mt-3 flex gap-2">
-                  <SafeExternalLink
-                    href={listing.seller.ig_handle ? `https://instagram.com/${listing.seller.ig_handle}` : null}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Camera className="mr-1 h-4 w-4" />IG
-                  </SafeExternalLink>
-                  <SafeExternalLink
-                    href={listing.seller.threads_handle ? `https://threads.net/@${listing.seller.threads_handle}` : null}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <MessageCircle className="mr-1 h-4 w-4" />Threads
-                  </SafeExternalLink>
+            <div className="bg-background border border-[#ececec] rounded-2xl p-4 flex flex-col gap-3.5">
+              <Link href={`/sellers/${listing.seller.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <Avatar className="h-14 w-14 shrink-0">
+                  <AvatarImage src={(listing.seller as any).avatar_url ?? undefined} />
+                  <AvatarFallback className="font-semibold text-xl">{listing.seller.name?.[0]}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <span className="font-semibold text-foreground text-base">{listing.seller.name}</span>
+                  {(listing.seller as any).profile?.username && (
+                    <p className="text-xs text-muted-foreground mt-0.5">@{(listing.seller as any).profile.username}</p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </Link>
+              <div className="border-t border-[#f0f0f0] pt-3">
+                <Link
+                  href={`/sellers/${listing.seller.id}`}
+                  className="w-full h-9 rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
+                >
+                  查看賣家主頁 <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </div>
           )}
 
-          <ReportDialog listing_id={id} />
         </div>
       </div>
     </div>
