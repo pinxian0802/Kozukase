@@ -72,6 +72,10 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
+          {seller.bio && (
+            <p className="text-sm text-foreground whitespace-pre-line">{seller.bio}</p>
+          )}
+
           <p className="text-sm text-muted-foreground">
             <Calendar className="inline mr-1 h-3 w-3" />
             加入於 {formatDate(seller.created_at)}

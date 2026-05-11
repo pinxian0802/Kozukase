@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useTransition, type ReactNode } from 'react'
+import { use, useState, useEffect, useTransition, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Heart, Bookmark, SlidersHorizontal, X } from 'lucide-react'
 import Link from 'next/link'
@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { ListingComparison } from '@/components/product/listing-comparison'
+import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ImageGallery } from '@/components/shared/image-gallery'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
@@ -25,11 +27,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { data: product, isLoading } = trpc.product.getById.useQuery({ id })
   const brandLabel = product && (typeof product.brand === 'string' ? product.brand : product.brand?.name ?? null)
 
+  const [pageSize, setPageSize] = useState(9)
   const PRICE_STEP = 100
   const [minPrice, setMinPrice] = useState(0)
   const [maxPrice, setMaxPrice] = useState<number | null>(null)
   const [inStockOnly, setInStockOnly] = useState(false)
   const [isFilterPending, startFilterTransition] = useTransition()
+  const [listPage, setListPage] = useState(1)
+
+  useEffect(() => { setListPage(1) }, [inStockOnly, minPrice, maxPrice, pageSize])
 
   const wishToggle = trpc.wish.toggle.useMutation({
     onSuccess: () => utils.product.getById.invalidate({ id }),
@@ -53,6 +59,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
     return true
   })
+
+  const totalListPages = Math.ceil(filteredListings.length / pageSize)
+  const paginatedListings = filteredListings.slice((listPage - 1) * pageSize, listPage * pageSize)
 
   const priceRangeLabel = isPriceFiltered
     ? `NT$${minPrice.toLocaleString()} ~ NT$${effectiveMax.toLocaleString()}`
@@ -233,7 +242,18 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   )}
                 </div>
 
-                <Sheet>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                    <SelectTrigger className="h-9 w-24 text-sm">
+                      <SelectValue>{pageSize} 筆</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6">6 筆</SelectItem>
+                      <SelectItem value="9">9 筆</SelectItem>
+                      <SelectItem value="12">12 筆</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Sheet>
                   <SheetTrigger
                     render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}
                   />
@@ -247,7 +267,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                       </div>
                     </div>
                   </SheetContent>
-                </Sheet>
+                  </Sheet>
+                </div>
               </div>
             </section>
 
@@ -258,7 +279,18 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 ))}
               </div>
             ) : (
-              <ListingComparison listings={filteredListings} />
+              <>
+                <ListingComparison listings={paginatedListings} />
+                <Pagination
+                  page={listPage}
+                  totalPages={totalListPages}
+                  onPageChange={(p) => {
+                    setListPage(p)
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                  className="mt-8"
+                />
+              </>
             )}
           </div>
         </div>

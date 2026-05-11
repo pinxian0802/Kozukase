@@ -3,7 +3,6 @@ import { TRPCError } from '@trpc/server'
 import { router, publicProcedure, sellerProcedure } from '../trpc'
 import { httpUrl } from '@/lib/validators/common'
 import { createConnectionInput, updateConnectionInput } from '@/lib/validators/connection'
-import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
 import { checkUrlSafety } from '@/lib/utils/safe-browsing'
 
 export const connectionRouter = router({
@@ -214,7 +213,7 @@ export const connectionRouter = router({
       has_billing_method: z.boolean().optional(),
       brand_id: z.string().uuid().optional(),
       can_wish: z.boolean().optional(),
-      cursor: z.string().optional(),
+      page: z.number().min(1).default(1),
       limit: z.number().min(1).max(50).default(20),
     }))
     .query(async ({ ctx, input }) => {
@@ -285,12 +284,9 @@ export const connectionRouter = router({
         countQuery = countQuery.eq('can_wish', true)
       }
 
-      if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.gt('id', id)
-      }
-
-      query = query.limit(input.limit + 1)
+      const from = (input.page - 1) * input.limit
+      const to = input.page * input.limit - 1
+      query = query.range(from, to)
 
       const [{ data, error }, { count }] = await Promise.all([
         query,
@@ -298,8 +294,9 @@ export const connectionRouter = router({
       ])
       if (error) throw error
       return {
-        ...paginateResults(data ?? [], input.limit),
+        items: data ?? [],
         total: count ?? 0,
+        totalPages: Math.ceil((count ?? 0) / input.limit),
       }
     }),
 

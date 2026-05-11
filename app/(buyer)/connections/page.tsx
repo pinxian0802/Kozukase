@@ -8,9 +8,11 @@ import { FilterCheckbox } from '@/components/ui/filter-checkbox'
 import { Switch } from '@/components/ui/switch'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
+import { Pagination } from '@/components/ui/pagination'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -19,7 +21,10 @@ import { trpc } from '@/lib/trpc/client'
 
 export default function ConnectionsPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const q = searchParams.get('q') ?? ''
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const [regionId, setRegionId] = useState('')
   const [regionSearch, setRegionSearch] = useState('')
   const [showAllRegions, setShowAllRegions] = useState(false)
@@ -47,10 +52,14 @@ export default function ConnectionsPage() {
     .filter(Boolean)
   const otherRegions = regions.filter((r: any) => !POPULAR_REGION_NAMES.includes(r.name))
 
-  const { data, isLoading, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    trpc.connection.browse.useInfiniteQuery(
+  // Reset to page 1 when any filter or pageSize changes
+  useEffect(() => { setPage(1) }, [regionId, activeDuringStart, activeDuringEnd, locationQuery, hasBillingMethod, brandId, canWish, q, pageSize])
+
+  const { data, isLoading, isFetching } =
+    trpc.connection.browse.useQuery(
       {
-        limit: 20,
+        limit: pageSize,
+        page,
         title_query: q || undefined,
         region_id: regionId || undefined,
         location_query: locationText || undefined,
@@ -64,12 +73,18 @@ export default function ConnectionsPage() {
             }
           : undefined,
       },
-      { getNextPageParam: (lastPage: any) => lastPage.nextCursor }
+      { placeholderData: (prev) => prev }
     )
 
-  const connections = data?.pages.flatMap((p: any) => p.items) ?? []
-  const total = data?.pages[0]?.total ?? connections.length
-  const listLoading = isLoading || (isFetching && !isFetchingNextPage)
+  const connections = data?.items ?? []
+  const total = data?.total ?? 0
+  const totalPages = data?.totalPages ?? 0
+  const listLoading = isLoading || isFetching
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   const regionLabel = regions.find((region: any) => region.id === regionId)?.name ?? ''
 
   const formatShortDate = (value: string) => {
@@ -316,7 +331,18 @@ export default function ConnectionsPage() {
                   </div>
                 )}
               </div>
-              <Sheet>
+              <div className="flex shrink-0 items-center gap-2">
+                <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                  <SelectTrigger className="h-9 w-24 text-sm">
+                    <SelectValue>{pageSize} 筆</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 筆</SelectItem>
+                    <SelectItem value="20">20 筆</SelectItem>
+                    <SelectItem value="50">50 筆</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Sheet>
                 <SheetTrigger
                   render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}
                 />
@@ -330,7 +356,8 @@ export default function ConnectionsPage() {
                     </div>
                   </div>
                 </SheetContent>
-              </Sheet>
+                </Sheet>
+              </div>
             </div>
           </section>
 
@@ -347,13 +374,12 @@ export default function ConnectionsPage() {
                   <ConnectionCard key={c.id} connection={c} />
                 ))}
               </div>
-              {hasNextPage && (
-                <div className="mt-8 text-center">
-                  <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-                    {isFetchingNextPage ? '載入中...' : '載入更多'}
-                  </Button>
-                </div>
-              )}
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                className="mt-8"
+              />
             </>
           ) : (
             <EmptyState
