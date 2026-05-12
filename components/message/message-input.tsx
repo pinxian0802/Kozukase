@@ -1,0 +1,208 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { ImagePlus, Send, Loader2, X, ShieldCheck } from 'lucide-react'
+import { toast } from 'sonner'
+import { normalizeImageFile } from '@/lib/utils/heic'
+import { ContextCard } from './context-card'
+
+export type SendPayload = {
+  body?: string
+  file?: File
+  localPreviewUrl?: string
+  contextType?: 'listing' | 'connection'
+  contextId?: string
+  contextLabel?: string
+  contextImage?: string
+}
+
+type Props = {
+  onSend: (payload: SendPayload) => void
+  isSending?: boolean
+  contextType?: 'listing' | 'connection'
+  contextId?: string
+  contextLabel?: string
+  contextImage?: string
+}
+
+export function MessageInput({
+  onSend,
+  isSending,
+  contextType,
+  contextId,
+  contextLabel,
+  contextImage,
+}: Props) {
+  const [body, setBody] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null)
+  const [processing, setProcessing] = useState(false)
+  const [contextSent, setContextSent] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.files?.[0]
+    if (!raw) return
+    e.target.value = ''
+    setProcessing(true)
+    try {
+      const normalized = await normalizeImageFile(raw)
+      const url = URL.createObjectURL(normalized)
+      setFile(normalized)
+      setLocalPreviewUrl(url)
+    } catch {
+      toast.error('無法載入圖片')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const clearImage = () => {
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl)
+    setFile(null)
+    setLocalPreviewUrl(null)
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  const handleSend = () => {
+    if (!body.trim() && !file) return
+
+    const ctx = !contextSent && contextType && contextId
+    onSend({
+      body: body.trim() || undefined,
+      file: file ?? undefined,
+      localPreviewUrl: localPreviewUrl ?? undefined,
+      contextType: ctx ? contextType : undefined,
+      contextId: ctx ? contextId : undefined,
+      contextLabel: ctx ? contextLabel : undefined,
+      contextImage: ctx ? contextImage : undefined,
+    })
+
+    setBody('')
+    setFile(null)
+    setLocalPreviewUrl(null)
+    // Do NOT revoke here — the blob URL is still needed by the optimistic message bubble.
+    // ConversationPanel revokes it after the optimistic message is removed.
+    if (ctx) setContextSent(true)
+    if (textareaRef.current) textareaRef.current.style.height = 'auto'
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const canSend = (body.trim().length > 0 || !!file) && !isSending && !processing
+
+  return (
+    <div style={{ borderTop: '1px solid #ececec', background: '#fff', padding: '12px 20px 16px', flexShrink: 0 }}>
+      {/* Context card */}
+      {!contextSent && contextType && contextId && (
+        <div style={{ marginBottom: 10 }}>
+          <ContextCard
+            contextType={contextType}
+            contextId={contextId}
+            contextLabel={contextLabel ?? ''}
+            imageUrl={contextImage}
+          />
+        </div>
+      )}
+
+      {/* Local image preview */}
+      {localPreviewUrl && (
+        <div style={{ position: 'relative', display: 'inline-block', marginBottom: 10 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={localPreviewUrl}
+            alt="預覽"
+            style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover', border: '1px solid #ececec', display: 'block' }}
+          />
+          <button
+            onClick={clearImage}
+            style={{
+              position: 'absolute', top: -6, right: -6,
+              width: 20, height: 20, borderRadius: '50%',
+              background: '#111', color: '#fff', border: 'none', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <X style={{ width: 10, height: 10 }} />
+          </button>
+        </div>
+      )}
+
+      {/* Composer */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-end', gap: 6,
+        border: '1px solid #e6e2dc', borderRadius: 14, background: '#fafaf6', padding: '6px 6px 6px 10px',
+      }}>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*,.heic,.heif"
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+        <button
+          type="button"
+          title="圖片"
+          disabled={processing}
+          onClick={() => fileRef.current?.click()}
+          style={{
+            width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent',
+            cursor: processing ? 'not-allowed' : 'pointer', color: '#666',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}
+        >
+          {processing
+            ? <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />
+            : <ImagePlus style={{ width: 16, height: 16 }} />
+          }
+        </button>
+
+        <textarea
+          ref={textareaRef}
+          value={body}
+          rows={1}
+          onChange={e => {
+            setBody(e.target.value)
+            const el = e.target
+            el.style.height = 'auto'
+            el.style.height = Math.min(140, el.scrollHeight) + 'px'
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="輸入訊息… 按 Enter 送出，Shift+Enter 換行"
+          style={{
+            flex: 1, resize: 'none', border: 'none', outline: 'none',
+            background: 'transparent', fontSize: 14, lineHeight: 1.5,
+            color: '#111', padding: '8px 8px', maxHeight: 140, minHeight: 36,
+            fontFamily: 'inherit',
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={handleSend}
+          disabled={!canSend}
+          style={{
+            width: 36, height: 36, borderRadius: 10, border: 'none',
+            cursor: canSend ? 'pointer' : 'not-allowed',
+            background: canSend ? '#111' : '#dedad4',
+            color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, transition: 'background .15s',
+          }}
+        >
+          <Send style={{ width: 15, height: 15 }} />
+        </button>
+      </div>
+
+      <div style={{ marginTop: 8, fontSize: 11, color: '#9a9a9a', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <ShieldCheck style={{ width: 10, height: 10, flexShrink: 0 }} />
+        涉及金錢交易請使用平台「下單」功能，避免私下匯款
+      </div>
+    </div>
+  )
+}

@@ -8,6 +8,7 @@ const AUTH_REQUIRED_PREFIXES = [
   '/profile',
   '/settings',
   '/notifications',
+  '/messages',
   '/dashboard',
   '/admin',
   '/onboarding',

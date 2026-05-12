@@ -40,6 +40,7 @@ export type NotificationType =
   | 'followed_seller_new_listing'
   | 'wish_product_removed'
   | 'bookmarked_product_removed'
+  | 'new_message'
 
 export type ConnectionStatus = 'active' | 'ended' | 'pending_approval'
 
@@ -253,6 +254,30 @@ export type Wish = {
   created_at: string
 }
 
+export type Conversation = {
+  id: string
+  buyer_id: string
+  seller_id: string
+  buyer_last_read_at: string | null
+  seller_last_read_at: string | null
+  last_message_at: string | null
+  last_message_preview: string | null
+  created_at: string
+}
+
+export type Message = {
+  id: string
+  conversation_id: string
+  sender_id: string
+  body: string | null
+  image_url: string | null
+  context_type: 'listing' | 'connection' | null
+  context_id: string | null
+  context_label: string | null
+  context_image_url: string | null
+  created_at: string
+}
+
 // ── Database Schema Type ───────────────────────────────
 
 type TableDefinition<
@@ -399,6 +424,16 @@ export type Database = {
         Wish,
         Omit<Wish, 'id' | 'created_at'> & { id?: string; created_at?: string },
         Partial<Wish>
+      >
+      conversations: TableDefinition<
+        Conversation,
+        Omit<Conversation, 'id' | 'created_at'> & { id?: string; created_at?: string },
+        Partial<Conversation>
+      >
+      messages: TableDefinition<
+        Message,
+        Omit<Message, 'id' | 'created_at'> & { id?: string; created_at?: string },
+        Partial<Message>
       >
     }
   }

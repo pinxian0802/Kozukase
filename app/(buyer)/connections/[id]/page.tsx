@@ -239,12 +239,18 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
                   )}
                 </div>
               </Link>
-              <div className="border-t border-[#f0f0f0] pt-3">
+              <div className="border-t border-[#f0f0f0] pt-3 flex flex-col gap-2">
                 <Link
                   href={`/sellers/${seller.id}`}
                   className="w-full h-9 rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
                 >
                   查看賣家主頁 <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href={`/messages?seller_id=${seller.id}&seller_name=${encodeURIComponent(seller.name ?? '')}&seller_avatar=${encodeURIComponent(seller.avatar_url ?? seller.profile?.avatar_url ?? '')}&context_type=connection&context_id=${id}&context_label=${encodeURIComponent(connection.title ?? '連線代購')}${sortedImages[0]?.url ? `&context_image=${encodeURIComponent(sortedImages[0].url)}` : ''}`}
+                  className="w-full h-9 rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" /> 詢問此連線
                 </Link>
               </div>
             </div>

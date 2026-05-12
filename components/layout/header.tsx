@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useSession } from '@/lib/context/session-context'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/shared/notification-bell'
+import { MessageBell } from '@/components/shared/message-bell'
 
 export function Header() {
   const router = useRouter()
@@ -96,6 +97,7 @@ export function Header() {
           {session?.profile ? (
             <>
               <NotificationBell />
+              <MessageBell />
               <DropdownMenu>
                 <DropdownMenuTrigger
                   nativeButton={false}

@@ -17,7 +17,7 @@ const s3Client = new S3Client({
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
-type ImagePurpose = 'product' | 'listing' | 'connection' | 'avatar'
+type ImagePurpose = 'product' | 'listing' | 'connection' | 'avatar' | 'message'
 
 function ownedKeyPrefix(purpose: ImagePurpose, userId: string): string {
   return `images/${purpose}/users/${userId}/`
@@ -43,7 +43,7 @@ function assertUrlMatchesKey(url: string, r2Key: string) {
 export const uploadRouter = router({
   getPresignedUrl: protectedProcedure
     .input(z.object({
-      purpose: z.enum(['product', 'listing', 'connection', 'avatar']),
+      purpose: z.enum(['product', 'listing', 'connection', 'avatar', 'message']),
       contentType: z.string(),
       fileSize: z.number(),
       variant: z.enum(['original', 'thumbnail']).default('original'),
@@ -142,6 +142,7 @@ export const uploadRouter = router({
         `images/listing/users/${ctx.user.id}/`,
         `images/connection/users/${ctx.user.id}/`,
         `images/avatar/users/${ctx.user.id}/`,
+        `images/message/users/${ctx.user.id}/`,
       ]
 
       for (const key of input.r2Keys) {

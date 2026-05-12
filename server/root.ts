@@ -13,6 +13,7 @@ import { reportRouter } from './routers/report'
 import { uploadRouter } from './routers/upload'
 import { adminRouter } from './routers/admin'
 import { brandRouter } from './routers/brand'
+import { messageRouter } from './routers/message'
 
 export const appRouter = router({
   auth: authRouter,
@@ -29,6 +30,7 @@ export const appRouter = router({
   report: reportRouter,
   upload: uploadRouter,
   admin: adminRouter,
+  message: messageRouter,
 })
 
 export type AppRouter = typeof appRouter

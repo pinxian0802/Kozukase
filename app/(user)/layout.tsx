@@ -1,12 +1,12 @@
 import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
+import { ConditionalFooter } from '@/components/layout/conditional-footer'
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <main className="flex-1">{children}</main>
-      <Footer />
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden">{children}</main>
+      <ConditionalFooter />
     </>
   )
 }

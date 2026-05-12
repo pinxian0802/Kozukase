@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import { Bookmark, ExternalLink, ChevronRight } from 'lucide-react'
+import { Bookmark, ExternalLink, ChevronRight, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -166,12 +166,18 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   )}
                 </div>
               </Link>
-              <div className="border-t border-[#f0f0f0] pt-3">
+              <div className="border-t border-[#f0f0f0] pt-3 flex flex-col gap-2">
                 <Link
                   href={`/sellers/${listing.seller.id}`}
                   className="w-full h-9 rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
                 >
                   查看賣家主頁 <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href={`/messages?seller_id=${listing.seller.id}&seller_name=${encodeURIComponent((listing.seller as any).profile?.display_name ?? listing.seller.name ?? '')}&seller_avatar=${encodeURIComponent((listing.seller as any).avatar_url ?? '')}&context_type=listing&context_id=${listing.id}&context_label=${encodeURIComponent(listing.title ?? listing.product?.name ?? '商品')}${images[0]?.url ? `&context_image=${encodeURIComponent(images[0].url)}` : ''}`}
+                  className="w-full h-9 rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" /> 詢問此商品
                 </Link>
               </div>
             </div>

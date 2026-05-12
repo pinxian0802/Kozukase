@@ -19,6 +19,7 @@ import { ListingCard } from '@/components/listing/listing-card'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { trpc } from '@/lib/trpc/client'
+import { useSession } from '@/lib/context/session-context'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -50,7 +51,9 @@ function StarRow({ value, size = 14 }: { value: number; size?: number }) {
 export default function SellerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const session = useSession()
   const utils = trpc.useUtils()
+  const isOwnProfile = session?.user?.id === id
   const [listingCat, setListingCat] = useState('all')
   const [listingSort, setListingSort] = useState('latest')
 
@@ -196,12 +199,14 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
                   ? <><UserCheck className="h-4 w-4" /> 已追蹤</>
                   : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
               </button>
-              <button
-                onClick={() => toast.info('訊息功能即將推出')}
-                className="h-11 px-4 rounded-[10px] bg-white text-[#222] border border-[#e0e0e0] text-[14px] font-semibold inline-flex items-center gap-1.5 hover:bg-[#f7f7f7] transition-colors"
-              >
-                <MessageCircle className="h-4 w-4" /> 訊息
-              </button>
+              {!isOwnProfile && (
+                <button
+                  onClick={() => router.push(`/messages?seller_id=${id}`)}
+                  className="h-11 px-4 rounded-[10px] bg-white text-[#222] border border-[#e0e0e0] text-[14px] font-semibold inline-flex items-center gap-1.5 hover:bg-[#f7f7f7] transition-colors"
+                >
+                  <MessageCircle className="h-4 w-4" /> 訊息
+                </button>
+              )}
               <SharePopover
                 title={seller.name ?? ''}
                 triggerClassName="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors cursor-pointer"
