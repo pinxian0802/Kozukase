@@ -3,7 +3,7 @@
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  UserPlus, UserCheck, Share2, MapPin, Calendar,
+  UserPlus, UserCheck, MapPin, Calendar,
   Star, Package, Globe, CheckCircle2, MessageCircle, ChevronLeft
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { StarRating } from '@/components/shared/star-rating'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { ReportDialog } from '@/components/shared/report-dialog'
+import { SharePopover } from '@/components/shared/share-popover'
 import { ReviewForm } from '@/components/review/review-form'
 import { ReviewList } from '@/components/review/review-list'
 import { ListingCard } from '@/components/listing/listing-card'
@@ -85,15 +86,7 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
 
   const listingItems = listings?.items ?? []
 
-  const handleShare = () => {
-    const url = window.location.href
-    if (navigator.share) {
-      navigator.share({ title: seller.name, url })
-    } else {
-      navigator.clipboard.writeText(url)
-      toast.success('連結已複製')
-    }
-  }
+
 
   const igHandle = seller.ig_handle
   const igFollowers = seller.ig_follower_count
@@ -209,13 +202,10 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
               >
                 <MessageCircle className="h-4 w-4" /> 訊息
               </button>
-              <button
-                onClick={handleShare}
-                title="分享"
-                className="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors"
-              >
-                <Share2 className="h-4 w-4" />
-              </button>
+              <SharePopover
+                title={seller.name ?? ''}
+                triggerClassName="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors cursor-pointer"
+              />
               <ReportDialog seller_id={id} iconOnly />
             </div>
 

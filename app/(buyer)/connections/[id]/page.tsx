@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { MapPin, Truck, Sparkles, Share2, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
+import { MapPin, Truck, Sparkles, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
@@ -11,6 +11,7 @@ import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 import { ReportDialog } from '@/components/shared/report-dialog'
+import { SharePopover } from '@/components/shared/share-popover'
 import { useSession } from '@/lib/context/session-context'
 import { useRouter } from 'next/navigation'
 
@@ -214,12 +215,7 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
                 <Bookmark className="h-4 w-4" fill={isBookmarked ? 'currentColor' : 'none'} />
                 {isBookmarked ? '已收藏' : '收藏連線'}
               </button>
-              <button
-                title="分享"
-                className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all"
-              >
-                <Share2 className="h-4 w-4" />
-              </button>
+              <SharePopover title={connection.title ?? ''} />
               <ReportDialog
                 connection_id={id}
                 iconOnly

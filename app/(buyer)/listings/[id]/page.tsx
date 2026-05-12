@@ -1,12 +1,13 @@
 'use client'
 
 import { use } from 'react'
-import { Bookmark, ExternalLink, Share2, ChevronRight } from 'lucide-react'
+import { Bookmark, ExternalLink, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CopyButton } from '@/components/shared/copy-button'
 import { ReportDialog } from '@/components/shared/report-dialog'
+import { SharePopover } from '@/components/shared/share-popover'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -141,12 +142,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 <Bookmark className="h-4 w-4" fill={listing.hasBookmarked ? 'currentColor' : 'none'} />
                 {listing.hasBookmarked ? '已收藏' : '收藏'}
               </button>
-              <button
-                title="分享"
-                className="h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all"
-              >
-                <Share2 className="h-4 w-4" />
-              </button>
+              <SharePopover title={listing.product?.name ?? listing.title ?? ''} />
               <ReportDialog
                 listing_id={id}
                 iconOnly
