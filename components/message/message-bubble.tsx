@@ -27,11 +27,11 @@ export function MessageBubble({ message, isOwn, prevMessage, localImageUrl, uplo
       display: 'flex',
       flexDirection: 'column',
       alignItems: isOwn ? 'flex-end' : 'flex-start',
-      padding: `${grouped ? 2 : 8}px 24px`,
+      padding: `${message.context_type ? 12 : grouped ? 2 : 8}px 24px`,
       gap: 4,
     }}>
       {message.context_type && message.context_id && message.context_label && (
-        <div style={{ width: '100%', maxWidth: 340 }}>
+        <div style={{ width: '100%', maxWidth: 460, marginBottom: 6 }}>
           <ContextCard
             contextType={message.context_type}
             contextId={message.context_id}

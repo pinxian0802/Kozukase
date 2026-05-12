@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { MessageSquare, Search, ShieldCheck } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -27,7 +28,30 @@ export function ConversationList({ selectedId, onSelect }: Props) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState<TabKey>('all')
 
-  const { data: conversations, isLoading } = trpc.message.list.useQuery()
+  const utils = trpc.useUtils()
+  const { data: conversations, isLoading } = trpc.message.list.useQuery(undefined, { staleTime: 0 })
+
+  // Real-time: when anyone sends a message to our conversations, refresh the list
+  useEffect(() => {
+    if (!session?.user?.id) return
+    const supabase = createSupabaseBrowserClient()
+    const channel = supabase
+      .channel('conv-list-sync')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload) => {
+          const msg = payload.new as { sender_id: string }
+          // Skip our own sends — send mutation already invalidates
+          if (msg.sender_id !== session.user!.id) {
+            utils.message.list.invalidate()
+          }
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id])
 
   const processedConvs = useMemo(() => {
     if (!conversations) return []
@@ -130,12 +154,6 @@ export function ConversationList({ selectedId, onSelect }: Props) {
             />
           ))
         )}
-      </div>
-
-      {/* Footer */}
-      <div style={{ padding: '10px 16px', borderTop: '1px solid #f0ede7', fontSize: 11, color: '#9a9a9a', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <ShieldCheck style={{ width: 11, height: 11, flexShrink: 0 }} />
-        所有訊息均在 Kozukase 平台留存以保障雙方權益
       </div>
     </aside>
   )

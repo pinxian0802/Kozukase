@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Info, MoreHorizontal } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { trpc } from '@/lib/trpc/client'
@@ -54,20 +54,22 @@ function uploadWithProgress(
 export function ConversationPanel({ conversationId, otherName, otherAvatar, pendingContext, pendingContextImage }: Props) {
   const session = useSession()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const isFirstLoad = useRef(true)
   const isAtBottom = useRef(true)
   const [messages, setMessages] = useState<DisplayMessage[]>([])
   const [isSending, setIsSending] = useState(false)
 
   const { data: history } = trpc.message.messages.useQuery(
     { conversation_id: conversationId },
-    { enabled: !!conversationId }
+    { enabled: !!conversationId, staleTime: 0 }
   )
 
   const utils = trpc.useUtils()
-  const markRead = trpc.message.markRead.useMutation()
+  const markRead = trpc.message.markRead.useMutation({
+    onSuccess: () => {
+      utils.message.list.invalidate()
+      utils.message.unreadCount.invalidate()
+    },
+  })
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
   const sendMutation = trpc.message.send.useMutation()
 
@@ -77,37 +79,16 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, pend
     }
   }, [history])
 
-  // Runs before browser paints — jumps to bottom instantly on first load, no scroll animation
-  useLayoutEffect(() => {
-    if (messages.length > 0 && isFirstLoad.current) {
-      isFirstLoad.current = false
-      const container = scrollContainerRef.current
-      if (container) container.scrollTop = container.scrollHeight
-    }
-  }, [messages])
-
   // Track whether user is near the bottom (within 80px threshold)
+  // With column-reverse, scrollTop=0 is the visual bottom
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container) return
     const onScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container
-      isAtBottom.current = scrollHeight - scrollTop - clientHeight < 80
+      isAtBottom.current = container.scrollTop < 80
     }
     container.addEventListener('scroll', onScroll, { passive: true })
     return () => container.removeEventListener('scroll', onScroll)
-  }, [])
-
-  // ResizeObserver on inner content — if content grows (e.g. image loads) and user is at bottom, stay at bottom
-  useEffect(() => {
-    const content = contentRef.current
-    const container = scrollContainerRef.current
-    if (!content || !container) return
-    const observer = new ResizeObserver(() => {
-      if (isAtBottom.current) container.scrollTop = container.scrollHeight
-    })
-    observer.observe(content)
-    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
@@ -133,6 +114,9 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, pend
             return [...prev, newMsg]
           })
           scrollToBottom()
+          if (newMsg.sender_id !== session?.user?.id) {
+            markRead.mutate({ conversation_id: conversationId })
+          }
         }
       )
       .subscribe()
@@ -144,9 +128,7 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, pend
   }, [conversationId])
 
   const scrollToBottom = () => {
-    setTimeout(() => {
-      scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 50)
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0
   }
 
   const handleSend = useCallback(async (payload: SendPayload) => {
@@ -192,7 +174,7 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, pend
         imageUrl = publicUrl
       }
 
-      await sendMutation.mutateAsync({
+      const realMsg = await sendMutation.mutateAsync({
         conversation_id: conversationId,
         body: payload.body || undefined,
         image_url: imageUrl,
@@ -202,10 +184,28 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, pend
         context_image_url: payload.contextImage,
       })
 
-      // Remove the optimistic message — Realtime will add the real one
-      setMessages(prev => prev.filter(m => m.id !== tempId))
-      if (payload.localPreviewUrl) URL.revokeObjectURL(payload.localPreviewUrl)
-      markRead.mutate({ conversation_id: conversationId })
+      // Replace optimistic immediately (no await gap → Realtime duplicate-key race is gone)
+      // Preserve localImageUrl so the blob keeps showing while R2 URL loads in background
+      setMessages(prev => prev.map(m =>
+        m.id === tempId ? { ...realMsg, isOptimistic: false, localImageUrl: m.localImageUrl } : m
+      ))
+
+      // Non-blocking: once R2 image is in browser cache, swap to it and free the blob
+      if (realMsg.image_url && payload.localPreviewUrl) {
+        const blobUrl = payload.localPreviewUrl
+        const realId = realMsg.id
+        const img = new Image()
+        const onSettled = () => {
+          setMessages(prev => prev.map(m => m.id === realId ? { ...m, localImageUrl: undefined } : m))
+          URL.revokeObjectURL(blobUrl)
+        }
+        img.onload = onSettled
+        img.onerror = onSettled
+        img.src = realMsg.image_url
+      } else if (payload.localPreviewUrl) {
+        URL.revokeObjectURL(payload.localPreviewUrl)
+      }
+
       utils.message.list.invalidate()
     } catch (err: any) {
       setMessages(prev => prev.filter(m => m.id !== tempId))
@@ -240,21 +240,18 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, pend
         </div>
       </div>
 
-      {/* Messages */}
-      <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-        <div ref={contentRef} style={{ padding: '12px 0' }}>
-          {messages.map((msg, i) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              isOwn={msg.sender_id === session?.user?.id}
-              prevMessage={messages[i - 1] ?? null}
-              localImageUrl={msg.localImageUrl}
-              uploadProgress={msg.uploadProgress}
-            />
-          ))}
-          <div ref={scrollRef} />
-        </div>
+      {/* Messages — column-reverse keeps scrollTop=0 at visual bottom, images loading never push viewport up */}
+      <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column-reverse', padding: '12px 0' }}>
+        {[...messages].reverse().map((msg, i, arr) => (
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            isOwn={msg.sender_id === session?.user?.id}
+            prevMessage={arr[i + 1] ?? null}
+            localImageUrl={msg.localImageUrl}
+            uploadProgress={msg.uploadProgress}
+          />
+        ))}
       </div>
 
       <MessageInput

@@ -48,8 +48,20 @@ export function MessageInput({
     setProcessing(true)
     try {
       const normalized = await normalizeImageFile(raw)
-      const url = URL.createObjectURL(normalized)
-      setFile(normalized)
+      const { default: imageCompression } = await import('browser-image-compression')
+      const compressed = await imageCompression(normalized, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1280,
+        fileType: 'image/webp',
+        useWebWorker: true,
+      })
+      const webpFile = new File(
+        [compressed],
+        normalized.name.replace(/\.[^.]+$/, '.webp'),
+        { type: 'image/webp' },
+      )
+      const url = URL.createObjectURL(webpFile)
+      setFile(webpFile)
       setLocalPreviewUrl(url)
     } catch {
       toast.error('無法載入圖片')
@@ -89,7 +101,7 @@ export function MessageInput({
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       handleSend()
     }
@@ -197,11 +209,6 @@ export function MessageInput({
         >
           <Send style={{ width: 15, height: 15 }} />
         </button>
-      </div>
-
-      <div style={{ marginTop: 8, fontSize: 11, color: '#9a9a9a', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <ShieldCheck style={{ width: 10, height: 10, flexShrink: 0 }} />
-        涉及金錢交易請使用平台「下單」功能，避免私下匯款
       </div>
     </div>
   )

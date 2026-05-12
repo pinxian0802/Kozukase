@@ -20,11 +20,14 @@ export const messageRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: '找不到賣家' })
       }
 
+      // Check both directions — the other party may have initiated first
       const { data: existing } = await ctx.db
         .from('conversations')
         .select('*')
-        .eq('buyer_id', ctx.user.id)
-        .eq('seller_id', input.seller_id)
+        .or(
+          `and(buyer_id.eq.${ctx.user.id},seller_id.eq.${input.seller_id}),` +
+          `and(buyer_id.eq.${input.seller_id},seller_id.eq.${ctx.user.id})`
+        )
         .maybeSingle()
 
       if (existing) return existing
@@ -35,7 +38,22 @@ export const messageRouter = router({
         .select()
         .single()
 
-      if (error) throw error
+      // Race condition or pre-existing duplicate: fetch whichever direction exists
+      if (error) {
+        if (error.code === '23505') {
+          const { data: fallback } = await ctx.db
+            .from('conversations')
+            .select('*')
+            .or(
+              `and(buyer_id.eq.${ctx.user.id},seller_id.eq.${input.seller_id}),` +
+              `and(buyer_id.eq.${input.seller_id},seller_id.eq.${ctx.user.id})`
+            )
+            .limit(1)
+            .single()
+          if (fallback) return fallback
+        }
+        throw error
+      }
       return data
     }),
 
@@ -158,6 +176,14 @@ export const messageRouter = router({
             preview,
           },
         })
+        .then(() => {})
+
+      const isBuyer = conv.buyer_id === ctx.user.id
+      const readField = isBuyer ? 'buyer_last_read_at' : 'seller_last_read_at'
+      ctx.db
+        .from('conversations')
+        .update({ [readField]: new Date().toISOString() })
+        .eq('id', input.conversation_id)
         .then(() => {})
 
       return msg

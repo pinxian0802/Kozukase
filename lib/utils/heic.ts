@@ -19,10 +19,11 @@ export async function normalizeImageFile(file: File): Promise<File> {
 
     const blob = await heicTo({
       blob: file,
-      type: 'image/png',
+      type: 'image/webp',
+      quality: 0.85,
     })
-    const newName = file.name.replace(/\.(heic|heif)$/i, '.png')
-    return new File([blob], newName, { type: 'image/png' })
+    const newName = file.name.replace(/\.(heic|heif)$/i, '.webp')
+    return new File([blob], newName, { type: 'image/webp' })
   } catch (error) {
     const message = error instanceof Error
       ? error.message
