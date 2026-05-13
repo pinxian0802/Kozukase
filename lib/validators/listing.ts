@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { httpUrl } from './common'
+import { productCategoryEnum } from './product'
 
 const listingSpecSchema = z.object({
   type: z.string().min(1),
@@ -50,3 +51,11 @@ export const publishListingInput = z.object({
   (data) => data.price !== undefined || data.is_price_on_request,
   { message: '請填寫價格或選擇私訊報價', path: ['price'] }
 )
+
+export const browseListingsInput = z.object({
+  query: z.string().max(200).optional(),
+  category: productCategoryEnum.optional(),
+  brandId: z.string().uuid().optional(),
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(50).default(20),
+})

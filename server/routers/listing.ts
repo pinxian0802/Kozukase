@@ -3,11 +3,78 @@ import { TRPCError } from '@trpc/server'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { router, publicProcedure, sellerProcedure } from '../trpc'
 import { httpUrl } from '@/lib/validators/common'
-import { createListingInput, updateListingInput } from '@/lib/validators/listing'
+import { createListingInput, updateListingInput, browseListingsInput } from '@/lib/validators/listing'
 import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
 import { checkUrlSafety } from '@/lib/utils/safe-browsing'
+import { normalizeSearchText } from '@/lib/utils/search'
 
 export const listingRouter = router({
+  browse: publicProcedure
+    .input(browseListingsInput)
+    .query(async ({ ctx, input }) => {
+      let productIds: string[] | null = null
+
+      if (input.query) {
+        const normalized = normalizeSearchText(input.query)
+        const { data: matchingIds } = await ctx.db.rpc('search_product_ids', {
+          search_query: normalized,
+        })
+        const ids: string[] = (matchingIds ?? []).map((r: { id: string }) => r.id)
+        if (ids.length === 0) {
+          return { items: [], total: 0, page: input.page, totalPages: 0 }
+        }
+        productIds = ids
+      }
+
+      if (input.category || input.brandId) {
+        let productQuery = ctx.db
+          .from('products')
+          .select('id')
+          .eq('is_removed', false)
+        if (input.category) productQuery = productQuery.eq('category', input.category)
+        if (input.brandId) productQuery = productQuery.eq('brand_id', input.brandId)
+        if (productIds !== null) productQuery = productQuery.in('id', productIds)
+
+        const { data: filtered } = await productQuery
+        const filteredIds: string[] = (filtered ?? []).map((p: { id: string }) => p.id)
+        if (filteredIds.length === 0) {
+          return { items: [], total: 0, page: input.page, totalPages: 0 }
+        }
+        productIds = filteredIds
+      }
+
+      let query = ctx.db
+        .from('listings')
+        .select(
+          `id, title, price, is_price_on_request, is_in_stock, shipping_date, created_at, specs,
+          listing_images(url, thumbnail_url, sort_order),
+          seller:sellers(id, name, avg_rating, review_count, is_social_verified, avatar_url, ig_handle, threads_handle)`,
+          { count: 'exact' }
+        )
+        .eq('status', 'active')
+        .eq('seller.is_suspended', false)
+
+      if (productIds !== null) {
+        query = query.in('product_id', productIds)
+      }
+
+      const offset = (input.page - 1) * input.limit
+      query = query
+        .order('created_at', { ascending: false })
+        .range(offset, offset + input.limit - 1)
+
+      const { data, error, count } = await query
+      if (error) throw error
+
+      const total = count ?? 0
+      return {
+        items: data ?? [],
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / input.limit),
+      }
+    }),
+
   checkPostUrl: sellerProcedure
     .input(z.object({ url: httpUrl }))
     .mutation(async ({ input }) => {

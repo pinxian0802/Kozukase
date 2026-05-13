@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/co
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/product/product-card'
+import { ListingComparison } from '@/components/product/listing-comparison'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Pagination } from '@/components/ui/pagination'
 import type { ProductCategory } from '@/lib/validators/product'
@@ -42,6 +43,7 @@ function SearchContent() {
   const q = searchParams.get('q') ?? ''
   const category = searchParams.get('category') ?? undefined
   const brandId = searchParams.get('brand') ?? undefined
+  const tab = (searchParams.get('tab') ?? 'products') as 'products' | 'listings'
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
   const pageSize = (() => {
     const raw = parseInt(searchParams.get('pageSize') ?? '20', 10)
@@ -55,7 +57,10 @@ function SearchContent() {
   useEffect(() => { setLocalCategory(category) }, [category])
   useEffect(() => { setLocalBrandId(brandId) }, [brandId])
 
-  const { data: brandsData } = trpc.brand.list.useQuery()
+  const { data: brandsData } = trpc.brand.forSearch.useQuery({
+    query: q || undefined,
+    category: category as ProductCategory | undefined,
+  })
   const brands = brandsData ?? []
 
   const { data, isLoading, isFetching } = trpc.product.browse.useQuery(
@@ -73,6 +78,34 @@ function SearchContent() {
   const total = data?.total ?? 0
   const totalPages = data?.totalPages ?? 0
 
+  const {
+    data: listingData,
+    isFetching: listingFetching,
+  } = trpc.listing.browse.useQuery(
+    {
+      query: q || undefined,
+      category: category as ProductCategory | undefined,
+      brandId,
+      page,
+      limit: pageSize,
+    },
+    {
+      enabled: tab === 'listings',
+      placeholderData: (prev) => prev,
+    }
+  )
+
+  const listings = listingData?.items ?? []
+  const listingTotal = listingData?.total ?? 0
+  const listingTotalPages = listingData?.totalPages ?? 0
+
+  const updateTab = (newTab: 'products' | 'listings') => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', newTab)
+    params.set('page', '1')
+    router.push(`/search?${params.toString()}`, { scroll: false })
+  }
+
   const updateParam = (key: string, value: string | null) => {
     if (key === 'category') setLocalCategory(value ?? undefined)
     if (key === 'brand') setLocalBrandId(value ?? undefined)
@@ -80,7 +113,7 @@ function SearchContent() {
     if (value) params.set(key, value)
     else params.delete(key)
     params.set('page', '1')
-    router.push(`/search?${params.toString()}`)
+    router.push(`/search?${params.toString()}`, { scroll: false })
   }
 
   const clearAllFilters = () => {
@@ -89,7 +122,7 @@ function SearchContent() {
     const params = new URLSearchParams()
     if (q) params.set('q', q)
     params.set('pageSize', String(pageSize))
-    router.push(`/search?${params.toString()}`)
+    router.push(`/search?${params.toString()}`, { scroll: false })
   }
 
   const handlePageChange = (newPage: number) => {
@@ -208,8 +241,28 @@ function SearchContent() {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-2xl font-bold">
-                  {q ? `「${q}」的搜尋結果` : '瀏覽商品'}，共 {isFetching ? '' : total} 件
+                  {tab === 'products'
+                    ? q ? `「${q}」的搜尋結果，共 ${isFetching ? '' : total} 件` : `瀏覽商品，共 ${isFetching ? '' : total} 件`
+                    : q ? `「${q}」的代購，共 ${listingFetching ? '' : listingTotal} 筆` : `瀏覽代購，共 ${listingFetching ? '' : listingTotal} 筆`
+                  }
                 </h1>
+                <div className="mt-3 flex gap-1">
+                  {(['products', 'listings'] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => updateTab(t)}
+                      className={[
+                        'rounded-lg px-4 py-1.5 text-sm font-medium transition-colors',
+                        tab === t
+                          ? 'bg-[#26C8C2] text-white'
+                          : 'text-[#555] hover:bg-[#f0f0f0]',
+                      ].join(' ')}
+                    >
+                      {t === 'products' ? '商品' : '代購'}
+                    </button>
+                  ))}
+                </div>
                 {activeFilters.length > 0 && (
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     {activeFilters.map((f) => (
@@ -268,40 +321,70 @@ function SearchContent() {
             </div>
           </section>
 
-          {isFetching ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-square w-full rounded-lg" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : products.length > 0 ? (
-            <>
+          {tab === 'products' ? (
+            isFetching ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    href={`/products/${product.id}?from=${encodeURIComponent(`/search?${searchParams.toString()}`)}`}
-                  />
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="aspect-square w-full rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
                 ))}
               </div>
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                className="mt-8"
+            ) : products.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      href={`/products/${product.id}?from=${encodeURIComponent(`/search?${searchParams.toString()}`)}`}
+                    />
+                  ))}
+                </div>
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  className="mt-8"
+                />
+              </>
+            ) : (
+              <EmptyState
+                icon={Package}
+                title="找不到相符的商品"
+                description="試試其他關鍵字或調整篩選條件"
               />
-            </>
+            )
           ) : (
-            <EmptyState
-              icon={Package}
-              title="找不到相符的商品"
-              description="試試其他關鍵字或調整篩選條件"
-            />
+            listingFetching ? (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="aspect-[4/3] w-full rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : listings.length > 0 ? (
+              <>
+                <ListingComparison listings={listings as any} />
+                <Pagination
+                  page={page}
+                  totalPages={listingTotalPages}
+                  onPageChange={handlePageChange}
+                  className="mt-8"
+                />
+              </>
+            ) : (
+              <EmptyState
+                icon={Package}
+                title="找不到相符的代購"
+                description="試試其他關鍵字或調整篩選條件"
+              />
+            )
           )}
         </div>
       </div>
