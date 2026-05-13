@@ -85,14 +85,14 @@ export default function MessagesPage() {
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 4rem)', display: 'flex', overflow: 'hidden', padding: '16px 24px 24px', background: '#fafaf8' }}>
+    <div style={{ height: 'calc(100vh - 4rem)', display: 'flex', overflow: 'hidden', padding: '16px 24px 24px', background: '#FAFAFD' }}>
       <div style={{
         flex: 1, display: 'flex', minHeight: 0, background: '#fff',
         border: '1px solid #ececec', borderRadius: 18, overflow: 'hidden',
         boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
       }}>
         {/* Left: Conversation List */}
-        <div className={`flex-col ${mobileView === 'panel' ? 'hidden' : 'flex'} md:flex`} style={{ flexShrink: 0 }}>
+        <div className={`flex-col ${mobileView === 'panel' ? 'hidden' : 'flex'} md:flex`} style={{ flexShrink: 0, height: '100%' }}>
           <ConversationList
             selectedId={selectedConversationId}
             onSelect={handleSelectConversation}

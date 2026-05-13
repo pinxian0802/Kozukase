@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect, useTransition, type ReactNode } from 'react'
+import { use, useState, useEffect, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Heart, Bookmark, SlidersHorizontal, X } from 'lucide-react'
 import Link from 'next/link'
@@ -32,7 +32,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [minPrice, setMinPrice] = useState(0)
   const [maxPrice, setMaxPrice] = useState<number | null>(null)
   const [inStockOnly, setInStockOnly] = useState(false)
-  const [isFilterPending, startFilterTransition] = useTransition()
   const [listPage, setListPage] = useState(1)
 
   useEffect(() => { setListPage(1) }, [inStockOnly, minPrice, maxPrice, pageSize])
@@ -76,7 +75,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         rightSlot={
           <Switch
             checked={inStockOnly}
-            onCheckedChange={(checked) => startFilterTransition(() => setInStockOnly(checked))}
+            onCheckedChange={setInStockOnly}
           />
         }
       />
@@ -102,7 +101,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               max={PRICE_MAX}
               step={PRICE_STEP}
               value={minPrice}
-              onChange={(e) => startFilterTransition(() => setMinPrice(Math.min(Number(e.target.value), effectiveMax - PRICE_STEP)))}
+              onChange={(e) => setMinPrice(Math.min(Number(e.target.value), effectiveMax - PRICE_STEP))}
               className={thumbCls}
             />
             <input
@@ -111,7 +110,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               max={PRICE_MAX}
               step={PRICE_STEP}
               value={effectiveMax}
-              onChange={(e) => startFilterTransition(() => setMaxPrice(Math.max(Number(e.target.value), minPrice + PRICE_STEP)))}
+              onChange={(e) => setMaxPrice(Math.max(Number(e.target.value), minPrice + PRICE_STEP))}
               className={thumbCls}
             />
           </div>
@@ -120,7 +119,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <button
               type="button"
               className="cursor-pointer text-left text-xs text-muted-foreground underline underline-offset-2"
-              onClick={() => startFilterTransition(() => { setMinPrice(0); setMaxPrice(null) })}
+              onClick={() => { setMinPrice(0); setMaxPrice(null) }}
             >
               清除
             </button>
@@ -215,14 +214,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-2xl font-bold font-heading">尋找代購，共 {isFilterPending ? '' : filteredListings.length} 位</h2>
+                  <h2 className="text-2xl font-bold font-heading">尋找代購，共 {filteredListings.length} 位</h2>
                   {(isPriceFiltered || inStockOnly) && (
                     <div className="mt-3 flex flex-wrap items-center gap-1.5">
                       {inStockOnly && (
                         <button
                           type="button"
                           className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                          onClick={() => startFilterTransition(() => setInStockOnly(false))}
+                          onClick={() => setInStockOnly(false)}
                         >
                           有現貨
                           <X className="h-3 w-3" />
@@ -232,7 +231,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         <button
                           type="button"
                           className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                          onClick={() => startFilterTransition(() => { setMinPrice(0); setMaxPrice(PRICE_MAX) })}
+                          onClick={() => { setMinPrice(0); setMaxPrice(PRICE_MAX) }}
                         >
                           {priceRangeLabel}
                           <X className="h-3 w-3" />
@@ -272,26 +271,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             </section>
 
-            {isFilterPending ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : (
-              <>
-                <ListingComparison listings={paginatedListings} />
-                <Pagination
-                  page={listPage}
-                  totalPages={totalListPages}
-                  onPageChange={(p) => {
-                    setListPage(p)
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                  className="mt-8"
-                />
-              </>
-            )}
+            <ListingComparison listings={paginatedListings} />
+            <Pagination
+              page={listPage}
+              totalPages={totalListPages}
+              onPageChange={(p) => {
+                setListPage(p)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              className="mt-8"
+            />
           </div>
         </div>
       </div>

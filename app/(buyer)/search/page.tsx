@@ -51,6 +51,7 @@ function SearchContent() {
   })()
 
   const [categoryExpanded, setCategoryExpanded] = useState(false)
+  const [isPending, setIsPending] = useState(false)
   // Optimistic local state — updates immediately on click; syncs back when URL commits
   const [localCategory, setLocalCategory] = useState<string | undefined>(category)
   const [localBrandId, setLocalBrandId] = useState<string | undefined>(brandId)
@@ -98,8 +99,10 @@ function SearchContent() {
   const listings = listingData?.items ?? []
   const listingTotal = listingData?.total ?? 0
   const listingTotalPages = listingData?.totalPages ?? 0
+  useEffect(() => { setIsPending(false) }, [data, listingData])
 
   const updateTab = (newTab: 'products' | 'listings') => {
+    setIsPending(true)
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', newTab)
     params.set('page', '1')
@@ -107,6 +110,7 @@ function SearchContent() {
   }
 
   const updateParam = (key: string, value: string | null) => {
+    setIsPending(true)
     if (key === 'category') setLocalCategory(value ?? undefined)
     if (key === 'brand') setLocalBrandId(value ?? undefined)
     const params = new URLSearchParams(searchParams.toString())
@@ -117,6 +121,7 @@ function SearchContent() {
   }
 
   const clearAllFilters = () => {
+    setIsPending(true)
     setLocalCategory(undefined)
     setLocalBrandId(undefined)
     const params = new URLSearchParams()
@@ -322,7 +327,7 @@ function SearchContent() {
           </section>
 
           {tab === 'products' ? (
-            isFetching ? (
+            (isPending || isFetching) ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="space-y-3">
@@ -358,7 +363,7 @@ function SearchContent() {
               />
             )
           ) : (
-            listingFetching ? (
+            (isPending || listingFetching) ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="space-y-3">

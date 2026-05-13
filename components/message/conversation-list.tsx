@@ -82,7 +82,7 @@ export function ConversationList({ selectedId, onSelect }: Props) {
   }, [processedConvs, tab, query])
 
   return (
-    <aside className="flex flex-col" style={{ width: 320, flexShrink: 0, borderRight: '1px solid #ececec', background: '#fafaf8', overflow: 'hidden', minHeight: 0 }}>
+    <aside className="flex flex-col" style={{ width: 320, flexShrink: 0, borderRight: '1px solid #e8e5e0', background: '#FAFAFD', overflow: 'hidden', height: '100%' }}>
       {/* Header */}
       <div style={{ padding: '18px 16px 12px', borderBottom: '1px solid #f0ede7' }}>
         <h1 style={{ fontFamily: 'Rubik, sans-serif', fontWeight: 700, fontSize: 22, letterSpacing: '-0.01em', color: '#111', marginBottom: 12 }}>

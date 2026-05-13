@@ -34,6 +34,7 @@ export default function ConnectionsPage() {
   const [hasBillingMethod, setHasBillingMethod] = useState(false)
   const [brandId, setBrandId] = useState('')
   const [canWish, setCanWish] = useState(false)
+  const [isPending, setIsPending] = useState(false)
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
   const { data: brandsData } = trpc.brand.list.useQuery()
   const brands = brandsData ?? []
@@ -79,7 +80,8 @@ export default function ConnectionsPage() {
   const connections = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = data?.totalPages ?? 0
-  const listLoading = isLoading || isFetching
+  useEffect(() => { setIsPending(false) }, [data])
+  const listLoading = isPending || isLoading || isFetching
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
@@ -109,7 +111,7 @@ export default function ConnectionsPage() {
           key={region.id}
           label={region.name}
           checked={isSelected}
-          onClick={() => setRegionId(isSelected ? '' : region.id)}
+          onClick={() => { setIsPending(true); setRegionId(isSelected ? '' : region.id) }}
         />
       )
     }
@@ -133,7 +135,7 @@ export default function ConnectionsPage() {
           rightSlot={
             <Switch
               checked={canWish}
-              onCheckedChange={setCanWish}
+              onCheckedChange={(v) => { setIsPending(true); setCanWish(v) }}
             />
           }
         />
@@ -201,7 +203,7 @@ export default function ConnectionsPage() {
                   key={brand.id}
                   label={brand.name}
                   checked={brandId === brand.id}
-                  onClick={() => setBrandId(brandId === brand.id ? '' : brand.id)}
+                  onClick={() => { setIsPending(true); setBrandId(brandId === brand.id ? '' : brand.id) }}
                 />
               ))}
             </div>
@@ -214,7 +216,7 @@ export default function ConnectionsPage() {
               <Label className="text-[11px] font-medium text-[#999]">從</Label>
               <DatePicker
                 value={activeDuringStart}
-                onValueChange={setActiveDuringStart}
+                onValueChange={(v) => { setIsPending(true); setActiveDuringStart(v) }}
                 placeholder="選擇開始日期"
                 className="w-full"
               />
@@ -224,7 +226,7 @@ export default function ConnectionsPage() {
               <Label className="text-[11px] font-medium text-[#999]">到</Label>
               <DatePicker
                 value={activeDuringEnd}
-                onValueChange={setActiveDuringEnd}
+                onValueChange={(v) => { setIsPending(true); setActiveDuringEnd(v) }}
                 placeholder="選擇結束日期"
                 className="w-full"
               />
@@ -238,7 +240,7 @@ export default function ConnectionsPage() {
           rightSlot={
             <Switch
               checked={hasBillingMethod}
-              onCheckedChange={setHasBillingMethod}
+              onCheckedChange={(v) => { setIsPending(true); setHasBillingMethod(v) }}
             />
           }
         />
@@ -269,7 +271,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => setRegionId('')}
+                        onClick={() => { setIsPending(true); setRegionId('') }}
                       >
                         {regionLabel}
                         <X className="h-3 w-3" />
@@ -280,6 +282,7 @@ export default function ConnectionsPage() {
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
                         onClick={() => {
+                          setIsPending(true)
                           setActiveDuringStart('')
                           setActiveDuringEnd('')
                         }}
@@ -292,7 +295,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => setLocationQuery('')}
+                        onClick={() => { setIsPending(true); setLocationQuery('') }}
                       >
                         地點：{locationText}
                         <X className="h-3 w-3" />
@@ -302,7 +305,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => setBrandId('')}
+                        onClick={() => { setIsPending(true); setBrandId('') }}
                       >
                         {brandLabel}
                         <X className="h-3 w-3" />
@@ -312,7 +315,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => setCanWish(false)}
+                        onClick={() => { setIsPending(true); setCanWish(false) }}
                       >
                         可許願
                         <X className="h-3 w-3" />
@@ -322,7 +325,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => setHasBillingMethod(false)}
+                        onClick={() => { setIsPending(true); setHasBillingMethod(false) }}
                       >
                         提供付款方式
                         <X className="h-3 w-3" />
