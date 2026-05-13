@@ -156,7 +156,7 @@ export const sellerRouter = router({
           .select('id')
           .eq('follower_id', ctx.user.id)
           .eq('seller_id', input.id)
-          .single()
+          .maybeSingle()
         isFollowing = !!follow
       }
 

@@ -80,6 +80,7 @@ export type Seller = {
   suspended_at: string | null
   avg_rating: number | null
   review_count: number
+  follow_count: number
   created_at: string
   updated_at: string
 }

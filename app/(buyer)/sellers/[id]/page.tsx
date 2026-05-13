@@ -103,7 +103,7 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
     { label: '代購商品', value: listingItems.length > 0 ? listingItems.length : (seller as any).listing_count ?? '-' },
     { label: '連線代購', value: connections?.length ?? '-' },
     { label: '平均評價', value: seller.avg_rating != null ? seller.avg_rating.toFixed(1) : '-', star: true, sub: seller.review_count ? `${seller.review_count} 則評價` : undefined },
-    { label: '追蹤者', value: (seller as any).follow_count != null ? (seller as any).follow_count.toLocaleString() : '-' },
+    { label: '追蹤者', value: seller.follow_count.toLocaleString() },
   ]
 
   return (
@@ -185,20 +185,22 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
           <div className="flex flex-col gap-3.5">
             {/* Action buttons */}
             <div className="flex gap-2">
-              <button
-                onClick={() => followToggle.mutate({ seller_id: id })}
-                disabled={followToggle.isPending}
-                className={cn(
-                  'flex-1 h-11 rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors',
-                  seller.isFollowing
-                    ? 'bg-[#111] text-white hover:bg-[#333]'
-                    : 'bg-[#111] text-white hover:bg-[#222]'
-                )}
-              >
-                {seller.isFollowing
-                  ? <><UserCheck className="h-4 w-4" /> 已追蹤</>
-                  : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
-              </button>
+              {!isOwnProfile && (
+                <button
+                  onClick={() => followToggle.mutate({ seller_id: id })}
+                  disabled={followToggle.isPending}
+                  className={cn(
+                    'flex-1 h-11 rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors',
+                    seller.isFollowing
+                      ? 'bg-[#f0f0f0] text-[#111] hover:bg-[#e4e4e4]'
+                      : 'bg-[#111] text-white hover:bg-[#222]'
+                  )}
+                >
+                  {seller.isFollowing
+                    ? <><UserCheck className="h-4 w-4" /> 已追蹤</>
+                    : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
+                </button>
+              )}
               {!isOwnProfile && (
                 <button
                   onClick={() => router.push(`/messages?seller_id=${id}`)}
