@@ -604,7 +604,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Note */}
       <div>
-        <Label htmlFor="note">備註</Label>
+        <Label htmlFor="note">說明</Label>
         <Textarea
           id="note"
           value={note}

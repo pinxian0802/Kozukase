@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { MapPin, Truck, Sparkles, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
+import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
@@ -96,7 +96,8 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
         { label: connection.title },
       ]} />
 
-      <div className="grid gap-12 md:grid-cols-[1.05fr_1fr] items-start">
+      <div className="grid gap-12 md:grid-cols-[1fr_1.15fr] items-start">
+
         {/* Gallery — sticky on desktop */}
         <div className="md:sticky md:top-20 space-y-3">
           <ImageGallery
@@ -108,42 +109,53 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Details */}
-        <div className="flex flex-col gap-7">
+        <div className="flex flex-col gap-7 min-w-0">
 
           {/* Header block */}
-          <div className="flex flex-col gap-3">
-            {/* Location chip */}
-            {connection.region && (
-              <div className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5 shrink-0" />
-                <span className="text-foreground">{connection.region.name}</span>
-                {subRegion && (
-                  <>
-                    <span className="mx-1 text-muted-foreground/40">·</span>
-                    <span>{subRegion}</span>
-                  </>
-                )}
-              </div>
-            )}
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col gap-3 flex-1 min-w-0">
+              {/* Location chip */}
+              {connection.region && (
+                <div className="flex items-center gap-1.5 flex-wrap text-sm font-medium text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+                  <span className="whitespace-nowrap text-foreground">{connection.region.name}</span>
+                  {subRegion && (
+                    <>
+                      <span className="mx-1 text-muted-foreground/40">·</span>
+                      <span>{subRegion}</span>
+                    </>
+                  )}
+                </div>
+              )}
 
-            {/* Title */}
-            {connection.title && (
-              <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight">
-                {connection.title}
-              </h1>
-            )}
+              {/* Title */}
+              {connection.title && (
+                <h1 className="text-xl font-bold leading-snug">
+                  {connection.title}
+                </h1>
+              )}
 
-            {/* Status badges */}
-            {connection.can_wish && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-semibold"
-                  style={{ background: 'rgba(74,176,169,0.12)', color: '#4ab0a9' }}
-                >
-                  <Sparkles className="h-3 w-3" /> 開放許願
-                </span>
-              </div>
-            )}
+              {/* Status badges */}
+              {connection.can_wish && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold border"
+                    style={{ borderColor: '#4ab0a9', color: '#4ab0a9' }}
+                  >
+                    <Check className="h-3 w-3" /> 開放許願
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleBookmark}
+              disabled={toggleBookmark.isPending}
+              className="shrink-0 self-start -mt-1 h-9 w-9 flex items-center justify-center rounded-full transition-all cursor-pointer disabled:opacity-60 hover:opacity-70 active:scale-[0.95]"
+              style={{ color: isBookmarked ? '#4ab0a9' : '#aaa' }}
+            >
+              <Bookmark className="h-5 w-5" fill={isBookmarked ? 'currentColor' : 'none'} />
+            </button>
           </div>
 
           {/* Date Timeline Card */}
@@ -165,6 +177,24 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
 
+          {/* Billing Method — prominent warm card */}
+          {connection.billing_method && (
+            <div
+              className="rounded-2xl p-5"
+              style={{ background: '#f4fbfe' }}
+            >
+              <div
+                className="text-[11px] font-semibold tracking-widest uppercase mb-2"
+                style={{ color: '#168eb4' }}
+              >
+                計費方式
+              </div>
+              <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap" style={{ color: '#1a9ac4' }}>
+                {connection.billing_method}
+              </p>
+            </div>
+          )}
+
           {/* Description */}
           {connection.description && (
             <section>
@@ -175,82 +205,48 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
             </section>
           )}
 
-          {/* Billing Method — prominent warm card */}
-          {connection.billing_method && (
-            <div
-              className="rounded-2xl p-5 border border-[#ede8de]"
-              style={{ background: '#f7f5f0' }}
-            >
-              <div
-                className="text-[11px] font-semibold tracking-widest uppercase mb-2"
-                style={{ color: '#9a8f7a' }}
-              >
-                計費方式
-              </div>
-              <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap" style={{ color: '#5a4a2e' }}>
-                {connection.billing_method}
-              </p>
-            </div>
-          )}
-
           {/* CTAs */}
-          <div className="flex flex-col gap-2.5">
+          <div className="flex gap-2">
             {connection.post_link && (
-              <SafeExternalLink href={connection.post_link} className="w-full justify-center gap-2 h-12 rounded-xl text-sm font-semibold">
+              <SafeExternalLink href={connection.post_link} className="flex-1 justify-center gap-2 h-12 rounded-xl text-sm font-semibold hover:opacity-85 active:scale-[0.98]" style={{ background: '#1a9ac4' }}>
                 <MessageSquare className="h-4 w-4" /> 查看貼文 / 群組
               </SafeExternalLink>
             )}
-
-            <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 44px 44px' }}>
-              <button
-                onClick={handleBookmark}
-                disabled={toggleBookmark.isPending}
-                className="h-11 rounded-xl border text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 hover:opacity-80 active:scale-[0.98]"
-                style={{
-                  background: isBookmarked ? 'rgba(74,176,169,0.08)' : 'transparent',
-                  color: isBookmarked ? '#4ab0a9' : '#444',
-                  borderColor: isBookmarked ? 'rgba(74,176,169,0.4)' : '#e2e2e2',
-                }}
-              >
-                <Bookmark className="h-4 w-4" fill={isBookmarked ? 'currentColor' : 'none'} />
-                {isBookmarked ? '已收藏' : '收藏連線'}
-              </button>
-              <SharePopover title={connection.title ?? ''} />
-              <ReportDialog
-                connection_id={id}
-                iconOnly
-                triggerClassName="h-11 w-11 rounded-xl border-[#e2e2e2] text-muted-foreground hover:bg-muted/50 active:scale-[0.96] transition-all cursor-pointer"
-              />
-            </div>
+            <SharePopover title={connection.title ?? ''} />
+            <ReportDialog
+              connection_id={id}
+              iconOnly
+              triggerClassName="h-11 w-11 rounded-xl border-[#e2e2e2] text-muted-foreground hover:bg-muted/50 active:scale-[0.96] transition-all cursor-pointer"
+            />
           </div>
 
           {/* Seller Card */}
           {seller && (
-            <div className="bg-background border border-[#ececec] rounded-2xl p-4 flex flex-col gap-3.5">
-              <Link href={`/sellers/${seller.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="bg-background border border-[#ececec] rounded-2xl p-4 flex items-center gap-3">
+              <Link href={`/sellers/${seller.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1 min-w-0">
                 <Avatar className="h-14 w-14 shrink-0">
                   <AvatarImage src={seller.avatar_url ?? seller.profile?.avatar_url ?? undefined} />
                   <AvatarFallback className="font-semibold text-xl">{seller.name?.[0]}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <span className="font-semibold text-foreground text-base">{seller.name}</span>
+                <div className="min-w-0">
+                  <span className="font-semibold text-foreground text-lg truncate block">{seller.name}</span>
                   {seller.profile?.username && (
-                    <p className="text-xs text-muted-foreground mt-0.5">@{seller.profile.username}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">@{seller.profile.username}</p>
                   )}
                 </div>
               </Link>
-              <div className="border-t border-[#f0f0f0] pt-3 flex flex-col gap-2">
+              <div className="flex flex-col gap-1.5 shrink-0">
                 <Link
                   href={`/sellers/${seller.id}`}
-                  className="w-full h-9 rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
+                  className="h-10 px-6 min-w-[88px] rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
                 >
-                  查看賣家主頁 <ChevronRight className="h-3.5 w-3.5" />
+                  主頁 <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
                 <Link
                   href={`/messages?seller_id=${seller.id}&seller_name=${encodeURIComponent(seller.name ?? '')}&seller_avatar=${encodeURIComponent(seller.avatar_url ?? seller.profile?.avatar_url ?? '')}&context_type=connection&context_id=${id}&context_label=${encodeURIComponent(connection.title ?? '連線代購')}${sortedImages[0]?.url ? `&context_image=${encodeURIComponent(sortedImages[0].url)}` : ''}`}
-                  className="w-full h-9 rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
+                  className="h-10 px-6 min-w-[88px] rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
                 >
-                  <MessageSquare className="h-3.5 w-3.5" /> 詢問此連線
+                  詢問 <MessageSquare className="h-3.5 w-3.5" />
                 </Link>
               </div>
             </div>

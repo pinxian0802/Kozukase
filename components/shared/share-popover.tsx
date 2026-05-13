@@ -18,7 +18,7 @@ export function SharePopover({ title, triggerClassName }: SharePopoverProps) {
         title="分享"
         className={
           triggerClassName ??
-          'h-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all'
+          'h-11 w-11 rounded-xl bg-background border border-[#e2e2e2] text-muted-foreground flex items-center justify-center cursor-pointer hover:bg-muted/50 active:scale-[0.96] transition-all'
         }
       >
         <Share2 className="h-4 w-4" />
