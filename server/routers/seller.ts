@@ -24,7 +24,7 @@ export const sellerRouter = router({
         .insert({
           id: ctx.user.id,
           name: input.name,
-          phone_number: input.phone_number,
+          phone_number: input.phone_number ?? null,
           phone_verified: true, // TODO: implement OTP verification
           bio: input.bio ?? null,
           avatar_url: input.avatar_url ?? null,

@@ -42,6 +42,7 @@ export function MultiSelect({
   disabled,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
+  const [search, setSearch] = React.useState('')
 
   const toggle = (id: string) => {
     if (value.includes(id)) {
@@ -49,6 +50,7 @@ export function MultiSelect({
     } else {
       onValueChange([...value, id])
     }
+    setSearch('')
   }
 
   const selectedOptions = options.filter((o) => value.includes(o.value))
@@ -94,7 +96,7 @@ export function MultiSelect({
         sideOffset={4}
       >
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput placeholder={searchPlaceholder} value={search} onValueChange={setSearch} />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>

@@ -5,7 +5,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <Header />
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden">{children}</main>
+      <main className="flex-1">{children}</main>
       <ConditionalFooter />
     </>
   )

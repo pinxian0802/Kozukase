@@ -139,7 +139,13 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div className="flex items-center gap-2.5 text-[12.5px] text-[#888]">
                   {igHandle && (
-                    <span className="font-medium" style={{ fontFamily: 'Rubik, sans-serif' }}>@{igHandle}</span>
+                    <a
+                      href={`https://www.instagram.com/${igHandle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium hover:underline"
+                      style={{ fontFamily: 'Rubik, sans-serif' }}
+                    >@{igHandle}</a>
                   )}
                   {igHandle && <span className="text-[#ddd]">·</span>}
                   <span className="inline-flex items-center gap-1">

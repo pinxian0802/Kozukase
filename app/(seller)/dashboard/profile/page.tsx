@@ -57,21 +57,21 @@ export default function SellerProfilePage() {
     | { step: 'idle' }
     | { step: 'entering_username' }
     | { step: 'loading_code' }
-    | { step: 'showing_code'; id: string; code: string }
-    | { step: 'polling'; id: string; code: string }
+    | { step: 'polling'; id: string; code: string; expiresAt: string }
     | { step: 'success' }
 
   const [igVerify, setIgVerify] = useState<IgVerifyState>({ step: 'idle' })
   const [igUsernameInput, setIgUsernameInput] = useState('')
   const [igInputError, setIgInputError] = useState('')
+  const [igCountdown, setIgCountdown] = useState('')
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const adminHandle = process.env.NEXT_PUBLIC_INSTAGRAM_ADMIN_HANDLE ?? ''
 
-  const { data: seller, refetch: refetchSeller } = trpc.seller.getSelf.useQuery(undefined, {
+  const { data: seller, isLoading: isSellerLoading, refetch: refetchSeller } = trpc.seller.getSelf.useQuery(undefined, {
     refetchOnWindowFocus: false,
   })
   const { data: regions } = trpc.seller.getRegions.useQuery()
-  const { data: sellerRegions } = trpc.seller.getSellerRegions.useQuery(undefined, {
+  const { data: sellerRegions, isLoading: isRegionsLoading } = trpc.seller.getSellerRegions.useQuery(undefined, {
     refetchOnWindowFocus: false,
   })
 
@@ -92,7 +92,7 @@ export default function SellerProfilePage() {
         setAvatarImage({ url: existingAvatarUrl, r2Key: '' })
       }
     }
-    if (sellerRegions) {
+    if (seller !== undefined && sellerRegions) {
       setSelectedRegions(sellerRegions.map((r: { region_id: string }) => r.region_id))
       setInitialized(true)
     }
@@ -104,16 +104,16 @@ export default function SellerProfilePage() {
     const error = searchParams.get('error')
 
     if (connected === 'threads') {
-      toast.success('Threads 已成功連結')
+      toast.success('Threads 已成功驗證')
       refetchSeller()
     } else if (error === 'cancelled') {
-      toast.info('已取消連結')
+      toast.info('已取消驗證')
     } else if (error === 'invalid_state') {
-      toast.error('連結失敗，請重試')
+      toast.error('驗證失敗，請重試')
     } else if (error === 'token_exchange') {
-      toast.error('連結失敗，請重試')
+      toast.error('驗證失敗，請重試')
     } else if (error === 'fetch_failed') {
-      toast.warning('已連結，但無法取得帳號資料，請稍後重試')
+      toast.warning('已驗證，但無法取得帳號資料，請稍後重試')
       refetchSeller()
     }
 
@@ -126,7 +126,7 @@ export default function SellerProfilePage() {
   const handleIgVerifyStart = async () => {
     const username = igUsernameInput.trim().toLowerCase()
     if (!username) {
-      setIgInputError('請輸入 IG 帳號')
+      setIgInputError('請輸入Instagram帳號')
       return
     }
     setIgInputError('')
@@ -139,24 +139,29 @@ export default function SellerProfilePage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      setIgVerify({ step: 'showing_code', id: data.id, code: data.code })
+      startPolling(data.id, data.code, data.expires_at)
     } catch {
       toast.error('產生驗證碼失敗，請重試')
       setIgVerify({ step: 'entering_username' })
     }
   }
 
-  const startPolling = (id: string, code: string) => {
-    setIgVerify({ step: 'polling', id, code })
+  const startPolling = (id: string, code: string, expiresAt: string) => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current)
+      pollingRef.current = null
+    }
+    setIgVerify({ step: 'polling', id, code, expiresAt })
     pollingRef.current = setInterval(async () => {
       try {
         const res = await fetch(`/api/instagram/verify/status?id=${id}`)
         const data = await res.json()
+        if (!pollingRef.current) return
         if (data.verified) {
           clearInterval(pollingRef.current!)
           pollingRef.current = null
           setIgVerify({ step: 'success' })
-          toast.success('Instagram 已成功連結')
+          toast.success('Instagram 已成功驗證')
           void refetchSeller()
         } else if (data.expired) {
           clearInterval(pollingRef.current!)
@@ -165,7 +170,7 @@ export default function SellerProfilePage() {
           setIgVerify({ step: 'idle' })
         }
       } catch { /* 靜默，下次 interval 再試 */ }
-    }, 3000)
+    }, 5000)
   }
 
   const cancelIgVerify = () => {
@@ -173,14 +178,47 @@ export default function SellerProfilePage() {
       clearInterval(pollingRef.current)
       pollingRef.current = null
     }
+    if (igVerify.step === 'polling') {
+      void fetch('/api/instagram/verify/cancel', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: igVerify.id }),
+      })
+    }
     setIgVerify({ step: 'idle' })
     setIgUsernameInput('')
     setIgInputError('')
   }
 
+  // 回到頁面時從 DB 恢復進行中的驗證
+  useEffect(() => {
+    fetch('/api/instagram/verify/pending')
+      .then(r => r.json())
+      .then((data: { id: string; code: string; expires_at: string } | null) => {
+        if (data) startPolling(data.id, data.code, data.expires_at)
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
   }, [])
+
+  const expiresAt = igVerify.step === 'polling' ? igVerify.expiresAt : null
+  useEffect(() => {
+    if (!expiresAt) { setIgCountdown(''); return }
+    const expiresAtMs = new Date(expiresAt).getTime()
+    const tick = () => {
+      const remaining = Math.max(0, expiresAtMs - Date.now())
+      const mins = Math.floor(remaining / 60000)
+      const secs = Math.floor((remaining % 60000) / 1000)
+      setIgCountdown(`${mins}:${String(secs).padStart(2, '0')}`)
+    }
+    tick()
+    const timer = setInterval(tick, 1000)
+    return () => clearInterval(timer)
+  }, [expiresAt])
 
   const updateSeller = trpc.seller.update.useMutation({
     onSuccess: () => {
@@ -193,7 +231,8 @@ export default function SellerProfilePage() {
   const disconnectSocial = trpc.seller.disconnectSocial.useMutation({
     onSuccess: (_data, variables) => {
       const label = variables.platform === 'instagram' ? 'Instagram' : 'Threads'
-      toast.success(`${label} 已取消連結`)
+      toast.success(`${label} 已取消驗證`)
+      if (variables.platform === 'instagram') setIgVerify({ step: 'idle' })
       refetchSeller()
     },
     onError: (err) => toast.error(err.message),
@@ -272,6 +311,11 @@ export default function SellerProfilePage() {
               <CardTitle>賣家資料</CardTitle>
             </CardHeader>
             <CardContent>
+              {(isSellerLoading || isRegionsLoading) ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
                   <Label className="pt-2">頭貼</Label>
@@ -344,6 +388,7 @@ export default function SellerProfilePage() {
                   </button>
                 </div>
               </form>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -360,24 +405,28 @@ export default function SellerProfilePage() {
                   <InstagramIcon className="h-5 w-5 text-pink-500" />
                   <span className="font-medium">Instagram</span>
                   {igConnectedAt ? (
-                    <Badge variant="secondary" className="text-xs">已連結</Badge>
+                    <Badge variant="secondary" className="text-xs">已驗證</Badge>
                   ) : (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">未連結</Badge>
+                    <Badge variant="outline" className="text-xs text-muted-foreground">未驗證</Badge>
                   )}
                 </div>
 
                 {igConnectedAt ? (
                   <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
                     <div className="space-y-0.5 text-sm">
-                      {igHandle && <p className="font-medium">@{igHandle}</p>}
+                      {igHandle && (
+                        <a
+                          href={`https://www.instagram.com/${igHandle}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium hover:underline"
+                        >@{igHandle}</a>
+                      )}
                       {igFollowers != null && (
                         <p className="text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</p>
                       )}
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <Button variant="outline" size="sm" onClick={() => setIgVerify({ step: 'entering_username' })}>
-                        <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -389,7 +438,7 @@ export default function SellerProfilePage() {
                           ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
                           : <Link2Off className="mr-1 h-3.5 w-3.5" />
                         }
-                        取消連結
+                        取消驗證
                       </Button>
                     </div>
                   </div>
@@ -398,9 +447,9 @@ export default function SellerProfilePage() {
                     {igVerify.step === 'idle' && (
                       <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
                         <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                        <p className="flex-1 text-sm text-muted-foreground">連結後帳號名稱與粉絲數將顯示在賣家頁面</p>
+                        <p className="flex-1 text-sm text-muted-foreground">驗證後帳號名稱與粉絲數將顯示在賣家頁面</p>
                         <Button size="sm" className="flex-shrink-0" onClick={() => setIgVerify({ step: 'entering_username' })}>
-                          <Link2 className="mr-1 h-3.5 w-3.5" />連結
+                          <Link2 className="mr-1 h-3.5 w-3.5" />驗證
                         </Button>
                       </div>
                     )}
@@ -411,7 +460,7 @@ export default function SellerProfilePage() {
                         <div className="flex gap-2">
                           <div className="flex-1">
                             <Input
-                              placeholder="帳號名稱（不含 @）"
+                              placeholder="Instagram帳號名稱"
                               value={igUsernameInput}
                               onChange={(e) => { setIgUsernameInput(e.target.value); setIgInputError('') }}
                               onKeyDown={(e) => { if (e.key === 'Enter') void handleIgVerifyStart() }}
@@ -432,7 +481,7 @@ export default function SellerProfilePage() {
                       </div>
                     )}
 
-                    {(igVerify.step === 'showing_code' || igVerify.step === 'polling') && (
+                    {igVerify.step === 'polling' && (
                       <div className="rounded-md border p-4 space-y-3">
                         <p className="text-sm font-medium">
                           請用 Instagram 私訊以下數字給{' '}
@@ -441,29 +490,14 @@ export default function SellerProfilePage() {
                         <p className="text-3xl font-mono font-bold tracking-[0.3em] text-center py-2">
                           {igVerify.code}
                         </p>
-                        <p className="text-xs text-muted-foreground text-center">驗證碼 15 分鐘內有效</p>
-                        {igVerify.step === 'showing_code' ? (
-                          <Button
-                            className="w-full"
-                            onClick={() => startPolling(igVerify.id, igVerify.code)}
-                          >
-                            我已傳送，等待確認
-                          </Button>
-                        ) : (
-                          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            等待確認中...
-                          </div>
-                        )}
+                        <p className="text-xs text-muted-foreground text-center">剩餘時間 {igCountdown}</p>
+                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          等待確認中...
+                        </div>
                         <Button variant="ghost" size="sm" className="w-full" onClick={cancelIgVerify}>
                           取消
                         </Button>
-                      </div>
-                    )}
-
-                    {igVerify.step === 'success' && (
-                      <div className="rounded-md border bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
-                        Instagram 已成功連結！
                       </div>
                     )}
                   </>
@@ -478,9 +512,9 @@ export default function SellerProfilePage() {
                   <ThreadsIcon className="h-5 w-5" />
                   <span className="font-medium">Threads</span>
                   {threadsConnectedAt ? (
-                    <Badge variant="secondary" className="text-xs">已連結</Badge>
+                    <Badge variant="secondary" className="text-xs">已驗證</Badge>
                   ) : (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">未連結</Badge>
+                    <Badge variant="outline" className="text-xs text-muted-foreground">未驗證</Badge>
                   )}
                 </div>
 
@@ -494,7 +528,7 @@ export default function SellerProfilePage() {
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
                       <Button variant="outline" size="sm" render={<a href="/api/auth/threads/connect" />}>
-                        <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
+                        <Link2 className="mr-1 h-3.5 w-3.5" />重新驗證
                       </Button>
                       <Button
                         variant="outline"
@@ -507,7 +541,7 @@ export default function SellerProfilePage() {
                           ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
                           : <Link2Off className="mr-1 h-3.5 w-3.5" />
                         }
-                        取消連結
+                        取消驗證
                       </Button>
                     </div>
                   </div>
@@ -515,10 +549,10 @@ export default function SellerProfilePage() {
                   <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
                     <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <p className="flex-1 text-sm text-muted-foreground">
-                      連結後帳號名稱將顯示在賣家頁面
+                      驗證後帳號名稱將顯示在賣家頁面
                     </p>
                     <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/threads/connect" />}>
-                      <Link2 className="mr-1 h-3.5 w-3.5" />連結
+                      <Link2 className="mr-1 h-3.5 w-3.5" />驗證
                     </Button>
                   </div>
                 )}
