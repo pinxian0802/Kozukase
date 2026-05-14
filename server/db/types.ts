@@ -71,6 +71,8 @@ export type Seller = {
   phone_number: string
   phone_verified: boolean
   ig_handle: string | null
+  ig_user_id: string | null
+  ig_connected_at: string | null
   threads_handle: string | null
   ig_follower_count: number | null
   threads_follower_count: number | null

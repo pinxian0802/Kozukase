@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Save, Loader2, Link2, Link2Off, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -52,6 +52,21 @@ export default function SellerProfilePage() {
   const [initialized, setInitialized] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // IG DM 驗證狀態機
+  type IgVerifyState =
+    | { step: 'idle' }
+    | { step: 'entering_username' }
+    | { step: 'loading_code' }
+    | { step: 'showing_code'; id: string; code: string }
+    | { step: 'polling'; id: string; code: string }
+    | { step: 'success' }
+
+  const [igVerify, setIgVerify] = useState<IgVerifyState>({ step: 'idle' })
+  const [igUsernameInput, setIgUsernameInput] = useState('')
+  const [igInputError, setIgInputError] = useState('')
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const adminHandle = process.env.NEXT_PUBLIC_INSTAGRAM_ADMIN_HANDLE ?? ''
+
   const { data: seller, refetch: refetchSeller } = trpc.seller.getSelf.useQuery(undefined, {
     refetchOnWindowFocus: false,
   })
@@ -83,15 +98,12 @@ export default function SellerProfilePage() {
     }
   }, [seller, sellerRegions, initialized])
 
-  // 處理 OAuth callback 的 URL 參數，顯示 toast 後清除 params
+  // 處理 Threads OAuth callback 的 URL 參數
   useEffect(() => {
     const connected = searchParams.get('connected')
     const error = searchParams.get('error')
 
-    if (connected === 'instagram') {
-      toast.success('Instagram 已成功連結')
-      refetchSeller()
-    } else if (connected === 'threads') {
+    if (connected === 'threads') {
       toast.success('Threads 已成功連結')
       refetchSeller()
     } else if (error === 'cancelled') {
@@ -109,6 +121,65 @@ export default function SellerProfilePage() {
       router.replace('/dashboard/profile', { scroll: false })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleIgVerifyStart = async () => {
+    const username = igUsernameInput.trim().toLowerCase()
+    if (!username) {
+      setIgInputError('請輸入 IG 帳號')
+      return
+    }
+    setIgInputError('')
+    setIgVerify({ step: 'loading_code' })
+    try {
+      const res = await fetch('/api/instagram/verify/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ig_username: username }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setIgVerify({ step: 'showing_code', id: data.id, code: data.code })
+    } catch {
+      toast.error('產生驗證碼失敗，請重試')
+      setIgVerify({ step: 'entering_username' })
+    }
+  }
+
+  const startPolling = (id: string, code: string) => {
+    setIgVerify({ step: 'polling', id, code })
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/instagram/verify/status?id=${id}`)
+        const data = await res.json()
+        if (data.verified) {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
+          setIgVerify({ step: 'success' })
+          toast.success('Instagram 已成功連結')
+          void refetchSeller()
+        } else if (data.expired) {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
+          toast.error('驗證碼已過期，請重試')
+          setIgVerify({ step: 'idle' })
+        }
+      } catch { /* 靜默，下次 interval 再試 */ }
+    }, 3000)
+  }
+
+  const cancelIgVerify = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current)
+      pollingRef.current = null
+    }
+    setIgVerify({ step: 'idle' })
+    setIgUsernameInput('')
+    setIgInputError('')
+  }
+
+  useEffect(() => {
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
   }, [])
 
   const updateSeller = trpc.seller.update.useMutation({
@@ -304,7 +375,7 @@ export default function SellerProfilePage() {
                       )}
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <Button variant="outline" size="sm" render={<a href="/api/auth/instagram/connect" />}>
+                      <Button variant="outline" size="sm" onClick={() => setIgVerify({ step: 'entering_username' })}>
                         <Link2 className="mr-1 h-3.5 w-3.5" />重新連結
                       </Button>
                       <Button
@@ -323,15 +394,79 @@ export default function SellerProfilePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
-                    <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                    <p className="flex-1 text-sm text-muted-foreground">
-                      連結後帳號名稱與粉絲數將顯示在賣家頁面
-                    </p>
-                    <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/instagram/connect" />}>
-                      <Link2 className="mr-1 h-3.5 w-3.5" />連結
-                    </Button>
-                  </div>
+                  <>
+                    {igVerify.step === 'idle' && (
+                      <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
+                        <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <p className="flex-1 text-sm text-muted-foreground">連結後帳號名稱與粉絲數將顯示在賣家頁面</p>
+                        <Button size="sm" className="flex-shrink-0" onClick={() => setIgVerify({ step: 'entering_username' })}>
+                          <Link2 className="mr-1 h-3.5 w-3.5" />連結
+                        </Button>
+                      </div>
+                    )}
+
+                    {igVerify.step === 'entering_username' && (
+                      <div className="rounded-md border p-4 space-y-3">
+                        <p className="text-sm text-muted-foreground">輸入你的 Instagram 帳號</p>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              placeholder="帳號名稱（不含 @）"
+                              value={igUsernameInput}
+                              onChange={(e) => { setIgUsernameInput(e.target.value); setIgInputError('') }}
+                              onKeyDown={(e) => { if (e.key === 'Enter') void handleIgVerifyStart() }}
+                              aria-invalid={!!igInputError}
+                            />
+                            <FormFieldError message={igInputError} />
+                          </div>
+                          <Button size="sm" onClick={() => void handleIgVerifyStart()}>取得驗證碼</Button>
+                          <Button size="sm" variant="ghost" onClick={cancelIgVerify}>取消</Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {igVerify.step === 'loading_code' && (
+                      <div className="flex items-center gap-2 rounded-md border p-4">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">產生驗證碼中...</span>
+                      </div>
+                    )}
+
+                    {(igVerify.step === 'showing_code' || igVerify.step === 'polling') && (
+                      <div className="rounded-md border p-4 space-y-3">
+                        <p className="text-sm font-medium">
+                          請用 Instagram 私訊以下數字給{' '}
+                          <span className="font-mono font-semibold">@{adminHandle}</span>
+                        </p>
+                        <p className="text-3xl font-mono font-bold tracking-[0.3em] text-center py-2">
+                          {igVerify.code}
+                        </p>
+                        <p className="text-xs text-muted-foreground text-center">驗證碼 15 分鐘內有效</p>
+                        {igVerify.step === 'showing_code' ? (
+                          <Button
+                            className="w-full"
+                            onClick={() => startPolling(igVerify.id, igVerify.code)}
+                          >
+                            我已傳送，等待確認
+                          </Button>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            等待確認中...
+                          </div>
+                        )}
+                        <Button variant="ghost" size="sm" className="w-full" onClick={cancelIgVerify}>
+                          取消
+                        </Button>
+                      </div>
+                    )}
+
+                    {igVerify.step === 'success' && (
+                      <div className="rounded-md border bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
+                        Instagram 已成功連結！
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

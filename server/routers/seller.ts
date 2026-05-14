@@ -102,6 +102,7 @@ export const sellerRouter = router({
       const clearData: Record<string, null | boolean> = {}
       if (input.platform === 'instagram') {
         clearData.ig_handle = null
+        clearData.ig_user_id = null
         clearData.ig_follower_count = null
         clearData.ig_connected_at = null
       } else {
@@ -111,15 +112,27 @@ export const sellerRouter = router({
       }
 
       // Recalculate is_social_verified based on whether the other platform is still connected
-      const otherPlatform = input.platform === 'instagram' ? 'threads' : 'instagram'
-      const { data: otherToken } = await ctx.db
-        .from('social_tokens')
-        .select('id')
-        .eq('seller_id', sellerId)
-        .eq('platform', otherPlatform)
-        .maybeSingle()
+      let otherConnected = false
+      if (input.platform === 'instagram') {
+        // 取消 IG：看 Threads 有沒有 token
+        const { data: threadsToken } = await ctx.db
+          .from('social_tokens')
+          .select('id')
+          .eq('seller_id', sellerId)
+          .eq('platform', 'threads')
+          .maybeSingle()
+        otherConnected = !!threadsToken
+      } else {
+        // 取消 Threads：看 IG 有沒有透過新流程綁定（ig_connected_at）
+        const { data: seller } = await ctx.db
+          .from('sellers')
+          .select('ig_connected_at')
+          .eq('id', sellerId)
+          .single()
+        otherConnected = !!seller?.ig_connected_at
+      }
 
-      clearData.is_social_verified = !!otherToken
+      clearData.is_social_verified = otherConnected
 
       const { error } = await ctx.db
         .from('sellers')
