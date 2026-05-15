@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Save, Loader2, Link2, Link2Off, AlertCircle } from 'lucide-react'
+import { Save, Loader2, Link2, Link2Off } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -20,22 +19,7 @@ import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
 import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
-
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-    </svg>
-  )
-}
-
-function ThreadsIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.473 12.01v-.017c.027-3.579.879-6.43 2.525-8.482C5.848 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.466l-2.04.569c-.509-1.928-1.424-3.401-2.721-4.378-1.378-1.047-3.195-1.57-5.43-1.583-2.8.02-5.043.896-6.667 2.605-1.582 1.664-2.393 4.07-2.415 7.175.022 3.104.83 5.51 2.413 7.174 1.624 1.71 3.87 2.584 6.679 2.603 2.297-.015 4.048-.603 5.357-1.804 1.39-1.267 2.097-3.04 2.203-5.423-.63.08-1.343.131-2.082.131-2.35 0-4.133-.408-5.297-1.213-1.297-.892-1.957-2.27-1.907-3.993.052-1.818.814-3.213 2.206-4.031 1.198-.701 2.795-.87 4.388-.48.76.188 1.443.523 2.018.989.576.469.994 1.038 1.243 1.69.25.657.33 1.33.236 1.997h-2.07c.058-.378.018-.728-.122-1.056a2.054 2.054 0 00-.694-.91 3.27 3.27 0 00-1.236-.597c-1.044-.257-2.138-.153-2.973.328-.778.455-1.218 1.294-1.25 2.367-.032 1.07.344 1.843 1.116 2.37.867.596 2.293.9 4.233.9 1.115 0 2.083-.085 2.9-.25.004-.115.006-.23.006-.348 0-2.785-.664-5.059-1.974-6.759" />
-    </svg>
-  )
-}
+import Image from 'next/image'
 
 export default function SellerProfilePage() {
   const session = useSession()
@@ -161,7 +145,6 @@ export default function SellerProfilePage() {
           clearInterval(pollingRef.current!)
           pollingRef.current = null
           setIgVerify({ step: 'success' })
-          toast.success('Instagram 已成功驗證')
           void refetchSeller()
         } else if (data.expired) {
           clearInterval(pollingRef.current!)
@@ -398,166 +381,290 @@ export default function SellerProfilePage() {
             <CardHeader>
               <CardTitle>社群帳號</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Instagram */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <InstagramIcon className="h-5 w-5 text-pink-500" />
-                  <span className="font-medium">Instagram</span>
-                  {igConnectedAt ? (
-                    <Badge variant="secondary" className="text-xs">已驗證</Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">未驗證</Badge>
-                  )}
-                </div>
 
-                {igConnectedAt ? (
-                  <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
-                    <div className="space-y-0.5 text-sm">
-                      {igHandle && (
-                        <a
-                          href={`https://www.instagram.com/${igHandle}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium hover:underline"
-                        >@{igHandle}</a>
-                      )}
-                      {igFollowers != null && (
-                        <p className="text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        disabled={disconnectSocial.isPending}
-                        onClick={() => disconnectSocial.mutate({ platform: 'instagram' })}
-                      >
-                        {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'instagram'
-                          ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                          : <Link2Off className="mr-1 h-3.5 w-3.5" />
-                        }
-                        取消驗證
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {igVerify.step === 'idle' && (
-                      <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
-                        <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                        <p className="flex-1 text-sm text-muted-foreground">驗證後帳號名稱與粉絲數將顯示在賣家頁面</p>
-                        <Button size="sm" className="flex-shrink-0" onClick={() => setIgVerify({ step: 'entering_username' })}>
-                          <Link2 className="mr-1 h-3.5 w-3.5" />驗證
+            {igVerify.step !== 'idle' ? (
+
+              /* ── IG 驗證流程：整個 CardContent 換成步驟畫面 ── */
+              <CardContent className="px-6 py-10">
+                <div className="mx-auto max-w-[300px]">
+
+                  {/* Step 1: 輸入帳號 */}
+                  {igVerify.step === 'entering_username' && (
+                    <div className="flex flex-col gap-7">
+                      <div className="flex flex-col items-center gap-3.5 text-center">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.13)]">
+                          <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-[15px] text-[#111]">驗證 Instagram</p>
+                          <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">
+                            輸入你的帳號名稱<br />開始驗證流程
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="relative">
+                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#bbb] text-[14px] select-none pointer-events-none">@</span>
+                          <Input
+                            className="pl-7 h-11 text-[14px]"
+                            placeholder="帳號名稱"
+                            value={igUsernameInput}
+                            onChange={(e) => { setIgUsernameInput(e.target.value); setIgInputError('') }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') void handleIgVerifyStart() }}
+                            aria-invalid={!!igInputError}
+                            autoFocus
+                          />
+                        </div>
+                        <FormFieldError message={igInputError} />
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <Button onClick={() => void handleIgVerifyStart()} className="h-11 w-full font-medium">
+                          取得驗證碼
                         </Button>
-                      </div>
-                    )}
-
-                    {igVerify.step === 'entering_username' && (
-                      <div className="rounded-md border p-4 space-y-3">
-                        <p className="text-sm text-muted-foreground">輸入你的 Instagram 帳號</p>
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <Input
-                              placeholder="Instagram帳號名稱"
-                              value={igUsernameInput}
-                              onChange={(e) => { setIgUsernameInput(e.target.value); setIgInputError('') }}
-                              onKeyDown={(e) => { if (e.key === 'Enter') void handleIgVerifyStart() }}
-                              aria-invalid={!!igInputError}
-                            />
-                            <FormFieldError message={igInputError} />
-                          </div>
-                          <Button size="sm" onClick={() => void handleIgVerifyStart()}>取得驗證碼</Button>
-                          <Button size="sm" variant="ghost" onClick={cancelIgVerify}>取消</Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {igVerify.step === 'loading_code' && (
-                      <div className="flex items-center gap-2 rounded-md border p-4">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">產生驗證碼中...</span>
-                      </div>
-                    )}
-
-                    {igVerify.step === 'polling' && (
-                      <div className="rounded-md border p-4 space-y-3">
-                        <p className="text-sm font-medium">
-                          請用 Instagram 私訊以下數字給{' '}
-                          <span className="font-mono font-semibold">@{adminHandle}</span>
-                        </p>
-                        <p className="text-3xl font-mono font-bold tracking-[0.3em] text-center py-2">
-                          {igVerify.code}
-                        </p>
-                        <p className="text-xs text-muted-foreground text-center">剩餘時間 {igCountdown}</p>
-                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          等待確認中...
-                        </div>
-                        <Button variant="ghost" size="sm" className="w-full" onClick={cancelIgVerify}>
+                        <Button variant="ghost" onClick={cancelIgVerify} className="h-10 w-full text-[13px] text-muted-foreground hover:text-foreground">
                           取消
                         </Button>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Step: 產生驗證碼中 */}
+                  {igVerify.step === 'loading_code' && (
+                    <div className="flex flex-col items-center gap-5 py-10 text-center">
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.13)]">
+                        <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-[13px]">正在產生驗證碼⋯</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2: 傳送驗證碼 */}
+                  {igVerify.step === 'polling' && (
+                    <div className="flex flex-col gap-6">
+                      <div className="text-center space-y-1">
+                        <p className="font-semibold text-[15px] text-[#111]">傳送驗證碼</p>
+                        <p className="text-[13px] text-muted-foreground leading-relaxed">
+                          用 Instagram 私訊以下數字給{' '}
+                          <a
+                            href={`https://www.instagram.com/${adminHandle}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-[#111] hover:underline"
+                          >
+                            @{adminHandle}
+                          </a>
+                        </p>
+                      </div>
+
+                      {/* OTP-style 驗證碼 */}
+                      <div className="flex justify-center gap-2">
+                        {igVerify.code.toString().split('').map((digit, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm"
+                            style={{ width: 40, height: 52 }}
+                          >
+                            {digit}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-[12px] font-mono text-muted-foreground tabular-nums">
+                          剩餘時間 {igCountdown}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          等待確認中⋯
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-[13px] text-muted-foreground hover:text-foreground"
+                        onClick={cancelIgVerify}
+                      >
+                        取消
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Step 3: 驗證完成 */}
+                  {igVerify.step === 'success' && (
+                    <div className="flex flex-col items-center gap-6 py-6 text-center">
+                      <div
+                        className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
+                        style={{ background: 'linear-gradient(135deg, #d4f5e2 0%, #bbf0d4 100%)', border: '2px solid #86efac' }}
+                      >
+                        <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="font-semibold text-[16px] text-[#111]">驗證完成</p>
+                        <p className="text-[13px] text-muted-foreground">
+                          @{igHandle || igUsernameInput} 已成功連結至賣家頁面
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => setIgVerify({ step: 'idle' })}
+                        className="h-11 px-10 font-medium"
+                      >
+                        完成
+                      </Button>
+                    </div>
+                  )}
+
+                </div>
+              </CardContent>
+
+            ) : (
+
+              /* ── 一般列表畫面 ── */
+              <CardContent className="p-0 divide-y divide-border">
+
+                {/* Instagram Row */}
+                <div className="flex items-center gap-3.5 px-5 py-4">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.1)]">
+                      <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
+                    </div>
+                    {igConnectedAt && (
+                      <div className="absolute -bottom-0.5 -right-0.5 w-[15px] h-[15px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                        <svg width={7} height={7} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      </div>
                     )}
-                  </>
-                )}
-              </div>
+                  </div>
 
-              <Separator />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13.5px] font-semibold text-[#111] leading-none mb-1">Instagram</p>
+                    {igConnectedAt ? (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {igHandle && (
+                          <a
+                            href={`https://www.instagram.com/${igHandle}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[12.5px] text-[#555] font-medium hover:underline"
+                          >@{igHandle}</a>
+                        )}
+                        {igFollowers != null && (
+                          <>
+                            <span className="text-[#ccc] text-[11px]">·</span>
+                            <span className="text-[12px] text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</span>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-[12px] text-muted-foreground">尚未連結</p>
+                    )}
+                  </div>
 
-              {/* Threads */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <ThreadsIcon className="h-5 w-5" />
-                  <span className="font-medium">Threads</span>
-                  {threadsConnectedAt ? (
-                    <Badge variant="secondary" className="text-xs">已驗證</Badge>
+                  {igConnectedAt ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2.5 text-[12px] text-muted-foreground hover:text-destructive flex-shrink-0"
+                      disabled={disconnectSocial.isPending}
+                      onClick={() => disconnectSocial.mutate({ platform: 'instagram' })}
+                    >
+                      {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'instagram'
+                        ? <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        : <Link2Off className="mr-1 h-3 w-3" />
+                      }
+                      取消
+                    </Button>
                   ) : (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">未驗證</Badge>
+                    <Button
+                      size="sm"
+                      className="h-8 px-3.5 text-[13px] flex-shrink-0"
+                      onClick={() => setIgVerify({ step: 'entering_username' })}
+                    >
+                      驗證
+                    </Button>
                   )}
                 </div>
 
-                {threadsConnectedAt ? (
-                  <div className="flex items-center justify-between flex-wrap gap-2 rounded-md border bg-muted/30 px-4 py-3">
-                    <div className="space-y-0.5 text-sm">
-                      {threadsHandle && <p className="font-medium">@{threadsHandle}</p>}
-                      {threadsFollowers != null && (
-                        <p className="text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</p>
-                      )}
+                {/* Threads Row */}
+                <div className="flex items-center gap-3.5 px-5 py-4">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.1)]">
+                      <Image src="/images/threads.png" alt="Threads" width={40} height={40} />
                     </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button variant="outline" size="sm" render={<a href="/api/auth/threads/connect" />}>
-                        <Link2 className="mr-1 h-3.5 w-3.5" />重新驗證
+                    {threadsConnectedAt && (
+                      <div className="absolute -bottom-0.5 -right-0.5 w-[15px] h-[15px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                        <svg width={7} height={7} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13.5px] font-semibold text-[#111] leading-none mb-1">Threads</p>
+                    {threadsConnectedAt ? (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {threadsHandle && (
+                          <span className="text-[12.5px] text-[#555] font-medium">@{threadsHandle}</span>
+                        )}
+                        {threadsFollowers != null && (
+                          <>
+                            <span className="text-[#ccc] text-[11px]">·</span>
+                            <span className="text-[12px] text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</span>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-[12px] text-muted-foreground">尚未連結</p>
+                    )}
+                  </div>
+
+                  {threadsConnectedAt ? (
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2.5 text-[12px] text-muted-foreground"
+                        render={<a href="/api/auth/threads/connect" />}
+                      >
+                        重新驗證
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        className="text-destructive hover:text-destructive"
+                        className="h-8 px-2.5 text-[12px] text-muted-foreground hover:text-destructive"
                         disabled={disconnectSocial.isPending}
                         onClick={() => disconnectSocial.mutate({ platform: 'threads' })}
                       >
                         {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'threads'
-                          ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                          : <Link2Off className="mr-1 h-3.5 w-3.5" />
+                          ? <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                          : <Link2Off className="mr-1 h-3 w-3" />
                         }
-                        取消驗證
+                        取消
                       </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-3 rounded-md border border-dashed p-4">
-                    <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                    <p className="flex-1 text-sm text-muted-foreground">
-                      驗證後帳號名稱將顯示在賣家頁面
-                    </p>
-                    <Button size="sm" className="flex-shrink-0" render={<a href="/api/auth/threads/connect" />}>
-                      <Link2 className="mr-1 h-3.5 w-3.5" />驗證
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="h-8 px-3.5 text-[13px] flex-shrink-0"
+                      render={<a href="/api/auth/threads/connect" />}
+                    >
+                      驗證
                     </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
+                  )}
+                </div>
+
+              </CardContent>
+
+            )}
           </Card>
         </TabsContent>
       </Tabs>

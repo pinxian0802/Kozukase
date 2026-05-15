@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Store, Check } from 'lucide-react'
+import { Store, Check, Loader2 } from 'lucide-react'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { AvatarUpload } from '@/components/shared/avatar-upload'
@@ -12,6 +12,7 @@ import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
+import Image from 'next/image'
 
 const KZ = {
   teal: '#3ecfcf',
@@ -22,23 +23,6 @@ const KZ = {
   green: '#72c442',
 }
 
-function ThreadsIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 192 192" fill="currentColor">
-      <path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.13 18.043l13.779 9.452c5.74-8.706 14.747-10.555 21.358-10.555h.229c8.234.052 14.45 2.447 18.474 7.117 2.93 3.402 4.89 8.103 5.86 14.03-7.304-1.241-15.2-1.623-23.642-1.14-23.786 1.371-39.082 15.246-38.055 34.53.521 9.78 5.391 18.193 13.71 23.69 7.027 4.643 16.078 6.913 25.484 6.397 12.421-.681 22.164-5.408 28.96-14.064 5.16-6.571 8.42-15.05 9.84-25.54 5.83 3.52 10.156 8.157 12.554 13.74 4.075 9.467 4.282 24.987-8.428 37.643-11.135 11.108-24.578 15.94-45.012 16.094-22.728-.165-39.913-7.51-51.025-21.823C92.83 161.99 8.523 153.196 8.523 96.176c0-57.022 56.07-87.83 95.949-87.83 22.86 0 41.696 8.74 56.142 19.79 14.196 10.86 25.043 25.6 31.06 41.948z" />
-    </svg>
-  )
-}
-
-function InstagramIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="20" x="2" y="2" rx="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-    </svg>
-  )
-}
 
 interface FormSectionProps {
   index: number
@@ -85,45 +69,6 @@ function FormSection({ index, accent, title, hint, done, required = true, meta, 
   )
 }
 
-interface SocialFieldProps {
-  platform: string
-  icon: React.ReactNode
-  iconBg: string
-  value: string
-  onChange: (v: string) => void
-  placeholder: string
-}
-
-function SocialField({ platform, icon, iconBg, value, onChange, placeholder }: SocialFieldProps) {
-  return (
-    <div className="flex items-stretch">
-      <span
-        className="h-11 inline-flex items-center gap-2 px-3 border border-r-0 rounded-l-[10px] bg-[#fafafa]"
-        style={{ minWidth: 130, borderColor: '#ececec' }}
-      >
-        <span
-          style={{
-            width: 22, height: 22, borderRadius: 6,
-            background: iconBg, color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}
-        >
-          {icon}
-        </span>
-        <span className="text-[13px] font-medium text-[#222]">{platform}</span>
-      </span>
-      <div className="relative flex-1 flex">
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#aaa] text-[14px] pointer-events-none select-none">@</span>
-        <input
-          className="h-11 flex-1 border border-[#ececec] rounded-r-[10px] pl-7 pr-3.5 text-[14px] bg-white text-[#111] transition-[border-color,box-shadow] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] hover:border-[#dcdcdc]"
-          value={value}
-          onChange={e => onChange(e.target.value.replace(/^@+/, ''))}
-          placeholder={placeholder}
-        />
-      </div>
-    </div>
-  )
-}
 
 interface PerkProps {
   color: string
@@ -170,6 +115,22 @@ export default function BecomeSellerPage() {
   const [errors, setErrors] = useState<{ sellerName?: string; phone?: string; regions?: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(searchParams.get('preview') === 'submitted')
+
+  // IG 驗證狀態機
+  type IgVerifyState =
+    | { step: 'idle' }
+    | { step: 'entering_username' }
+    | { step: 'loading_code' }
+    | { step: 'polling'; id: string; code: string; expiresAt: string }
+    | { step: 'success' }
+
+  const [igVerify, setIgVerify] = useState<IgVerifyState>({ step: 'idle' })
+  const [igUsernameInput, setIgUsernameInput] = useState('')
+  const [igInputError, setIgInputError] = useState('')
+  const [igCountdown, setIgCountdown] = useState('')
+  const [igConnected, setIgConnected] = useState(false)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const adminHandle = process.env.NEXT_PUBLIC_INSTAGRAM_ADMIN_HANDLE ?? ''
 
   const becomeSeller = trpc.seller.becomeSeller.useMutation()
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
@@ -248,6 +209,76 @@ export default function BecomeSellerPage() {
       setIsSubmitting(false)
     }
   }
+
+  const handleIgVerifyStart = async () => {
+    const username = igUsernameInput.trim().toLowerCase()
+    if (!username) { setIgInputError('請輸入 Instagram 帳號'); return }
+    setIgInputError('')
+    setIgVerify({ step: 'loading_code' })
+    try {
+      const res = await fetch('/api/instagram/verify/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ig_username: username }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      startIgPolling(data.id, data.code, data.expires_at)
+    } catch {
+      toast.error('產生驗證碼失敗，請重試')
+      setIgVerify({ step: 'entering_username' })
+    }
+  }
+
+  const startIgPolling = (id: string, code: string, expiresAt: string) => {
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
+    setIgVerify({ step: 'polling', id, code, expiresAt })
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/instagram/verify/status?id=${id}`)
+        const data = await res.json()
+        if (!pollingRef.current) return
+        if (data.verified) {
+          clearInterval(pollingRef.current!); pollingRef.current = null
+          setIgVerify({ step: 'success' })
+        } else if (data.expired) {
+          clearInterval(pollingRef.current!); pollingRef.current = null
+          toast.error('驗證碼已過期，請重試')
+          setIgVerify({ step: 'idle' })
+        }
+      } catch { /* 靜默，下次 interval 再試 */ }
+    }, 5000)
+  }
+
+  const cancelIgVerify = () => {
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
+    if (igVerify.step === 'polling') {
+      void fetch('/api/instagram/verify/cancel', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: igVerify.id }),
+      })
+    }
+    setIgVerify({ step: 'idle' })
+    setIgUsernameInput('')
+    setIgInputError('')
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (pollingRef.current) clearInterval(pollingRef.current) }, [])
+
+  const igExpiresAt = igVerify.step === 'polling' ? igVerify.expiresAt : null
+  useEffect(() => {
+    if (!igExpiresAt) { setIgCountdown(''); return }
+    const ms = new Date(igExpiresAt).getTime()
+    const tick = () => {
+      const rem = Math.max(0, ms - Date.now())
+      setIgCountdown(`${Math.floor(rem / 60000)}:${String(Math.floor((rem % 60000) / 1000)).padStart(2, '0')}`)
+    }
+    tick()
+    const t = setInterval(tick, 1000)
+    return () => clearInterval(t)
+  }, [igExpiresAt])
 
   return (
     <div className="min-h-screen bg-white">
@@ -358,17 +389,185 @@ export default function BecomeSellerPage() {
 
           {/* 成為賣家後：社群連結 */}
           {submitted && (
-            <div className="flex flex-col gap-7">
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[13px] font-semibold text-[#111]">Threads</span>
-                  <SocialField platform="Threads" icon={<ThreadsIcon size={14} />} iconBg="#000" value={threads} onChange={setThreads} placeholder="yourname" />
+            <div className="flex flex-col gap-6">
+
+              {igVerify.step !== 'idle' ? (
+
+                /* ── IG 驗證流程 ── */
+                <div className="mx-auto w-full max-w-[300px] py-4">
+
+                  {igVerify.step === 'entering_username' && (
+                    <div className="flex flex-col gap-7">
+                      <div className="flex flex-col items-center gap-3.5 text-center">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.13)]">
+                          <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-[15px] text-[#111]">驗證 Instagram</p>
+                          <p className="text-[13px] text-[#888] mt-1 leading-relaxed">輸入你的帳號名稱<br />開始驗證流程</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="relative">
+                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#bbb] text-[14px] select-none pointer-events-none">@</span>
+                          <input
+                            className="w-full h-11 pl-7 pr-3.5 rounded-xl border border-[#ececec] bg-white text-[14px] text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
+                            placeholder="帳號名稱"
+                            value={igUsernameInput}
+                            onChange={e => { setIgUsernameInput(e.target.value); setIgInputError('') }}
+                            onKeyDown={e => { if (e.key === 'Enter') void handleIgVerifyStart() }}
+                            autoFocus
+                          />
+                        </div>
+                        <FormFieldError message={igInputError} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => void handleIgVerifyStart()}
+                          className="h-11 w-full rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                        >
+                          取得驗證碼
+                        </button>
+                        <button
+                          onClick={cancelIgVerify}
+                          className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {igVerify.step === 'loading_code' && (
+                    <div className="flex flex-col items-center gap-5 py-10 text-center">
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.13)]">
+                        <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
+                      </div>
+                      <div className="flex items-center gap-2 text-[#888]">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-[13px]">正在產生驗證碼⋯</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {igVerify.step === 'polling' && (
+                    <div className="flex flex-col gap-6">
+                      <div className="text-center space-y-1">
+                        <p className="font-semibold text-[15px] text-[#111]">傳送驗證碼</p>
+                        <p className="text-[13px] text-[#888] leading-relaxed">
+                          用 Instagram 私訊以下數字給{' '}
+                          <a href={`https://www.instagram.com/${adminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#111] hover:underline">
+                            @{adminHandle}
+                          </a>
+                        </p>
+                      </div>
+                      <div className="flex justify-center gap-2">
+                        {igVerify.code.toString().split('').map((digit, i) => (
+                          <div key={i} className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm" style={{ width: 40, height: 52 }}>
+                            {digit}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-[12px] font-mono text-[#aaa] tabular-nums">剩餘時間 {igCountdown}</span>
+                        <div className="flex items-center gap-1.5 text-[12px] text-[#aaa]">
+                          <Loader2 className="h-3 w-3 animate-spin" />等待確認中⋯
+                        </div>
+                      </div>
+                      <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors">
+                        取消
+                      </button>
+                    </div>
+                  )}
+
+                  {igVerify.step === 'success' && (
+                    <div className="flex flex-col items-center gap-6 py-6 text-center">
+                      <div className="w-[72px] h-[72px] rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #d4f5e2 0%, #bbf0d4 100%)', border: '2px solid #86efac' }}>
+                        <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="font-semibold text-[16px] text-[#111]">驗證完成</p>
+                        <p className="text-[13px] text-[#888]">@{igUsernameInput} 已成功連結至賣家頁面</p>
+                      </div>
+                      <button
+                        onClick={() => { setIgConnected(true); setIgVerify({ step: 'idle' }) }}
+                        className="h-11 px-10 rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                      >
+                        完成
+                      </button>
+                    </div>
+                  )}
+
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[13px] font-semibold text-[#111]">Instagram</span>
-                  <SocialField platform="Instagram" icon={<InstagramIcon size={14} />} iconBg="linear-gradient(135deg,#f58529,#dd2a7b 50%,#8134af)" value={insta} onChange={setInsta} placeholder="yourname" />
+
+              ) : (
+
+                /* ── 雙欄卡片 ── */
+                <div className="grid grid-cols-2 gap-4">
+
+                  {/* Instagram Card */}
+                  {igConnected ? (
+                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-3">
+                      <div className="flex items-start justify-between">
+                        <div className="relative">
+                          <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_10px_rgba(221,42,123,0.15)]">
+                            <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-[15px] h-[15px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                            <svg width={7} height={7} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-semibold text-[#111]">Instagram</p>
+                        <p className="text-[12px] text-[#555] mt-0.5">@{igUsernameInput}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_10px_rgba(221,42,123,0.12)]">
+                          <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-[#111]">Instagram</p>
+                          <p className="text-[11.5px] text-[#aaa]">尚未連結</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIgVerify({ step: 'entering_username' })}
+                        className="h-9 w-full rounded-xl bg-[#111] text-white text-[13px] font-medium hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                      >
+                        驗證
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Threads Card */}
+                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
+                        <Image src="/images/threads.png" alt="Threads" width={40} height={40} />
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-semibold text-[#111]">Threads</p>
+                        <p className="text-[11.5px] text-[#aaa]">尚未連結</p>
+                      </div>
+                    </div>
+                    <a
+                      href="/api/auth/threads/connect"
+                      className="h-9 w-full rounded-xl bg-[#111] text-white text-[13px] font-medium hover:bg-[#222] active:translate-y-px transition-[background,transform] flex items-center justify-center"
+                    >
+                      驗證
+                    </a>
+                  </div>
+
                 </div>
-              </div>
+
+              )}
+
               <div className="flex justify-end">
                 <Link href="/dashboard">
                   <button className="h-[52px] px-7 rounded-xl bg-[#111] text-white text-[15px] font-semibold inline-flex items-center gap-2 hover:bg-[#222] active:translate-y-px transition-[background,transform]">
