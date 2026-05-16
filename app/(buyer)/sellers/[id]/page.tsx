@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   UserPlus, UserCheck, MapPin, Calendar,
   Star, Package, Globe, CheckCircle2, MessageCircle, ChevronLeft
@@ -93,6 +94,9 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
 
   const igHandle = seller.ig_handle
   const igFollowers = seller.ig_follower_count
+  const threadsHandle = (seller as any).threads_handle as string | null | undefined
+  const threadsFollowers = (seller as any).threads_follower_count as number | null | undefined
+  const hasSocial = !!(igHandle || threadsHandle)
   const formatBig = (n: number) => {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M'
     if (n >= 1_000) return (n / 1_000).toFixed(1).replace('.0', '') + 'K'
@@ -188,15 +192,15 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
           </div>
 
           {/* Right: actions + social card */}
-          <div className="flex flex-col gap-3.5">
-            {/* Action buttons */}
-            <div className="flex gap-2">
+          <div className="flex gap-2 items-stretch">
+            {/* Left: follow button + social card */}
+            <div className="flex flex-col gap-2 flex-1 min-w-0">
               {!isOwnProfile && (
                 <button
                   onClick={() => followToggle.mutate({ seller_id: id })}
                   disabled={followToggle.isPending}
                   className={cn(
-                    'flex-1 h-11 rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors',
+                    'w-full h-11 rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors',
                     seller.isFollowing
                       ? 'bg-[#f0f0f0] text-[#111] hover:bg-[#e4e4e4]'
                       : 'bg-[#111] text-white hover:bg-[#222]'
@@ -207,12 +211,51 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
                     : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
                 </button>
               )}
+
+              {/* Social card */}
+              <div className={cn(
+                'flex-1 border border-[#ececec] rounded-[14px] bg-white px-4 flex flex-col',
+                hasSocial ? 'justify-around py-3' : 'justify-center py-3.5'
+              )}>
+                {hasSocial ? (
+                  <>
+                    {igHandle && (
+                      <a
+                        href={`https://www.instagram.com/${igHandle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 group"
+                      >
+                        <Image src="/images/instagram.png" alt="Instagram" width={28} height={28} className="rounded-[6px] shrink-0" />
+                        <span className="text-[14.5px] font-semibold text-[#111] group-hover:underline leading-tight">@{igHandle}</span>
+                      </a>
+                    )}
+                    {threadsHandle && (
+                      <a
+                        href={`https://www.threads.net/@${threadsHandle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 group"
+                      >
+                        <Image src="/images/threads.png" alt="Threads" width={28} height={28} className="rounded-[6px] shrink-0" />
+                        <span className="text-[14.5px] font-semibold text-[#111] group-hover:underline leading-tight">@{threadsHandle}</span>
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-[12.5px] text-[#bbb]">尚未連結社群帳號</span>
+                )}
+              </div>
+            </div>
+
+            {/* Right icon column: 訊息 + 分享 + 檢舉 */}
+            <div className="flex flex-col gap-2 shrink-0">
               {!isOwnProfile && (
                 <button
                   onClick={() => router.push(`/messages?seller_id=${id}`)}
-                  className="h-11 px-4 rounded-[10px] bg-white text-[#222] border border-[#e0e0e0] text-[14px] font-semibold inline-flex items-center gap-1.5 hover:bg-[#f7f7f7] transition-colors"
+                  className="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors"
                 >
-                  <MessageCircle className="h-4 w-4" /> 訊息
+                  <MessageCircle className="h-4 w-4" />
                 </button>
               )}
               <SharePopover
@@ -221,8 +264,6 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
               />
               <ReportDialog seller_id={id} iconOnly />
             </div>
-
-
           </div>
         </div>
 

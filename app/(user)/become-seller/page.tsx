@@ -121,7 +121,9 @@ export default function BecomeSellerPage() {
     | { step: 'idle' }
     | { step: 'entering_username' }
     | { step: 'loading_code' }
+    | { step: 'waiting_send'; id: string; code: string; expiresAt: string }
     | { step: 'polling'; id: string; code: string; expiresAt: string }
+    | { step: 'failed' }
     | { step: 'success' }
 
   const [igVerify, setIgVerify] = useState<IgVerifyState>({ step: 'idle' })
@@ -232,8 +234,15 @@ export default function BecomeSellerPage() {
 
   const startIgPolling = (id: string, code: string, expiresAt: string) => {
     if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
+    setIgVerify({ step: 'waiting_send', id, code, expiresAt })
+  }
+
+  const beginPolling = (id: string, code: string, expiresAt: string) => {
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
+    let attempts = 0
     setIgVerify({ step: 'polling', id, code, expiresAt })
     pollingRef.current = setInterval(async () => {
+      if (!pollingRef.current) return
       try {
         const res = await fetch(`/api/instagram/verify/status?id=${id}`)
         const data = await res.json()
@@ -243,16 +252,27 @@ export default function BecomeSellerPage() {
           setIgVerify({ step: 'success' })
         } else if (data.expired) {
           clearInterval(pollingRef.current!); pollingRef.current = null
-          toast.error('驗證碼已過期，請重試')
+          toast.error('驗證碼已過期，請重新取得')
           setIgVerify({ step: 'idle' })
+        } else {
+          attempts++
+          if (attempts >= 5) {
+            clearInterval(pollingRef.current!); pollingRef.current = null
+            void fetch('/api/instagram/verify/cancel', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id }),
+            })
+            setIgVerify({ step: 'failed' })
+          }
         }
       } catch { /* 靜默，下次 interval 再試 */ }
-    }, 5000)
+    }, 10000)
   }
 
   const cancelIgVerify = () => {
     if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
-    if (igVerify.step === 'polling') {
+    if (igVerify.step === 'polling' || igVerify.step === 'waiting_send') {
       void fetch('/api/instagram/verify/cancel', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -267,7 +287,7 @@ export default function BecomeSellerPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => () => { if (pollingRef.current) clearInterval(pollingRef.current) }, [])
 
-  const igExpiresAt = igVerify.step === 'polling' ? igVerify.expiresAt : null
+  const igExpiresAt = (igVerify.step === 'polling' || igVerify.step === 'waiting_send') ? igVerify.expiresAt : null
   useEffect(() => {
     if (!igExpiresAt) { setIgCountdown(''); return }
     const ms = new Date(igExpiresAt).getTime()
@@ -280,6 +300,24 @@ export default function BecomeSellerPage() {
     return () => clearInterval(t)
   }, [igExpiresAt])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (igCountdown !== '0:00') return
+    if (igVerify.step !== 'waiting_send' && igVerify.step !== 'polling') return
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
+    if ('id' in igVerify) {
+      void fetch('/api/instagram/verify/cancel', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: igVerify.id }),
+      })
+    }
+    toast.error('驗證碼已過期，請重新取得')
+    setIgVerify({ step: 'idle' })
+    setIgUsernameInput('')
+    setIgInputError('')
+  }, [igCountdown, igVerify.step])
+
   return (
     <div className="min-h-screen bg-white">
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '48px 24px 100px' }}>
@@ -288,7 +326,7 @@ export default function BecomeSellerPage() {
         <PageBreadcrumb items={[{ label: '成為賣家' }]} />
 
         {/* Outer grid: left (hero + form) | right (sticky sidebar) */}
-        <div className={submitted ? 'max-w-xl mx-auto' : 'grid gap-12'} style={submitted ? {} : { gridTemplateColumns: '1fr 320px', alignItems: 'flex-start' }}>
+        <div className={submitted ? 'max-w-2xl mx-auto' : 'grid gap-12'} style={submitted ? {} : { gridTemplateColumns: '1fr 320px', alignItems: 'flex-start' }}>
 
           {/* LEFT: hero + form */}
           <div>
@@ -394,24 +432,24 @@ export default function BecomeSellerPage() {
               {igVerify.step !== 'idle' ? (
 
                 /* ── IG 驗證流程 ── */
-                <div className="mx-auto w-full max-w-[300px] py-4">
+                <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-5 flex items-center justify-center mx-auto w-full max-w-[500px]" style={{ height: 360 }}>
+                <div className="w-full max-w-[300px]">
 
                   {igVerify.step === 'entering_username' && (
                     <div className="flex flex-col gap-7">
                       <div className="flex flex-col items-center gap-3.5 text-center">
-                        <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.13)]">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden">
                           <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
                         </div>
                         <div>
                           <p className="font-semibold text-[15px] text-[#111]">驗證 Instagram</p>
-                          <p className="text-[13px] text-[#888] mt-1 leading-relaxed">輸入你的帳號名稱<br />開始驗證流程</p>
+                          <p className="text-[13px] text-[#888] mt-1 leading-relaxed">輸入你的帳號名稱</p>
                         </div>
                       </div>
                       <div className="space-y-1.5">
                         <div className="relative">
-                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#bbb] text-[14px] select-none pointer-events-none">@</span>
                           <input
-                            className="w-full h-11 pl-7 pr-3.5 rounded-xl border border-[#ececec] bg-white text-[14px] text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
+                            className="w-full h-11 px-3.5 rounded-xl border border-[#ececec] bg-white text-[14px] text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
                             placeholder="帳號名稱"
                             value={igUsernameInput}
                             onChange={e => { setIgUsernameInput(e.target.value); setIgInputError('') }}
@@ -440,9 +478,6 @@ export default function BecomeSellerPage() {
 
                   {igVerify.step === 'loading_code' && (
                     <div className="flex flex-col items-center gap-5 py-10 text-center">
-                      <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.13)]">
-                        <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
-                      </div>
                       <div className="flex items-center gap-2 text-[#888]">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span className="text-[13px]">正在產生驗證碼⋯</span>
@@ -450,7 +485,7 @@ export default function BecomeSellerPage() {
                     </div>
                   )}
 
-                  {igVerify.step === 'polling' && (
+                  {igVerify.step === 'waiting_send' && (
                     <div className="flex flex-col gap-6">
                       <div className="text-center space-y-1">
                         <p className="font-semibold text-[15px] text-[#111]">傳送驗證碼</p>
@@ -460,7 +495,32 @@ export default function BecomeSellerPage() {
                             @{adminHandle}
                           </a>
                         </p>
+                        <p className="text-[13px] text-[#888] leading-relaxed">傳送後請點擊『<span className="text-[#111]">我已傳送</span>』按鈕</p>
                       </div>
+                      <div className="flex justify-center gap-2">
+                        {igVerify.code.toString().split('').map((digit, i) => (
+                          <div key={i} className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm" style={{ width: 40, height: 52 }}>
+                            {digit}
+                          </div>
+                        ))}
+                      </div>
+                      <span className="text-[12px] font-mono text-[#aaa] tabular-nums text-center">剩餘時間 {igCountdown}</span>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => beginPolling(igVerify.id, igVerify.code, igVerify.expiresAt)}
+                          className="h-11 w-full rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                        >
+                          我已傳送
+                        </button>
+                        <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors">
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {igVerify.step === 'polling' && (
+                    <div className="flex flex-col gap-6">
                       <div className="flex justify-center gap-2">
                         {igVerify.code.toString().split('').map((digit, i) => (
                           <div key={i} className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm" style={{ width: 40, height: 52 }}>
@@ -480,12 +540,38 @@ export default function BecomeSellerPage() {
                     </div>
                   )}
 
+                  {igVerify.step === 'failed' && (
+                    <div className="flex flex-col items-center gap-6 py-6 text-center">
+                      <div className="relative">
+                        <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden">
+                          <Image src="/images/instagram.png" alt="Instagram" width={72} height={72} />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-[22px] h-[22px] rounded-full bg-red-500 border-2 border-white flex items-center justify-center">
+                          <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={3.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="font-semibold text-[16px] text-[#111]">驗證失敗</p>
+                        <p className="text-[13px] text-[#888]">未收到驗證碼，請確認已傳送給正確帳號後重試</p>
+                      </div>
+                      <button
+                        onClick={() => setIgVerify({ step: 'entering_username' })}
+                        className="h-11 px-10 rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                      >
+                        重新驗證
+                      </button>
+                    </div>
+                  )}
+
                   {igVerify.step === 'success' && (
                     <div className="flex flex-col items-center gap-6 py-6 text-center">
-                      <div className="w-[72px] h-[72px] rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #d4f5e2 0%, #bbf0d4 100%)', border: '2px solid #86efac' }}>
-                        <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20 6 9 17l-5-5" />
-                        </svg>
+                      <div className="relative">
+                        <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden">
+                          <Image src="/images/instagram.png" alt="Instagram" width={72} height={72} />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-[22px] h-[22px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                        </div>
                       </div>
                       <div className="space-y-1.5">
                         <p className="font-semibold text-[16px] text-[#111]">驗證完成</p>
@@ -501,6 +587,7 @@ export default function BecomeSellerPage() {
                   )}
 
                 </div>
+                </div>
 
               ) : (
 
@@ -509,24 +596,24 @@ export default function BecomeSellerPage() {
 
                   {/* Instagram Card */}
                   {igConnected ? (
-                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-3">
-                      <div className="flex items-start justify-between">
-                        <div className="relative">
-                          <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_10px_rgba(221,42,123,0.15)]">
-                            <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
+                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex items-center justify-center min-h-[175px]">
+                      <div className="flex items-center gap-4">
+                        <div className="relative flex-shrink-0">
+                          <div className="w-14 h-14 rounded-[14px] overflow-hidden">
+                            <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
                           </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-[15px] h-[15px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-                            <svg width={7} height={7} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                           </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-semibold text-[#111]">Instagram</p>
-                        <p className="text-[12px] text-[#555] mt-0.5">@{igUsernameInput}</p>
+                        <div>
+                          <p className="text-[15px] font-semibold text-[#111]">Instagram</p>
+                          <p className="text-[13px] text-[#555] mt-0.5">@{igUsernameInput}</p>
+                        </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-4">
+                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex flex-col justify-between min-h-[175px]">
                       <div className="flex items-center gap-2.5">
                         <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_10px_rgba(221,42,123,0.12)]">
                           <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
@@ -546,7 +633,7 @@ export default function BecomeSellerPage() {
                   )}
 
                   {/* Threads Card */}
-                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-4">
+                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex flex-col justify-between min-h-[175px]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
                         <Image src="/images/threads.png" alt="Threads" width={40} height={40} />
@@ -568,12 +655,13 @@ export default function BecomeSellerPage() {
 
               )}
 
-              <div className="flex justify-end">
-                <Link href="/dashboard">
-                  <button className="h-[52px] px-7 rounded-xl bg-[#111] text-white text-[15px] font-semibold inline-flex items-center gap-2 hover:bg-[#222] active:translate-y-px transition-[background,transform]">
-                    先暫時跳過
-                  </button>
-                </Link>
+              <div className="max-w-[500px] mx-auto w-full flex justify-end">
+                <button
+                  onClick={() => { cancelIgVerify(); router.push('/dashboard') }}
+                  className="h-[52px] px-7 rounded-xl bg-[#111] text-white text-[15px] font-semibold inline-flex items-center gap-2 hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                >
+                  {igConnected ? '完成' : '先暫時跳過'}
+                </button>
               </div>
             </div>
           )}
