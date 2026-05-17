@@ -1,78 +1,58 @@
 import { test, expect } from '@playwright/test'
 
-const testAccount = process.env.TEST_ACCOUNT ?? 'test@test.com'
-const testPassword = process.env.TEST_PASSWORD ?? 'poiu0987'
+const email = process.env.E2E_BUYER_EMAIL!
+const password = process.env.E2E_PASSWORD!
 
-test.describe('認證流程', () => {
-  // These tests require no auth state (use fresh page)
+test.describe('認證流程（未登入）', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('應能使用 Email 密碼登入', async ({ page }) => {
+  test('Email 密碼登入成功', async ({ page }) => {
     await page.goto('/login')
-    await expect(page).toHaveTitle(/.+/)
-
-    await page.locator('#email').fill(testAccount)
-    await page.locator('#password').fill(testPassword)
+    await page.locator('#email').fill(email)
+    await page.locator('#password').fill(password)
     await page.getByRole('button', { name: '使用密碼登入' }).click()
-
-    await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30000 })
-    const pathname = new URL(page.url()).pathname
-    expect(pathname).not.toContain('/login')
+    await page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 30000 })
+    expect(new URL(page.url()).pathname).not.toContain('/login')
   })
 
-  test('錯誤密碼應顯示錯誤訊息', async ({ page }) => {
+  test('錯誤密碼應停留在登入頁', async ({ page }) => {
     await page.goto('/login')
-    await page.locator('#email').fill(testAccount)
-    await page.locator('#password').fill('wrongpassword123')
+    await page.locator('#email').fill(email)
+    await page.locator('#password').fill('wrong-password-123')
     await page.getByRole('button', { name: '使用密碼登入' }).click()
-
     await page.waitForTimeout(3000)
     expect(page.url()).toContain('/login')
   })
 
-  test('登入表單空白送出應顯示欄位錯誤', async ({ page }) => {
+  test('空白送出應顯示欄位錯誤', async ({ page }) => {
     await page.goto('/login')
-
     await page.getByRole('button', { name: '使用密碼登入' }).click()
-
     await expect(page.getByText('Email 為必填')).toBeVisible()
     await expect(page.getByText('密碼為必填')).toBeVisible()
+  })
+
+  test('未登入訪問 /profile 應導向登入', async ({ page }) => {
+    await page.goto('/profile')
+    await page.waitForURL(/\/login/, { timeout: 15000 })
     expect(page.url()).toContain('/login')
   })
 })
 
-test.describe('已登入狀態', () => {
-  test('登入後首頁應顯示使用者頭像', async ({ page }) => {
+test.describe('已登入狀態（buyer）', () => {
+  test('首頁顯示使用者頭像、登入連結消失', async ({ page }) => {
     await page.goto('/')
-
-    // Wait for session to load - login link should disappear
-    const loginLink = page.getByRole('link', { name: '登入' })
-    await expect(loginLink).not.toBeVisible({ timeout: 30000 })
-
-    // Avatar dropdown trigger should be visible
-    const avatarTrigger = page.locator('[data-slot="dropdown-menu-trigger"]')
-    await expect(avatarTrigger).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('link', { name: '登入' })).not.toBeVisible({ timeout: 30000 })
+    await expect(page.locator('[data-slot="dropdown-menu-trigger"]')).toBeVisible({ timeout: 15000 })
   })
 
-  test('登出功能應正常運作', async ({ page }) => {
+  test('登出後登入連結重新出現', async ({ page }) => {
     await page.goto('/')
-
-    // Wait for avatar trigger to appear (auth state loaded)
-    const avatarTrigger = page.locator('[data-slot="dropdown-menu-trigger"]')
-    await expect(avatarTrigger).toBeVisible({ timeout: 30000 })
-
-    // Open user dropdown
-    await avatarTrigger.click()
-
-    // Click logout
-    const logoutItem = page.getByText('登出').first()
-    await expect(logoutItem).toBeVisible({ timeout: 10000 })
-    await logoutItem.click()
-
-    // After logout, wait for page to settle and login link to appear
+    const trigger = page.locator('[data-slot="dropdown-menu-trigger"]')
+    await expect(trigger).toBeVisible({ timeout: 30000 })
+    await trigger.click()
+    await page.getByText('登出').first().click()
     await page.waitForTimeout(2000)
     await page.goto('/')
-    const loginBtn = page.getByRole('link', { name: '登入' })
-    await expect(loginBtn).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('link', { name: '登入' })).toBeVisible({ timeout: 15000 })
   })
 })

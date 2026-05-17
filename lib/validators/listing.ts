@@ -45,7 +45,7 @@ export const publishListingInput = z.object({
   specs: z.array(listingSpecSchema).default([]),
   note: z.string().max(1000).optional(),
   post_url: httpUrl,
-  shipping_date: z.string({ required_error: '出貨日期為必填' }),
+  shipping_date: z.string({ error: '出貨日期為必填' }),
   expires_at: z.string().datetime().optional(),
 }).refine(
   (data) => data.price !== undefined || data.is_price_on_request,

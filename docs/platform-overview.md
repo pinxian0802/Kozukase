@@ -440,3 +440,17 @@ active ◄──── pending_approval
 | `review_count` | `sellers` | `reviews` 新增 / 刪除 / 更新時 |
 | `like_count` | `reviews` | `review_likes` 新增 / 刪除時 |
 | `updated_at` | 多個資料表 | 記錄更新時 |
+
+---
+
+## 八、E2E 測試帳號
+
+Playwright e2e 測試使用三個角色隔離的專用帳號（密碼統一存於 `E2E_PASSWORD`）：
+
+| 角色 | 環境變數 | 帳號 | 說明 |
+|------|----------|------|------|
+| 買家 | `E2E_BUYER_EMAIL` | `e2e-buyer@kozukase.test` | 純買家，非賣家／管理員 |
+| 賣家 | `E2E_SELLER_EMAIL` | `e2e-seller@kozukase.test` | 賣家，代購地區為日本 |
+| 管理員 | `E2E_ADMIN_EMAIL` | `e2e-admin@kozukase.test` | `app_metadata.role=admin` |
+
+測試打正式 Supabase，所有測試資料以 `[E2E]` 前綴命名；各測試自我清理，`tests/global.teardown.ts` 為最後防線會掃除殘留 `[E2E]%` 資料。詳見 `tests/README.md`。

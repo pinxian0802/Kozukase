@@ -13,6 +13,14 @@ type Props = {
   imageUrl?: string
 }
 
+// The deeply-nested tRPC selects degrade Supabase's inferred element types to
+// `any`; this is the concrete shape of the *_images rows we read here.
+type ImageRow = {
+  url: string | null
+  thumbnail_url: string | null
+  sort_order: number
+}
+
 const CONTEXT_META = {
   connection: {
     label: '連線代購',
@@ -59,7 +67,7 @@ function ConnectionContextCard({ contextId, contextLabel, imageUrl }: { contextI
   const { gradient } = CONTEXT_META.connection
   const { data } = trpc.connection.getById.useQuery({ id: contextId }, { staleTime: 5 * 60 * 1000 })
 
-  const firstImage = data?.connection_images?.sort((a, b) => a.sort_order - b.sort_order)[0]
+  const firstImage = data?.connection_images?.sort((a: ImageRow, b: ImageRow) => a.sort_order - b.sort_order)[0]
   const displayImage = imageUrl ?? firstImage?.thumbnail_url ?? firstImage?.url ?? null
 
   return (
@@ -97,7 +105,7 @@ function ConnectionContextCard({ contextId, contextLabel, imageUrl }: { contextI
                   {data.region.name}
                 </span>
               )}
-              {data.locations?.slice(0, 2).map(loc => (
+              {data.locations?.slice(0, 2).map((loc: string) => (
                 <span key={loc} className="rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground cursor-default">
                   {loc}
                 </span>
@@ -123,7 +131,7 @@ function ListingContextCard({ contextId, contextLabel, imageUrl }: { contextId: 
   const { gradient } = CONTEXT_META.listing
   const { data } = trpc.listing.getById.useQuery({ id: contextId }, { staleTime: 5 * 60 * 1000 })
 
-  const firstImage = data?.listing_images?.sort((a, b) => a.sort_order - b.sort_order)[0]
+  const firstImage = data?.listing_images?.sort((a: ImageRow, b: ImageRow) => a.sort_order - b.sort_order)[0]
   const displayImage = imageUrl ?? firstImage?.thumbnail_url ?? firstImage?.url ?? null
   const brandLabel = typeof data?.product?.brand === 'string' ? data.product.brand : (data?.product?.brand as any)?.name ?? null
 

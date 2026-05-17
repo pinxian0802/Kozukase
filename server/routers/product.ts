@@ -4,20 +4,33 @@ import { router, publicProcedure, protectedProcedure } from '../trpc'
 import { searchProductsInput, browseProductsInput, createProductInput } from '@/lib/validators/product'
 import { normalizeSearchText } from '@/lib/utils/search'
 
+// search_products RPC is not in the generated Supabase types, so ctx.db.rpc
+// returns `any`. Shape mirrors the RETURNS TABLE in migration 00016_fix_search.
+type ProductSearchRow = {
+  id: string
+  name: string
+  brand: string | null
+  category: string | null
+  model_number: string | null
+  catalog_image_url: string | null
+  wish_count: number | null
+  similarity_score: number
+}
+
 export const productRouter = router({
   // Instant search for listing/wish flow - returns up to 20 product names
   search: publicProcedure
     .input(searchProductsInput)
     .query(async ({ ctx, input }) => {
       const normalized = normalizeSearchText(input.query)
-      
+
       const { data, error } = await ctx.db.rpc('search_products', {
         search_query: normalized,
         result_limit: input.limit,
       })
 
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as ProductSearchRow[]
     }),
 
   // Buyer browsing search with filters, sorting, offset pagination
@@ -87,8 +100,17 @@ export const productRouter = router({
       if (error) throw error
 
       const total = count ?? 0
+      // Supabase types embedded relations as arrays; collapse the to-one
+      // joins (brand / catalog_image) so the shape matches ProductCardProduct.
+      const items = (data ?? []).map((p) => ({
+        ...p,
+        brand: Array.isArray(p.brand) ? p.brand[0] ?? null : p.brand,
+        catalog_image: Array.isArray(p.catalog_image)
+          ? p.catalog_image[0] ?? null
+          : p.catalog_image,
+      }))
       return {
-        items: data ?? [],
+        items,
         total,
         page: input.page,
         totalPages: Math.ceil(total / input.limit),

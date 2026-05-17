@@ -74,7 +74,10 @@ function SearchContent() {
       page,
       limit: pageSize,
     },
-    { placeholderData: (prev) => prev }
+    {
+      enabled: tab === 'products',
+      placeholderData: (prev) => prev,
+    }
   )
 
   const products = data?.items ?? []
@@ -101,9 +104,11 @@ function SearchContent() {
   const listings = listingData?.items ?? []
   const listingTotal = listingData?.total ?? 0
   const listingTotalPages = listingData?.totalPages ?? 0
+  // Clear the optimistic pending state as soon as the URL params commit;
+  // react-query's isFetching takes over the loading display from there.
   useEffect(() => {
-    if (localTab === tab) setIsPending(false)
-  }, [localTab, tab])
+    setIsPending(false)
+  }, [tab, category, brandId, page, pageSize])
 
   const updateTab = (newTab: 'products' | 'listings') => {
     if (newTab === localTab) return
@@ -253,8 +258,8 @@ function SearchContent() {
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-2xl font-bold">
                   {localTab === 'products'
-                    ? q ? `「${q}」的搜尋結果，共 ${isFetching ? '' : total} 件` : `瀏覽商品，共 ${isFetching ? '' : total} 件`
-                    : q ? `「${q}」的代購，共 ${listingFetching ? '' : listingTotal} 筆` : `瀏覽代購，共 ${listingFetching ? '' : listingTotal} 筆`
+                    ? q ? `「${q}」的搜尋結果，共 ${total} 件` : `瀏覽商品，共 ${total} 件`
+                    : q ? `「${q}」的代購，共 ${listingTotal} 筆` : `瀏覽代購，共 ${listingTotal} 筆`
                   }
                 </h1>
                 {activeFilters.length > 0 && (

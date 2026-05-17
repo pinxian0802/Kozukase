@@ -67,7 +67,7 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
           ) : results && results.length > 0 ? (
             /* Product grid */
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {results.map((product: ProductSearchResult) => (
+              {results.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={{

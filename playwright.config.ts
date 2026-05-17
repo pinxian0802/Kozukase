@@ -33,17 +33,35 @@ export default defineConfig({
     actionTimeout: 30000,
   },
   projects: [
+    // Single setup project (all three logins) so the cleanup teardown runs
+    // exactly once, at the very end — never mid-suite.
+    { name: 'setup', testMatch: /setup\/.+\.setup\.ts/, teardown: 'cleanup' },
+    { name: 'cleanup', testMatch: /global\.teardown\.ts/ },
     {
-      name: 'setup',
-      testMatch: /global\.setup\.ts/,
+      name: 'buyer',
+      testMatch: /buyer\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], storageState: 'tests/.auth/buyer.json' },
+      dependencies: ['setup'],
     },
     {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'tests/.auth/user.json',
-      },
+      name: 'seller',
+      testMatch: /seller\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], storageState: 'tests/.auth/seller.json' },
       dependencies: ['setup'],
+    },
+    {
+      name: 'cross-role',
+      testMatch: /(cross-role|messages)\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+    },
+    // auth runs LAST: its logout test calls supabase signOut (global scope),
+    // which would revoke the shared buyer account for any project after it.
+    {
+      name: 'auth',
+      testMatch: /auth\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], storageState: 'tests/.auth/buyer.json' },
+      dependencies: ['setup', 'buyer', 'seller', 'cross-role'],
     },
   ],
   webServer: {
