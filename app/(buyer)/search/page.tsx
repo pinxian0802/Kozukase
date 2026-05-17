@@ -43,7 +43,7 @@ function SearchContent() {
   const q = searchParams.get('q') ?? ''
   const category = searchParams.get('category') ?? undefined
   const brandId = searchParams.get('brand') ?? undefined
-  const tab = (searchParams.get('tab') ?? 'products') as 'products' | 'listings'
+  const tab = (searchParams.get('tab') ?? 'listings') as 'products' | 'listings'
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
   const pageSize = (() => {
     const raw = parseInt(searchParams.get('pageSize') ?? '20', 10)
@@ -53,8 +53,10 @@ function SearchContent() {
   const [categoryExpanded, setCategoryExpanded] = useState(false)
   const [isPending, setIsPending] = useState(false)
   // Optimistic local state — updates immediately on click; syncs back when URL commits
+  const [localTab, setLocalTab] = useState(tab)
   const [localCategory, setLocalCategory] = useState<string | undefined>(category)
   const [localBrandId, setLocalBrandId] = useState<string | undefined>(brandId)
+  useEffect(() => { setLocalTab(tab) }, [tab])
   useEffect(() => { setLocalCategory(category) }, [category])
   useEffect(() => { setLocalBrandId(brandId) }, [brandId])
 
@@ -99,9 +101,13 @@ function SearchContent() {
   const listings = listingData?.items ?? []
   const listingTotal = listingData?.total ?? 0
   const listingTotalPages = listingData?.totalPages ?? 0
-  useEffect(() => { setIsPending(false) }, [data, listingData])
+  useEffect(() => {
+    if (localTab === tab) setIsPending(false)
+  }, [localTab, tab])
 
   const updateTab = (newTab: 'products' | 'listings') => {
+    if (newTab === localTab) return
+    setLocalTab(newTab)
     setIsPending(true)
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', newTab)
@@ -242,32 +248,15 @@ function SearchContent() {
         {/* Results */}
         <div className="min-w-0 flex-1">
           {/* Title card */}
-          <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
-            <div className="flex items-start justify-between gap-4">
+          <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+            <div className="flex items-start justify-between gap-4 p-5">
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-2xl font-bold">
-                  {tab === 'products'
+                  {localTab === 'products'
                     ? q ? `「${q}」的搜尋結果，共 ${isFetching ? '' : total} 件` : `瀏覽商品，共 ${isFetching ? '' : total} 件`
                     : q ? `「${q}」的代購，共 ${listingFetching ? '' : listingTotal} 筆` : `瀏覽代購，共 ${listingFetching ? '' : listingTotal} 筆`
                   }
                 </h1>
-                <div className="mt-3 flex gap-1">
-                  {(['products', 'listings'] as const).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => updateTab(t)}
-                      className={[
-                        'rounded-lg px-4 py-1.5 text-sm font-medium transition-colors',
-                        tab === t
-                          ? 'bg-[#26C8C2] text-white'
-                          : 'text-[#555] hover:bg-[#f0f0f0]',
-                      ].join(' ')}
-                    >
-                      {t === 'products' ? '商品' : '代購'}
-                    </button>
-                  ))}
-                </div>
                 {activeFilters.length > 0 && (
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     {activeFilters.map((f) => (
@@ -324,9 +313,28 @@ function SearchContent() {
                 </Sheet>
               </div>
             </div>
+
+            {/* Tab bar — 緊貼 header 底部 */}
+            <div className="flex items-end gap-1 px-5">
+              {(['listings', 'products'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => updateTab(t)}
+                  className={[
+                    'rounded-t-lg px-6 py-2.5 text-sm font-semibold transition-colors',
+                    localTab === t
+                      ? 'bg-[#26C8C2] text-white'
+                      : 'text-[#aaa] hover:text-[#666]',
+                  ].join(' ')}
+                >
+                  {t === 'products' ? '商品' : '代購'}
+                </button>
+              ))}
+            </div>
           </section>
 
-          {tab === 'products' ? (
+          {localTab === 'products' ? (
             (isPending || isFetching) ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (

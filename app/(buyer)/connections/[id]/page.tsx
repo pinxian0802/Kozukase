@@ -4,11 +4,12 @@ import { use } from 'react'
 import Link from 'next/link'
 import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { SocialBadge } from '@/components/seller/social-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { trpc } from '@/lib/trpc/client'
-import { formatDate } from '@/lib/utils/format'
+import { formatDate, formatLastSeen } from '@/lib/utils/format'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 import { ReportDialog } from '@/components/shared/report-dialog'
 import { SharePopover } from '@/components/shared/share-popover'
@@ -131,20 +132,16 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
               {/* Title */}
               {connection.title && (
                 <h1 className="text-xl font-bold leading-snug">
+                  {connection.can_wish && (
+                    <span
+                      className="inline-flex items-center gap-1 h-6 px-2 rounded-md text-xs font-semibold border mr-2 align-middle relative -top-px"
+                      style={{ borderColor: '#4ab0a9', color: '#4ab0a9' }}
+                    >
+                      <Check className="h-3 w-3" /> 可許願
+                    </span>
+                  )}
                   {connection.title}
                 </h1>
-              )}
-
-              {/* Status badges */}
-              {connection.can_wish && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold border"
-                    style={{ borderColor: '#4ab0a9', color: '#4ab0a9' }}
-                  >
-                    <Check className="h-3 w-3" /> 開放許願
-                  </span>
-                </div>
               )}
             </div>
 
@@ -229,9 +226,12 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
                   <AvatarFallback className="font-semibold text-xl">{seller.name?.[0]}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <span className="font-semibold text-foreground text-lg truncate block">{seller.name}</span>
-                  {seller.profile?.username && (
-                    <p className="text-sm text-muted-foreground mt-0.5">@{seller.profile.username}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-foreground text-lg truncate">{seller.name}</span>
+                    {seller.is_social_verified && <SocialBadge className="h-3 w-3 text-primary shrink-0" />}
+                  </div>
+                  {formatLastSeen(seller.profile?.last_seen_at) && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatLastSeen(seller.profile?.last_seen_at)}</p>
                   )}
                 </div>
               </Link>

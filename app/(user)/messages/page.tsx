@@ -17,7 +17,7 @@ export default function MessagesPage() {
   const sellerId = searchParams.get('seller_id')
 
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
-  const [selectedOther, setSelectedOther] = useState<{ name: string | null; avatar: string | null } | null>(null)
+  const [selectedOther, setSelectedOther] = useState<{ name: string | null; avatar: string | null; lastSeenAt: string | null } | null>(null)
   const [pendingContext, setPendingContext] = useState<{
     contextType?: 'listing' | 'connection'
     contextId?: string
@@ -61,7 +61,7 @@ export default function MessagesPage() {
       const sAvatar = params.get('seller_avatar')
 
       if (sName || sAvatar) {
-        setSelectedOther({ name: sName || null, avatar: sAvatar || null })
+        setSelectedOther({ name: sName || null, avatar: sAvatar || null, lastSeenAt: null })
       }
       if (cType && cId) {
         setPendingContext({
@@ -77,9 +77,9 @@ export default function MessagesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sellerId])
 
-  const handleSelectConversation = (id: string, otherName: string | null, otherAvatar: string | null) => {
+  const handleSelectConversation = (id: string, otherName: string | null, otherAvatar: string | null, otherLastSeenAt: string | null) => {
     setSelectedConversationId(id)
-    setSelectedOther({ name: otherName, avatar: otherAvatar })
+    setSelectedOther({ name: otherName, avatar: otherAvatar, lastSeenAt: otherLastSeenAt })
     setPendingContext({})
     setMobileView('panel')
   }
@@ -120,6 +120,7 @@ export default function MessagesPage() {
               conversationId={selectedConversationId}
               otherName={selectedOther?.name ?? null}
               otherAvatar={selectedOther?.avatar ?? null}
+              otherLastSeenAt={selectedOther?.lastSeenAt ?? null}
               pendingContext={pendingContext}
               pendingContextImage={pendingContext.contextImage}
             />

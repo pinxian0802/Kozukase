@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Info, MoreHorizontal } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { formatLastSeen } from '@/lib/utils/format'
 import { trpc } from '@/lib/trpc/client'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { useSession } from '@/lib/context/session-context'
@@ -21,6 +22,7 @@ type Props = {
   conversationId: string
   otherName: string | null
   otherAvatar: string | null
+  otherLastSeenAt: string | null
   pendingContext?: {
     contextType?: 'listing' | 'connection'
     contextId?: string
@@ -51,7 +53,7 @@ function uploadWithProgress(
   })
 }
 
-export function ConversationPanel({ conversationId, otherName, otherAvatar, pendingContext, pendingContextImage }: Props) {
+export function ConversationPanel({ conversationId, otherName, otherAvatar, otherLastSeenAt, pendingContext, pendingContextImage }: Props) {
   const session = useSession()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const isAtBottom = useRef(true)
@@ -233,6 +235,11 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, pend
           <div style={{ fontSize: 15, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {otherName ?? '對話'}
           </div>
+          {formatLastSeen(otherLastSeenAt) && (
+            <div style={{ fontSize: 12, color: '#9a9a9a', marginTop: 1 }}>
+              {formatLastSeen(otherLastSeenAt)}
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <IconBtn title="詳情"><Info style={{ width: 15, height: 15 }} /></IconBtn>

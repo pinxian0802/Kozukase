@@ -129,6 +129,13 @@ export const authRouter = router({
       return { success: true }
     }),
 
+  updateLastSeen: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.db
+      .from('profiles')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('id', ctx.user.id)
+  }),
+
   updateProfile: protectedProcedure
     .input(z.object({
       display_name: z.string().min(1, '顯示名稱為必填').max(50).optional(),

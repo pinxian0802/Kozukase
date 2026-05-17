@@ -33,6 +33,20 @@ export function formatRelativeTime(dateString: string): string {
   return formatDate(dateString)
 }
 
+export function formatLastSeen(dateString: string | null | undefined): string | null {
+  if (!dateString) return null
+  const diff = Date.now() - new Date(dateString).getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 5) return '剛剛上線'
+  if (minutes < 60) return `${minutes} 分鐘前上線`
+  if (hours < 24) return `${hours} 小時前上線`
+  if (days < 30) return `${days} 天前上線`
+  return null
+}
+
 export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   fashion: '時尚穿搭',
   beauty: '美妝保養',

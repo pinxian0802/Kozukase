@@ -12,13 +12,14 @@ import { cn } from '@/lib/utils'
 
 type Props = {
   selectedId: string | null
-  onSelect: (id: string, otherName: string | null, otherAvatar: string | null) => void
+  onSelect: (id: string, otherName: string | null, otherAvatar: string | null, otherLastSeenAt: string | null) => void
 }
 
 type OtherProfile = {
   id: string
   display_name: string | null
   avatar_url: string | null
+  last_seen_at: string | null
 }
 
 type TabKey = 'all' | 'unread'
@@ -150,7 +151,7 @@ export function ConversationList({ selectedId, onSelect }: Props) {
               preview={conv.last_message_preview ?? null}
               unreadCount={conv.unreadCount}
               isActive={selectedId === conv.id}
-              onClick={() => onSelect(conv.id, conv.other?.display_name ?? null, conv.other?.avatar_url ?? null)}
+              onClick={() => onSelect(conv.id, conv.other?.display_name ?? null, conv.other?.avatar_url ?? null, conv.other?.last_seen_at ?? null)}
             />
           ))
         )}

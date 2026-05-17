@@ -1,9 +1,11 @@
 'use client'
 
 import { use } from 'react'
+import Image from 'next/image'
 import { Bookmark, ExternalLink, ChevronRight, MessageSquare, Truck } from 'lucide-react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { SocialBadge } from '@/components/seller/social-badge'
 import { CopyButton } from '@/components/shared/copy-button'
 import { ReportDialog } from '@/components/shared/report-dialog'
 import { SharePopover } from '@/components/shared/share-popover'
@@ -11,7 +13,7 @@ import { ImageGallery } from '@/components/shared/image-gallery'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
-import { formatPrice, formatDate } from '@/lib/utils/format'
+import { formatPrice, formatDate, formatLastSeen } from '@/lib/utils/format'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 import { useSession } from '@/lib/context/session-context'
 import { useRouter } from 'next/navigation'
@@ -143,7 +145,6 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Actions */}
           <div className="flex flex-col gap-2.5">
-            <CopyButton text={inquiryText} label="複製詢問語" />
             <div className="flex gap-2">
               {listing.post_url && (
                 <SafeExternalLink href={listing.post_url} className="flex-1 justify-center gap-2 h-12 rounded-xl text-sm font-semibold hover:opacity-85 active:scale-[0.98]" style={{ background: '#1a9ac4' }}>
@@ -168,9 +169,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   <AvatarFallback className="font-semibold text-xl">{listing.seller.name?.[0]}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <span className="font-semibold text-foreground text-lg truncate block">{listing.seller.name}</span>
-                  {(listing.seller as any).profile?.username && (
-                    <p className="text-sm text-muted-foreground mt-0.5">@{(listing.seller as any).profile.username}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-foreground text-lg truncate">{listing.seller.name}</span>
+                    {(listing.seller as any).is_social_verified && <SocialBadge className="h-3 w-3 text-primary shrink-0" />}
+                  </div>
+                  {formatLastSeen((listing.seller as any).profile?.last_seen_at) && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatLastSeen((listing.seller as any).profile?.last_seen_at)}</p>
                   )}
                 </div>
               </Link>

@@ -278,7 +278,7 @@ export const listingRouter = router({
             id, name, ig_handle, threads_handle, ig_follower_count,
             threads_follower_count, is_social_verified, avg_rating, review_count, avatar_url,
             seller_regions(region:regions(id, name)),
-            profile:profiles(username)
+            profile:profiles(username, last_seen_at)
           ),
           listing_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
         `)

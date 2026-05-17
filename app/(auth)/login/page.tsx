@@ -103,6 +103,12 @@ export default function LoginPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
+      supabase
+        .from('profiles')
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq('id', user.id)
+        .then(() => {})
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('username')

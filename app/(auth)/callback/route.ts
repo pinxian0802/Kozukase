@@ -32,6 +32,12 @@ export async function GET(request: NextRequest) {
           throw profileError
         }
 
+        getDb()
+          .from('profiles')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', user.id)
+          .then(() => {})
+
         const type = searchParams.get('type')
         if (type === 'recovery') {
           return NextResponse.redirect(`${origin}/reset-password`)

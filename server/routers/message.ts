@@ -64,8 +64,8 @@ export const messageRouter = router({
         id, buyer_id, seller_id,
         buyer_last_read_at, seller_last_read_at,
         last_message_at, last_message_preview,
-        buyer_profile:profiles!conversations_buyer_id_fkey(id, display_name, avatar_url),
-        seller_profile:profiles!conversations_seller_id_fkey(id, display_name, avatar_url)
+        buyer_profile:profiles!conversations_buyer_id_fkey(id, display_name, avatar_url, last_seen_at),
+        seller_profile:profiles!conversations_seller_id_fkey(id, display_name, avatar_url, last_seen_at)
       `)
       .or(`buyer_id.eq.${ctx.user.id},seller_id.eq.${ctx.user.id}`)
       .order('last_message_at', { ascending: false, nullsFirst: false })
@@ -147,6 +147,12 @@ export const messageRouter = router({
         .single()
 
       if (msgErr) throw msgErr
+
+      ctx.db
+        .from('profiles')
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq('id', ctx.user.id)
+        .then(() => {})
 
       const preview = input.body?.slice(0, 50) ?? '傳送了一張圖片'
 

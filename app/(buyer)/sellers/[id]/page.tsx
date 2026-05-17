@@ -133,30 +133,33 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
             </Avatar>
 
             <div className="flex flex-col gap-3 pt-1 min-w-0">
-              {/* Name + badge */}
+              {/* Name + badge + date */}
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                   <h1 className="text-[28px] font-bold tracking-tight leading-none" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
                     {seller.name}
                   </h1>
                   {seller.is_social_verified && <SocialBadge />}
-                </div>
-                <div className="flex items-center gap-2.5 text-[12.5px] text-[#888]">
-                  {igHandle && (
-                    <a
-                      href={`https://www.instagram.com/${igHandle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium hover:underline"
-                      style={{ fontFamily: 'Rubik, sans-serif' }}
-                    >@{igHandle}</a>
-                  )}
-                  {igHandle && <span className="text-[#ddd]">·</span>}
-                  <span className="inline-flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 text-[12px] text-[#aaa] font-normal ml-0.5">
                     <Calendar className="h-3 w-3" />
                     加入於 {formatDate(seller.created_at)}
                   </span>
                 </div>
+
+                {/* Region chips */}
+                {seller.seller_regions && seller.seller_regions.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {seller.seller_regions.map((r: any) => (
+                      <span
+                        key={r.region?.id}
+                        className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[12.5px] font-medium bg-[#f5f5f5] text-[#444]"
+                      >
+                        <MapPin className="h-3 w-3" />
+                        {r.region?.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Bio */}
@@ -164,21 +167,6 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
                 <p className="text-[14px] leading-[1.65] text-[#444] max-w-[520px] whitespace-pre-wrap">
                   {(seller as any).bio}
                 </p>
-              )}
-
-              {/* Region chips */}
-              {seller.seller_regions && seller.seller_regions.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {seller.seller_regions.map((r: any) => (
-                    <span
-                      key={r.region?.id}
-                      className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[12.5px] font-medium bg-[#f5f5f5] text-[#444]"
-                    >
-                      <MapPin className="h-3 w-3" />
-                      {r.region?.name}
-                    </span>
-                  ))}
-                </div>
               )}
 
               {/* Rating (mobile fallback if no stats bar) */}
@@ -192,15 +180,15 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
           </div>
 
           {/* Right: actions + social card */}
-          <div className="flex gap-2 items-stretch">
-            {/* Left: follow button + social card */}
-            <div className="flex flex-col gap-2 flex-1 min-w-0">
-              {!isOwnProfile && (
+          <div className="flex flex-col gap-2 w-fit ml-auto">
+            {/* Button row: 追蹤(148px) + 訊息+分享+檢舉(148px) */}
+            {!isOwnProfile && (
+              <div className="flex gap-2">
                 <button
                   onClick={() => followToggle.mutate({ seller_id: id })}
                   disabled={followToggle.isPending}
                   className={cn(
-                    'w-full h-11 rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors',
+                    'h-11 w-[148px] rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors shrink-0',
                     seller.isFollowing
                       ? 'bg-[#f0f0f0] text-[#111] hover:bg-[#e4e4e4]'
                       : 'bg-[#111] text-white hover:bg-[#222]'
@@ -210,60 +198,62 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
                     ? <><UserCheck className="h-4 w-4" /> 已追蹤</>
                     : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
                 </button>
-              )}
-
-              {/* Social card */}
-              <div className={cn(
-                'flex-1 border border-[#ececec] rounded-[14px] bg-white px-4 flex flex-col',
-                hasSocial ? 'justify-around py-3' : 'justify-center py-3.5'
-              )}>
-                {hasSocial ? (
-                  <>
-                    {igHandle && (
-                      <a
-                        href={`https://www.instagram.com/${igHandle}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 group"
-                      >
-                        <Image src="/images/instagram.png" alt="Instagram" width={28} height={28} className="rounded-[6px] shrink-0" />
-                        <span className="text-[14.5px] font-semibold text-[#111] group-hover:underline leading-tight">@{igHandle}</span>
-                      </a>
-                    )}
-                    {threadsHandle && (
-                      <a
-                        href={`https://www.threads.net/@${threadsHandle}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 group"
-                      >
-                        <Image src="/images/threads.png" alt="Threads" width={28} height={28} className="rounded-[6px] shrink-0" />
-                        <span className="text-[14.5px] font-semibold text-[#111] group-hover:underline leading-tight">@{threadsHandle}</span>
-                      </a>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-[12.5px] text-[#bbb]">尚未連結社群帳號</span>
-                )}
-              </div>
-            </div>
-
-            {/* Right icon column: 訊息 + 分享 + 檢舉 */}
-            <div className="flex flex-col gap-2 shrink-0">
-              {!isOwnProfile && (
                 <button
                   onClick={() => router.push(`/messages?seller_id=${id}`)}
-                  className="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors"
+                  className="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors shrink-0"
                 >
                   <MessageCircle className="h-4 w-4" />
                 </button>
+                <SharePopover
+                  title={seller.name ?? ''}
+                  triggerClassName="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors cursor-pointer shrink-0"
+                />
+                <ReportDialog seller_id={id} iconOnly />
+              </div>
+            )}
+
+            {/* Social card(s) */}
+            {hasSocial && <div className="flex gap-2">
+              {igHandle && threadsHandle ? (
+                <>
+                  <a
+                    href={`https://www.instagram.com/${igHandle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors"
+                  >
+                    <Image src="/images/instagram.png" alt="Instagram" width={24} height={24} className="rounded-[5px] shrink-0" />
+                    <span className="text-[13.5px] font-semibold text-[#111] group-hover:text-[#444] leading-tight break-all">{igHandle}</span>
+                  </a>
+                  <a
+                    href={`https://www.threads.net/@${threadsHandle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors"
+                  >
+                    <Image src="/images/threads.png" alt="Threads" width={24} height={24} className="rounded-[5px] shrink-0" />
+                    <span className="text-[13.5px] font-semibold text-[#111] group-hover:text-[#444] leading-tight break-all">{threadsHandle}</span>
+                  </a>
+                </>
+              ) : (
+                <>
+                  <div className="w-[148px] shrink-0" />
+                  <a
+                    href={igHandle ? `https://www.instagram.com/${igHandle}` : `https://www.threads.net/@${threadsHandle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-[148px] shrink-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors overflow-hidden"
+                  >
+                    <Image
+                      src={igHandle ? '/images/instagram.png' : '/images/threads.png'}
+                      alt={igHandle ? 'Instagram' : 'Threads'}
+                      width={24} height={24} className="rounded-[5px] shrink-0"
+                    />
+                    <span className="text-[13.5px] font-semibold text-[#111] group-hover:text-[#444] leading-tight break-all">{igHandle ?? threadsHandle}</span>
+                  </a>
+                </>
               )}
-              <SharePopover
-                title={seller.name ?? ''}
-                triggerClassName="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors cursor-pointer"
-              />
-              <ReportDialog seller_id={id} iconOnly />
-            </div>
+            </div>}
           </div>
         </div>
 
