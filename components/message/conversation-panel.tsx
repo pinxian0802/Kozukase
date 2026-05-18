@@ -4,11 +4,12 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Info, MoreHorizontal } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatLastSeen } from '@/lib/utils/format'
+import { format } from 'date-fns'
 import { trpc } from '@/lib/trpc/client'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
-import { MessageBubble } from './message-bubble'
+import { MessageBubble, DateSeparator } from './message-bubble'
 import { MessageInput, type SendPayload } from './message-input'
 import type { Message } from '@/server/db/types'
 
@@ -29,6 +30,24 @@ type Props = {
     contextLabel?: string
   }
   pendingContextImage?: string
+}
+
+type ChatItem =
+  | { kind: 'message'; data: DisplayMessage }
+  | { kind: 'date'; date: string; id: string }
+
+function buildChatItems(messages: DisplayMessage[]): ChatItem[] {
+  const items: ChatItem[] = []
+  let lastDate: string | null = null
+  for (const msg of messages) {
+    const msgDate = format(new Date(msg.created_at), 'yyyy-MM-dd')
+    if (msgDate !== lastDate) {
+      items.push({ kind: 'date', date: msgDate, id: `date-${msgDate}` })
+      lastDate = msgDate
+    }
+    items.push({ kind: 'message', data: msg })
+  }
+  return items
 }
 
 function uploadWithProgress(
@@ -58,7 +77,9 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const isAtBottom = useRef(true)
   const [messages, setMessages] = useState<DisplayMessage[]>([])
+  const [hasMore, setHasMore] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const { data: history } = trpc.message.messages.useQuery(
     { conversation_id: conversationId },
@@ -77,7 +98,8 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
 
   useEffect(() => {
     if (history) {
-      setMessages(history)
+      setMessages(history.messages)
+      setHasMore(history.hasMore)
     }
   }, [history])
 
@@ -115,7 +137,7 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
             if (prev.some((m) => m.id === newMsg.id)) return prev
             return [...prev, newMsg]
           })
-          scrollToBottom()
+          if (isAtBottom.current) scrollToBottom()
           if (newMsg.sender_id !== session?.user?.id) {
             markRead.mutate({ conversation_id: conversationId })
           }
@@ -218,6 +240,24 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, session?.user?.id])
 
+  const handleLoadMore = async () => {
+    if (isLoadingMore || !hasMore || messages.length === 0) return
+    setIsLoadingMore(true)
+    try {
+      const oldest = messages[0]?.created_at
+      const result = await utils.message.messages.fetch({
+        conversation_id: conversationId,
+        before: oldest,
+      })
+      setMessages(prev => [...result.messages, ...prev])
+      setHasMore(result.hasMore)
+    } catch {
+      toast.error('載入更多訊息失敗')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
+
   return (
     <section style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', background: '#fafaf8', overflow: 'hidden' }}>
       {/* Chat Header */}
@@ -235,11 +275,14 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
           <div style={{ fontSize: 15, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {otherName ?? '對話'}
           </div>
-          {formatLastSeen(otherLastSeenAt) && (
-            <div style={{ fontSize: 12, color: '#9a9a9a', marginTop: 1 }}>
-              {formatLastSeen(otherLastSeenAt)}
-            </div>
-          )}
+          {(() => {
+            const lastSeenText = formatLastSeen(otherLastSeenAt)
+            return lastSeenText ? (
+              <div style={{ fontSize: 12, color: '#9a9a9a', marginTop: 1 }}>
+                {lastSeenText}
+              </div>
+            ) : null
+          })()}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <IconBtn title="詳情"><Info style={{ width: 15, height: 15 }} /></IconBtn>
@@ -249,16 +292,45 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
 
       {/* Messages — column-reverse keeps scrollTop=0 at visual bottom, images loading never push viewport up */}
       <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column-reverse', padding: '12px 0' }}>
-        {[...messages].reverse().map((msg, i, arr) => (
-          <MessageBubble
-            key={msg.id}
-            message={msg}
-            isOwn={msg.sender_id === session?.user?.id}
-            prevMessage={arr[i + 1] ?? null}
-            localImageUrl={msg.localImageUrl}
-            uploadProgress={msg.uploadProgress}
-          />
-        ))}
+        {[...buildChatItems(messages)].reverse().map((item, i, arr) => {
+          if (item.kind === 'date') {
+            return <DateSeparator key={item.id} date={item.date} />
+          }
+          const prevItem = arr[i + 1]
+          const prevMsg = prevItem?.kind === 'message' ? prevItem.data : null
+          return (
+            <MessageBubble
+              key={item.data.id}
+              message={item.data}
+              isOwn={item.data.sender_id === session?.user?.id}
+              prevMessage={prevMsg}
+              localImageUrl={item.data.localImageUrl}
+              uploadProgress={item.data.uploadProgress}
+            />
+          )
+        })}
+        {hasMore && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+            <button
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              style={{
+                height: 30, padding: '0 16px', borderRadius: 999,
+                border: '1px solid #e6e2dc', background: '#fff',
+                fontSize: 12, fontWeight: 500, color: '#555',
+                cursor: isLoadingMore ? 'not-allowed' : 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+              }}
+            >
+              {isLoadingMore ? (
+                <>
+                  <span style={{ width: 12, height: 12, border: '2px solid #ccc', borderTopColor: '#555', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                  載入中…
+                </>
+              ) : '載入更多訊息'}
+            </button>
+          </div>
+        )}
       </div>
 
       <MessageInput

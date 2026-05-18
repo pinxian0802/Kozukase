@@ -1,7 +1,30 @@
-import { format } from 'date-fns'
+import { format, isToday, isYesterday } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { ContextCard } from './context-card'
 import type { Message } from '@/server/db/types'
+
+function formatDateLabel(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00')
+  if (isToday(date)) return '今天'
+  if (isYesterday(date)) return '昨天'
+  return format(date, 'M月d日', { locale: zhTW })
+}
+
+export function DateSeparator({ date }: { date: string }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'center',
+      padding: '12px 0 4px',
+    }}>
+      <span style={{
+        fontSize: 11, fontWeight: 500, color: '#aaa',
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+        {formatDateLabel(date)}
+      </span>
+    </div>
+  )
+}
 
 type Props = {
   message: Message

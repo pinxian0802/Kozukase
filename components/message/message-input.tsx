@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { ImagePlus, Send, Loader2, X, ShieldCheck } from 'lucide-react'
+import { ImagePlus, Send, Loader2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { normalizeImageFile } from '@/lib/utils/heic'
 import { ContextCard } from './context-card'

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import { MessageSquare, Search, ShieldCheck } from 'lucide-react'
+import { MessageSquare, Search } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'

@@ -85,7 +85,10 @@ export const messageRouter = router({
   }),
 
   messages: protectedProcedure
-    .input(z.object({ conversation_id: z.string().uuid() }))
+    .input(z.object({
+      conversation_id: z.string().uuid(),
+      before: z.string().optional(),
+    }))
     .query(async ({ ctx, input }) => {
       const { data: conv } = await ctx.db
         .from('conversations')
@@ -96,15 +99,25 @@ export const messageRouter = router({
 
       if (!conv) throw new TRPCError({ code: 'FORBIDDEN' })
 
-      const { data, error } = await ctx.db
+      let q = ctx.db
         .from('messages')
         .select('*')
         .eq('conversation_id', input.conversation_id)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
         .limit(50)
 
+      if (input.before) {
+        q = q.lt('created_at', input.before)
+      }
+
+      const { data, error } = await q
       if (error) throw error
-      return data ?? []
+
+      const msgs = data ?? []
+      return {
+        messages: [...msgs].reverse(),
+        hasMore: msgs.length === 50,
+      }
     }),
 
   send: protectedProcedure
@@ -224,29 +237,18 @@ export const messageRouter = router({
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const { data: convs } = await ctx.db
       .from('conversations')
-      .select('id, buyer_id, buyer_last_read_at, seller_last_read_at')
+      .select('id')
       .or(`buyer_id.eq.${ctx.user.id},seller_id.eq.${ctx.user.id}`)
 
     if (!convs?.length) return { count: 0 }
 
-    const results = await Promise.all(
-      convs.map(async (conv) => {
-        const isBuyer = conv.buyer_id === ctx.user.id
-        const lastRead = isBuyer ? conv.buyer_last_read_at : conv.seller_last_read_at
+    const { data: counts } = await ctx.db.rpc('get_unread_counts', {
+      p_user_id: ctx.user.id,
+      p_conversation_ids: convs.map((c: { id: string }) => c.id),
+    })
 
-        let q = ctx.db
-          .from('messages')
-          .select('id', { count: 'exact', head: true })
-          .eq('conversation_id', conv.id)
-          .neq('sender_id', ctx.user.id)
-
-        if (lastRead) q = q.gt('created_at', lastRead)
-
-        const { count } = await q
-        return (count ?? 0) > 0 ? 1 : 0
-      })
-    )
-
-    return { count: results.reduce<number>((a, b) => a + b, 0) }
+    return {
+      count: (counts ?? []).filter((r: { unread_count: number }) => Number(r.unread_count) > 0).length,
+    }
   }),
 })
