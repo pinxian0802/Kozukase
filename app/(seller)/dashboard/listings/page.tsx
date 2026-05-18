@@ -31,10 +31,10 @@ const statusDotColors: Record<string, string> = {
 }
 
 const rowStyles: Record<string, string> = {
-  draft: 'border-border bg-white',
-  active: 'border-border bg-white',
-  inactive: 'border-border bg-white',
-  pending_approval: 'border-border bg-white',
+  draft: 'bg-white',
+  active: 'bg-white',
+  inactive: 'bg-white',
+  pending_approval: 'bg-white',
 }
 
 const listingGridClass = 'grid gap-4 lg:grid-cols-[minmax(0,3.5fr)_minmax(152px,1.58fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(132px,0.72fr)_minmax(124px,0.78fr)]'
@@ -188,7 +188,7 @@ export default function SellerListingsPage() {
             return (
             <div
               key={listing.id}
-              className={`overflow-hidden rounded-[28px] border p-4 shadow-[0_12px_40px_rgba(15,23,42,0.05)] transition-colors ${rowStyles[listing.status] ?? 'border-border bg-white'} ${listing.status === 'inactive' ? 'opacity-85' : ''}`}
+              className={`overflow-hidden rounded-[28px] p-4 shadow-sm transition-colors ${rowStyles[listing.status] ?? 'bg-white'} ${listing.status === 'inactive' ? 'opacity-85' : ''}`}
             >
               <div className={`${listingGridClass} lg:items-center`}>
                 <div className="flex min-w-0 gap-4">

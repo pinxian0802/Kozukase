@@ -29,9 +29,9 @@ const statusDotColors: Record<string, string> = {
 }
 
 const rowStyles: Record<string, string> = {
-  active: 'border-border bg-white',
-  ended: 'border-border bg-white',
-  pending_approval: 'border-border bg-white',
+  active: 'bg-white',
+  ended: 'bg-white',
+  pending_approval: 'bg-white',
 }
 
 const connectionGridClass = 'grid gap-5 lg:grid-cols-[minmax(0,4.2fr)_minmax(0,2fr)_minmax(0,2.8fr)_minmax(0,1.6fr)_max-content]'
@@ -176,7 +176,7 @@ export default function SellerConnectionsPage() {
             return (
               <div
                 key={conn.id}
-                className={`overflow-hidden rounded-[28px] border p-4 shadow-[0_12px_40px_rgba(15,23,42,0.05)] transition-colors ${rowStyles[conn.status] ?? 'border-border bg-white'} ${conn.status === 'ended' ? 'opacity-85' : ''}`}
+                className={`overflow-hidden rounded-[28px] p-4 shadow-sm transition-colors ${rowStyles[conn.status] ?? 'bg-white'} ${conn.status === 'ended' ? 'opacity-85' : ''}`}
               >
                 <div className={`${connectionGridClass} lg:items-center`}>
                   <div className="flex items-center min-w-0 gap-4">
