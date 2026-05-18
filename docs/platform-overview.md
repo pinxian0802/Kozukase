@@ -372,8 +372,8 @@ active ◄──── pending_approval
 | 路由 | 說明 |
 |------|------|
 | `/` | 首頁 |
-| `/search` | 商品搜尋與瀏覽 |
-| `/connections` | 連線公告瀏覽 |
+| `/search` | 商品搜尋與瀏覽（篩選狀態由 nuqs 管理，URL 即 state，取代原手寫 useSearchParams + 樂觀鏡像） |
+| `/connections` | 連線公告瀏覽（篩選狀態由 nuqs 管理，URL 即 state，沿用 /search 模式；location 文字框用 replace+throttle） |
 | `/sellers/[id]` | 賣家詳情頁 |
 | `/products/[id]` | 商品詳情頁 |
 | `/listings/[id]` | 代購詳情頁 |

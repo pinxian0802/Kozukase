@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, type ReactNode, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState, type ReactNode } from 'react'
+import { useQueryState, useQueryStates, parseAsString, parseAsInteger, parseAsBoolean } from 'nuqs'
 import { format, isValid, parseISO } from 'date-fns'
 import { Globe, Info, Search, SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
@@ -20,21 +20,70 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { trpc } from '@/lib/trpc/client'
 
 export default function ConnectionsPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const q = searchParams.get('q') ?? ''
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
-  const [regionId, setRegionId] = useState('')
+  // q 由全站搜尋框帶入，本頁唯讀
+  const [q] = useQueryState('q', parseAsString.withDefault(''))
+
+  // 地點關鍵字：逐字輸入即時篩選，但 replace + throttle 不灌爆瀏覽器歷史
+  const [locationQuery, setLocationQuery] = useQueryState(
+    'location',
+    parseAsString.withDefault('').withOptions({ history: 'replace', shallow: true, throttleMs: 500 }),
+  )
+
+  // 一組會一起變動的離散篩選；history:'push' 讓上一頁可逐步回退（與 /search 一致）。
+  // 刻意不傳 startTransition：避免被 React transition 延遲而與 react-query
+  //（useSyncExternalStore）脫節造成計數抖動。
+  const [
+    {
+      region: regionId,
+      brand: brandId,
+      billing: hasBillingMethod,
+      canWish,
+      dateStart: activeDuringStart,
+      dateEnd: activeDuringEnd,
+      page,
+      pageSize,
+    },
+    setParams,
+  ] = useQueryStates(
+    {
+      region: parseAsString,
+      brand: parseAsString,
+      billing: parseAsBoolean.withDefault(false),
+      canWish: parseAsBoolean.withDefault(false),
+      dateStart: parseAsString.withDefault(''),
+      dateEnd: parseAsString.withDefault(''),
+      page: parseAsInteger.withDefault(1),
+      pageSize: parseAsInteger.withDefault(20),
+    },
+    { history: 'push', scroll: false, shallow: true },
+  )
+
+  // 防呆（對齊原本 useState 預設與白名單）
+  const safePage = Math.max(1, page)
+  const safePageSize = [10, 20, 50].includes(pageSize) ? pageSize : 20
+
   const [regionSearch, setRegionSearch] = useState('')
   const [showAllRegions, setShowAllRegions] = useState(false)
-  const [activeDuringStart, setActiveDuringStart] = useState('')
-  const [activeDuringEnd, setActiveDuringEnd] = useState('')
-  const [locationQuery, setLocationQuery] = useState('')
-  const [hasBillingMethod, setHasBillingMethod] = useState(false)
-  const [brandId, setBrandId] = useState('')
-  const [canWish, setCanWish] = useState(false)
-  const [isPending, setIsPending] = useState(false)
+
+  // 任一離散篩選改變 → 回第 1 頁（取代原 reset-page effect）
+  const setFilter = (
+    patch: Partial<{
+      region: string | null
+      brand: string | null
+      billing: boolean
+      canWish: boolean
+      dateStart: string
+      dateEnd: string
+    }>,
+  ) => {
+    setParams({ ...patch, page: 1 })
+  }
+
+  // location 屬獨立 replace hook；變更時一併把 page 設回 1（僅在非第 1 頁時）
+  const onLocationChange = (value: string) => {
+    setLocationQuery(value)
+    if (safePage !== 1) setParams({ page: 1 })
+  }
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
   const { data: brandsData } = trpc.brand.list.useQuery()
   const brands = brandsData ?? []
@@ -53,14 +102,11 @@ export default function ConnectionsPage() {
     .filter(Boolean)
   const otherRegions = regions.filter((r: any) => !POPULAR_REGION_NAMES.includes(r.name))
 
-  // Reset to page 1 when any filter or pageSize changes
-  useEffect(() => { setPage(1) }, [regionId, activeDuringStart, activeDuringEnd, locationQuery, hasBillingMethod, brandId, canWish, q, pageSize])
-
   const { data, isLoading, isFetching } =
     trpc.connection.browse.useQuery(
       {
-        limit: pageSize,
-        page,
+        limit: safePageSize,
+        page: safePage,
         title_query: q || undefined,
         region_id: regionId || undefined,
         location_query: locationText || undefined,
@@ -80,11 +126,10 @@ export default function ConnectionsPage() {
   const connections = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = data?.totalPages ?? 0
-  useEffect(() => { setIsPending(false) }, [data])
-  const listLoading = isPending || isLoading || isFetching
+  const listLoading = isLoading || isFetching
 
   const handlePageChange = (newPage: number) => {
-    setPage(newPage)
+    setParams({ page: newPage })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const regionLabel = regions.find((region: any) => region.id === regionId)?.name ?? ''
@@ -111,7 +156,7 @@ export default function ConnectionsPage() {
           key={region.id}
           label={region.name}
           checked={isSelected}
-          onClick={() => { setIsPending(true); setRegionId(isSelected ? '' : region.id) }}
+          onClick={() => setFilter({ region: isSelected ? null : region.id })}
         />
       )
     }
@@ -135,7 +180,7 @@ export default function ConnectionsPage() {
           rightSlot={
             <Switch
               checked={canWish}
-              onCheckedChange={(v) => { setIsPending(true); setCanWish(v) }}
+              onCheckedChange={(v) => setFilter({ canWish: v })}
             />
           }
         />
@@ -145,7 +190,7 @@ export default function ConnectionsPage() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={locationQuery}
-              onChange={(event) => setLocationQuery(event.target.value)}
+              onChange={(event) => onLocationChange(event.target.value)}
               placeholder="例如：稻荷神社"
               className="pl-9"
             />
@@ -203,7 +248,7 @@ export default function ConnectionsPage() {
                   key={brand.id}
                   label={brand.name}
                   checked={brandId === brand.id}
-                  onClick={() => { setIsPending(true); setBrandId(brandId === brand.id ? '' : brand.id) }}
+                  onClick={() => setFilter({ brand: brandId === brand.id ? null : brand.id })}
                 />
               ))}
             </div>
@@ -216,7 +261,7 @@ export default function ConnectionsPage() {
               <Label className="text-[11px] font-medium text-[#999]">從</Label>
               <DatePicker
                 value={activeDuringStart}
-                onValueChange={(v) => { setIsPending(true); setActiveDuringStart(v) }}
+                onValueChange={(v) => setFilter({ dateStart: v })}
                 placeholder="選擇開始日期"
                 className="w-full"
               />
@@ -226,7 +271,7 @@ export default function ConnectionsPage() {
               <Label className="text-[11px] font-medium text-[#999]">到</Label>
               <DatePicker
                 value={activeDuringEnd}
-                onValueChange={(v) => { setIsPending(true); setActiveDuringEnd(v) }}
+                onValueChange={(v) => setFilter({ dateEnd: v })}
                 placeholder="選擇結束日期"
                 className="w-full"
               />
@@ -240,7 +285,7 @@ export default function ConnectionsPage() {
           rightSlot={
             <Switch
               checked={hasBillingMethod}
-              onCheckedChange={(v) => { setIsPending(true); setHasBillingMethod(v) }}
+              onCheckedChange={(v) => setFilter({ billing: v })}
             />
           }
         />
@@ -271,7 +316,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => { setIsPending(true); setRegionId('') }}
+                        onClick={() => setFilter({ region: null })}
                       >
                         {regionLabel}
                         <X className="h-3 w-3" />
@@ -281,11 +326,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => {
-                          setIsPending(true)
-                          setActiveDuringStart('')
-                          setActiveDuringEnd('')
-                        }}
+                        onClick={() => setFilter({ dateStart: '', dateEnd: '' })}
                       >
                         {activeDateLabel}
                         <X className="h-3 w-3" />
@@ -295,7 +336,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => { setIsPending(true); setLocationQuery('') }}
+                        onClick={() => onLocationChange('')}
                       >
                         地點：{locationText}
                         <X className="h-3 w-3" />
@@ -305,7 +346,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => { setIsPending(true); setBrandId('') }}
+                        onClick={() => setFilter({ brand: null })}
                       >
                         {brandLabel}
                         <X className="h-3 w-3" />
@@ -315,7 +356,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => { setIsPending(true); setCanWish(false) }}
+                        onClick={() => setFilter({ canWish: false })}
                       >
                         可許願
                         <X className="h-3 w-3" />
@@ -325,7 +366,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
-                        onClick={() => { setIsPending(true); setHasBillingMethod(false) }}
+                        onClick={() => setFilter({ billing: false })}
                       >
                         提供付款方式
                         <X className="h-3 w-3" />
@@ -335,9 +376,9 @@ export default function ConnectionsPage() {
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                <Select value={String(safePageSize)} onValueChange={(v) => setParams({ pageSize: Number(v), page: 1 })}>
                   <SelectTrigger className="h-9 w-24 text-sm">
-                    <SelectValue>{pageSize} 筆</SelectValue>
+                    <SelectValue>{safePageSize} 筆</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="10">10 筆</SelectItem>
@@ -378,7 +419,7 @@ export default function ConnectionsPage() {
                 ))}
               </div>
               <Pagination
-                page={page}
+                page={safePage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
                 className="mt-8"

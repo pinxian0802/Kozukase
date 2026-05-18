@@ -6,6 +6,7 @@ import { getServerSession } from "@/lib/supabase/get-session";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NextTopLoader from "nextjs-toploader";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -48,14 +49,16 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <NextTopLoader color="#0a0a0a" height={2} showSpinner={false} />
-        <TooltipProvider>
-          <TRPCProvider>
-            <SessionProvider value={session}>
-              {children}
-              <Toaster position="top-center" />
-            </SessionProvider>
-          </TRPCProvider>
-        </TooltipProvider>
+        <NuqsAdapter>
+          <TooltipProvider>
+            <TRPCProvider>
+              <SessionProvider value={session}>
+                {children}
+                <Toaster position="top-center" />
+              </SessionProvider>
+            </TRPCProvider>
+          </TooltipProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 'use client'
 
-import { Suspense, useState, useEffect, type ReactNode } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { Suspense, useState, type ReactNode } from 'react'
+import { useQueryState, useQueryStates, parseAsString, parseAsInteger, parseAsStringEnum, createSerializer } from 'nuqs'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -28,6 +28,18 @@ const KZ = {
   green:  '#7DC83A',
 } as const
 
+// /search 的篩選參數定義；useQueryStates 與返回連結序列化共用同一份，避免漂移。
+const filterParsers = {
+  category: parseAsString,
+  brand: parseAsString,
+  tab: parseAsStringEnum(['listings', 'products'] as const).withDefault('listings'),
+  page: parseAsInteger.withDefault(1),
+  pageSize: parseAsInteger.withDefault(20),
+}
+// 從目前 nuqs 篩選狀態（唯一真實來源）序列化出 /search querystring，
+// 不再依賴可能與 nuqs shallow 更新脫節的 useSearchParams()。
+const serializeSearch = createSerializer({ q: parseAsString.withDefault(''), ...filterParsers })
+
 export default function SearchPage() {
   return (
     <Suspense>
@@ -37,42 +49,40 @@ export default function SearchPage() {
 }
 
 function SearchContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+  // q 由站外搜尋框帶入，本頁唯讀
+  const [q] = useQueryState('q', parseAsString.withDefault(''))
 
-  const q = searchParams.get('q') ?? ''
-  const category = searchParams.get('category') ?? undefined
-  const brandId = searchParams.get('brand') ?? undefined
-  const tab = (searchParams.get('tab') ?? 'listings') as 'products' | 'listings'
-  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
-  const pageSize = (() => {
-    const raw = parseInt(searchParams.get('pageSize') ?? '20', 10)
-    return [10, 20, 50].includes(raw) ? raw : 20
-  })()
+  // 一組會一起變動的篩選參數；history:'push' 讓瀏覽器上一頁可回到前一組篩選，
+  // scroll:false 對齊原本 router.push 的行為（分頁時另行手動捲動）。
+  // 刻意不傳 startTransition：篩選參數同步更新，避免被 React transition 延遲
+  // 而與 react-query（useSyncExternalStore）脫節造成計數抖動；loading 全由
+  // react-query 的 isFetching 提供。
+  const [{ category, brand: brandId, tab, page, pageSize }, setParams] = useQueryStates(
+    filterParsers,
+    { history: 'push', scroll: false, shallow: true }
+  )
+
+  // 保留原有的輸入夾擠/白名單防呆
+  const safePage = Math.max(1, page)
+  const safePageSize = [10, 20, 50].includes(pageSize) ? pageSize : 20
+  const categoryArg = (category ?? undefined) as ProductCategory | undefined
+  const brandArg = brandId ?? undefined
 
   const [categoryExpanded, setCategoryExpanded] = useState(false)
-  const [isPending, setIsPending] = useState(false)
-  // Optimistic local state — updates immediately on click; syncs back when URL commits
-  const [localTab, setLocalTab] = useState(tab)
-  const [localCategory, setLocalCategory] = useState<string | undefined>(category)
-  const [localBrandId, setLocalBrandId] = useState<string | undefined>(brandId)
-  useEffect(() => { setLocalTab(tab) }, [tab])
-  useEffect(() => { setLocalCategory(category) }, [category])
-  useEffect(() => { setLocalBrandId(brandId) }, [brandId])
 
   const { data: brandsData } = trpc.brand.forSearch.useQuery({
     query: q || undefined,
-    category: category as ProductCategory | undefined,
+    category: categoryArg,
   })
   const brands = brandsData ?? []
 
-  const { data, isLoading, isFetching } = trpc.product.browse.useQuery(
+  const { data, isFetching } = trpc.product.browse.useQuery(
     {
       query: q || undefined,
-      category: category as ProductCategory | undefined,
-      brandId,
-      page,
-      limit: pageSize,
+      category: categoryArg,
+      brandId: brandArg,
+      page: safePage,
+      limit: safePageSize,
     },
     {
       enabled: tab === 'products',
@@ -90,10 +100,10 @@ function SearchContent() {
   } = trpc.listing.browse.useQuery(
     {
       query: q || undefined,
-      category: category as ProductCategory | undefined,
-      brandId,
-      page,
-      limit: pageSize,
+      category: categoryArg,
+      brandId: brandArg,
+      page: safePage,
+      limit: safePageSize,
     },
     {
       enabled: tab === 'listings',
@@ -104,47 +114,22 @@ function SearchContent() {
   const listings = listingData?.items ?? []
   const listingTotal = listingData?.total ?? 0
   const listingTotalPages = listingData?.totalPages ?? 0
-  // Clear the optimistic pending state as soon as the URL params commit;
-  // react-query's isFetching takes over the loading display from there.
-  useEffect(() => {
-    setIsPending(false)
-  }, [tab, category, brandId, page, pageSize])
 
   const updateTab = (newTab: 'products' | 'listings') => {
-    if (newTab === localTab) return
-    setLocalTab(newTab)
-    setIsPending(true)
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('tab', newTab)
-    params.set('page', '1')
-    router.push(`/search?${params.toString()}`, { scroll: false })
+    if (newTab === tab) return
+    setParams({ tab: newTab, page: 1 })
   }
 
-  const updateParam = (key: string, value: string | null) => {
-    setIsPending(true)
-    if (key === 'category') setLocalCategory(value ?? undefined)
-    if (key === 'brand') setLocalBrandId(value ?? undefined)
-    const params = new URLSearchParams(searchParams.toString())
-    if (value) params.set(key, value)
-    else params.delete(key)
-    params.set('page', '1')
-    router.push(`/search?${params.toString()}`, { scroll: false })
-  }
-
-  const clearAllFilters = () => {
-    setIsPending(true)
-    setLocalCategory(undefined)
-    setLocalBrandId(undefined)
-    const params = new URLSearchParams()
-    if (q) params.set('q', q)
-    params.set('pageSize', String(pageSize))
-    router.push(`/search?${params.toString()}`, { scroll: false })
+  const updateParam = (key: 'category' | 'brand' | 'pageSize', value: string | null) => {
+    if (key === 'pageSize') {
+      setParams({ pageSize: value ? parseInt(value, 10) : 20, page: 1 })
+      return
+    }
+    setParams({ [key]: value, page: 1 })
   }
 
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('page', String(newPage))
-    router.push(`/search?${params.toString()}`)
+    setParams({ page: newPage })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -154,16 +139,16 @@ function SearchContent() {
   const secondHalf = categoryEntries.slice(half)
 
   const activeFilters: { key: string; label: string; color: string; onRemove: () => void }[] = []
-  if (localCategory) {
+  if (category) {
     activeFilters.push({
       key: 'category',
-      label: PRODUCT_CATEGORY_LABELS[localCategory as ProductCategory] ?? localCategory,
+      label: PRODUCT_CATEGORY_LABELS[category as ProductCategory] ?? category,
       color: KZ.teal,
       onRemove: () => updateParam('category', null),
     })
   }
-  if (localBrandId) {
-    const brandName = brands.find((b) => b.id === localBrandId)?.name ?? localBrandId
+  if (brandId) {
+    const brandName = brands.find((b) => b.id === brandId)?.name ?? brandId
     activeFilters.push({
       key: 'brand',
       label: brandName,
@@ -181,9 +166,9 @@ function SearchContent() {
             <FilterCheckbox
               key={key}
               label={label}
-              checked={localCategory === key}
+              checked={category === key}
               color={KZ.teal}
-              onClick={() => updateParam('category', localCategory === key ? null : key)}
+              onClick={() => updateParam('category', category === key ? null : key)}
             />
           ))}
           {categoryExpanded &&
@@ -191,9 +176,9 @@ function SearchContent() {
               <FilterCheckbox
                 key={key}
                 label={label}
-                checked={localCategory === key}
+                checked={category === key}
                 color={KZ.teal}
-                onClick={() => updateParam('category', localCategory === key ? null : key)}
+                onClick={() => updateParam('category', category === key ? null : key)}
               />
             ))}
         </div>
@@ -228,9 +213,9 @@ function SearchContent() {
               <FilterCheckbox
                 key={brand.id}
                 label={brand.name}
-                checked={localBrandId === brand.id}
+                checked={brandId === brand.id}
                 color={KZ.pink}
-                onClick={() => updateParam('brand', localBrandId === brand.id ? null : brand.id)}
+                onClick={() => updateParam('brand', brandId === brand.id ? null : brand.id)}
               />
             ))}
           </div>
@@ -257,7 +242,7 @@ function SearchContent() {
             <div className="flex items-start justify-between gap-4 p-5">
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-2xl font-bold">
-                  {localTab === 'products'
+                  {tab === 'products'
                     ? q ? `「${q}」的搜尋結果，共 ${total} 件` : `瀏覽商品，共 ${total} 件`
                     : q ? `「${q}」的代購，共 ${listingTotal} 筆` : `瀏覽代購，共 ${listingTotal} 筆`
                   }
@@ -280,7 +265,7 @@ function SearchContent() {
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                <Select value={String(pageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
+                <Select value={String(safePageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
                   <SelectTrigger className="h-9 w-24 text-sm">
                     <SelectValue>
                       {(v: string) => (v ? `${v} 筆` : undefined)}
@@ -328,7 +313,7 @@ function SearchContent() {
                   onClick={() => updateTab(t)}
                   className={[
                     'rounded-t-lg px-6 py-2.5 text-sm font-semibold transition-colors',
-                    localTab === t
+                    tab === t
                       ? 'bg-[#26C8C2] text-white'
                       : 'text-[#aaa] hover:text-[#666]',
                   ].join(' ')}
@@ -339,8 +324,8 @@ function SearchContent() {
             </div>
           </section>
 
-          {localTab === 'products' ? (
-            (isPending || isFetching) ? (
+          {tab === 'products' ? (
+            isFetching ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="space-y-3">
@@ -357,12 +342,12 @@ function SearchContent() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      href={`/products/${product.id}?from=${encodeURIComponent(`/search?${searchParams.toString()}`)}`}
+                      href={`/products/${product.id}?from=${encodeURIComponent(`/search${serializeSearch({ q, category, brand: brandId, tab, page: safePage, pageSize: safePageSize })}`)}`}
                     />
                   ))}
                 </div>
                 <Pagination
-                  page={page}
+                  page={safePage}
                   totalPages={totalPages}
                   onPageChange={handlePageChange}
                   className="mt-8"
@@ -376,7 +361,7 @@ function SearchContent() {
               />
             )
           ) : (
-            (isPending || listingFetching) ? (
+            listingFetching ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="space-y-3">
@@ -390,7 +375,7 @@ function SearchContent() {
               <>
                 <ListingComparison listings={listings as any} />
                 <Pagination
-                  page={page}
+                  page={safePage}
                   totalPages={listingTotalPages}
                   onPageChange={handlePageChange}
                   className="mt-8"
