@@ -5,7 +5,8 @@ import { Flag, CheckCircle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs } from '@/components/ui/tabs'
+import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -46,11 +47,11 @@ export default function AdminReportsPage() {
       <h1 className="text-2xl font-bold font-heading">檢舉處理</h1>
 
       <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-          <TabsTrigger value="pending">待處理</TabsTrigger>
-          <TabsTrigger value="resolved">已解決</TabsTrigger>
-          <TabsTrigger value="dismissed">已駁回</TabsTrigger>
-        </TabsList>
+        <FilterTabsList items={[
+          { value: 'pending', label: '待處理' },
+          { value: 'resolved', label: '已解決' },
+          { value: 'dismissed', label: '已駁回' },
+        ]} />
       </Tabs>
 
       {isLoading ? (

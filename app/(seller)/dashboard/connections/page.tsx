@@ -4,7 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { ExternalLink, Globe, Images, Maximize2, Plus, Sparkles } from 'lucide-react'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs } from '@/components/ui/tabs'
+import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -138,12 +139,12 @@ export default function SellerConnectionsPage() {
       </div>
 
       <Tabs value={status} onValueChange={setStatus}>
-        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-          <TabsTrigger value="all" className="group">全部 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.total}</span></TabsTrigger>
-          <TabsTrigger value="active" className="group">進行中 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.active}</span></TabsTrigger>
-          <TabsTrigger value="ended" className="group">已結束 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.ended}</span></TabsTrigger>
-          <TabsTrigger value="pending_approval" className="group">待審核 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts.pending_approval}</span></TabsTrigger>
-        </TabsList>
+        <FilterTabsList items={[
+          { value: 'all', label: '全部', count: counts.total },
+          { value: 'active', label: '進行中', count: counts.active },
+          { value: 'ended', label: '已結束', count: counts.ended },
+          { value: 'pending_approval', label: '待審核', count: counts.pending_approval },
+        ]} />
       </Tabs>
 
       {isLoading ? (

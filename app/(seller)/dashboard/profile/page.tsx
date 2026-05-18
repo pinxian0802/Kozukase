@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { AvatarUpload } from '@/components/shared/avatar-upload'
@@ -322,10 +323,10 @@ export default function SellerProfilePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <Tabs defaultValue="seller-info">
-        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-          <TabsTrigger value="seller-info">賣家資料</TabsTrigger>
-          <TabsTrigger value="social">社群帳號</TabsTrigger>
-        </TabsList>
+        <FilterTabsList items={[
+          { value: 'seller-info', label: '賣家資料' },
+          { value: 'social', label: '社群帳號' },
+        ]} />
 
         <TabsContent value="seller-info" className="mt-4">
           <Card className="ring-0 shadow-sm bg-white">

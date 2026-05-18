@@ -8,7 +8,8 @@ import {
   Star, Package, Globe, CheckCircle2, MessageCircle, ChevronLeft
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StarRating } from '@/components/shared/star-rating'
 import { SocialBadge } from '@/components/seller/social-badge'
@@ -279,11 +280,11 @@ export default function SellerPage({ params }: { params: Promise<{ id: string }>
 
         {/* ── Tabs ── */}
         <Tabs defaultValue="listings">
-          <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-            <TabsTrigger value="listings">代購商品</TabsTrigger>
-            <TabsTrigger value="connections">連線代購</TabsTrigger>
-            <TabsTrigger value="reviews">評價</TabsTrigger>
-          </TabsList>
+          <FilterTabsList items={[
+            { value: 'listings', label: '代購商品' },
+            { value: 'connections', label: '連線代購' },
+            { value: 'reviews', label: '評價' },
+          ]} />
 
           {/* ── Products tab ── */}
           <TabsContent value="listings" className="mt-5">

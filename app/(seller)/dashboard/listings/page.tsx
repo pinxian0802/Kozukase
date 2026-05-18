@@ -4,7 +4,8 @@ import Image from 'next/image'
 import { useState } from 'react'
 import Link from 'next/link'
 import { ExternalLink, Images, Maximize2, Package, Plus } from 'lucide-react'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs } from '@/components/ui/tabs'
+import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -154,13 +155,13 @@ export default function SellerListingsPage() {
       </div>
 
       <Tabs value={status} onValueChange={setStatus}>
-        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-          <TabsTrigger value="all" className="group">全部 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.total ?? 0}</span></TabsTrigger>
-          <TabsTrigger value="active" className="group">上架中 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.active ?? 0}</span></TabsTrigger>
-          <TabsTrigger value="draft" className="group">草稿 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.draft ?? 0}</span></TabsTrigger>
-          <TabsTrigger value="inactive" className="group">已下架 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.inactive ?? 0}</span></TabsTrigger>
-          <TabsTrigger value="pending_approval" className="group">待審核 <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-[#f0f0f0] text-[#666] group-data-active:bg-[#111] group-data-active:text-white">{counts?.pending_approval ?? 0}</span></TabsTrigger>
-        </TabsList>
+        <FilterTabsList items={[
+          { value: 'all', label: '全部', count: counts?.total ?? 0 },
+          { value: 'active', label: '上架中', count: counts?.active ?? 0 },
+          { value: 'draft', label: '草稿', count: counts?.draft ?? 0 },
+          { value: 'inactive', label: '已下架', count: counts?.inactive ?? 0 },
+          { value: 'pending_approval', label: '待審核', count: counts?.pending_approval ?? 0 },
+        ]} />
       </Tabs>
 
       {isLoading ? (

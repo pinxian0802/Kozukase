@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Check, X, Package, Tags, Globe, Pencil, Trash2, GitMerge } from 'lucide-react'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -535,13 +536,11 @@ export default function AdminTodayPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold font-heading">今日新增</h1>
       <Tabs defaultValue="products">
-        <TabsList variant="line" className="flex-wrap w-full border-b border-border">
-          {tabs.map(({ value, label }) => (
-            <TabsTrigger key={value} value={value}>
-              {label} ({counts[value]})
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <FilterTabsList items={tabs.map(({ value, label }) => ({
+          value,
+          label,
+          count: counts[value],
+        }))} />
         <div className="mt-6">
           <TabsContent value="products"><ProductsTab /></TabsContent>
           <TabsContent value="brands"><BrandsTab /></TabsContent>
