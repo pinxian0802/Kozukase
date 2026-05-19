@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -68,6 +68,20 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
     onSuccess: () => utils.seller.getById.invalidate({ id }),
     onError: (err) => toast.error(err.message),
   })
+
+  const recordProfileView = trpc.analytics.recordProfileView.useMutation()
+  const recordSocialClick = trpc.analytics.recordSocialClick.useMutation()
+
+  useEffect(() => {
+    if (!seller) return
+    // 不記錄賣家自己瀏覽
+    if (isOwnProfile) return
+    const key = `pv_${id}`
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+    recordProfileView.mutate({ seller_id: id })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seller])
 
   if (isLoading) {
     return (
@@ -221,6 +235,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     href={`https://www.instagram.com/${igHandle}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'ig' })}
                     className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors"
                   >
                     <Image src="/images/instagram.png" alt="Instagram" width={24} height={24} className="rounded-[5px] shrink-0" />
@@ -230,6 +245,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     href={`https://www.threads.net/@${threadsHandle}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'threads' })}
                     className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors"
                   >
                     <Image src="/images/threads.png" alt="Threads" width={24} height={24} className="rounded-[5px] shrink-0" />
@@ -243,6 +259,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     href={igHandle ? `https://www.instagram.com/${igHandle}` : `https://www.threads.net/@${threadsHandle}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => recordSocialClick.mutate({ seller_id: id, platform: igHandle ? 'ig' : 'threads' })}
                     className="w-[148px] shrink-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors overflow-hidden"
                   >
                     <Image
