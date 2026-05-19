@@ -42,9 +42,12 @@ export const productRouter = router({
         .select(`
           id, name, brand:brands(name), model_number, category, wish_count, created_at,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          listings!inner(price, shipping_date, status, seller_id, seller:sellers!inner(is_social_verified))
         `, { count: 'exact' })
         .eq('is_removed', false)
+        // 只計入有「上架中」刊登的商品；同時讓下方對 listings 的篩選真正生效
+        .eq('listings.status', 'active')
 
       // Apply filters
       if (input.query) {
@@ -102,7 +105,7 @@ export const productRouter = router({
       const total = count ?? 0
       // Supabase types embedded relations as arrays; collapse the to-one
       // joins (brand / catalog_image) so the shape matches ProductCardProduct.
-      const items = (data ?? []).map((p) => ({
+      const items = (data ?? []).map(({ listings: _listings, ...p }) => ({
         ...p,
         brand: Array.isArray(p.brand) ? p.brand[0] ?? null : p.brand,
         catalog_image: Array.isArray(p.catalog_image)

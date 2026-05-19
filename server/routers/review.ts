@@ -31,6 +31,22 @@ export const reviewRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: '您已經對此賣家留過評價' })
       }
 
+      // 防刷評：每位使用者每日最多新增 DAILY_REVIEW_LIMIT 則評價
+      const DAILY_REVIEW_LIMIT = 5
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      const { count: recentCount } = await ctx.db
+        .from('reviews')
+        .select('id', { count: 'exact', head: true })
+        .eq('reviewer_id', ctx.user.id)
+        .gte('created_at', since)
+
+      if ((recentCount ?? 0) >= DAILY_REVIEW_LIMIT) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: '今日評價次數已達上限，請明天再試',
+        })
+      }
+
       const { data, error } = await ctx.db
         .from('reviews')
         .insert({
@@ -135,8 +151,8 @@ export const reviewRouter = router({
         .order('created_at', { ascending: false })
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
@@ -162,7 +178,7 @@ export const reviewRouter = router({
         hasLiked: likedReviewIds.has(r.id),
       }))
 
-      return paginateResults(enriched, input.limit)
+      return paginateResults(enriched, input.limit, (item) => item.created_at)
     }),
 
   // My reviews (for profile page)
@@ -182,14 +198,14 @@ export const reviewRouter = router({
         .order('created_at', { ascending: false })
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
 
       const { data, error } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
     }),
 })

@@ -167,7 +167,7 @@ export const connectionRouter = router({
           *,
           region:regions(id, name),
           seller:sellers(
-            id, name, ig_handle, threads_handle, is_social_verified, avatar_url,
+            id, name, ig_handle, threads_handle, is_social_verified, is_suspended, avatar_url,
             profile:profiles(display_name, avatar_url, username, last_seen_at)
           ),
           connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
@@ -176,6 +176,18 @@ export const connectionRouter = router({
         .single()
 
       if (error || !data) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: '連線不存在' })
+      }
+
+      const isOwner = ctx.user?.id === data.seller_id
+
+      // 非擁有者只能看 active 的連線（ended / pending_approval 視同不存在）
+      if (data.status !== 'active' && !isOwner) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: '連線不存在' })
+      }
+
+      // 賣家被停權時，對非擁有者隱藏
+      if (data.seller?.is_suspended && !isOwner) {
         throw new TRPCError({ code: 'NOT_FOUND', message: '連線不存在' })
       }
 

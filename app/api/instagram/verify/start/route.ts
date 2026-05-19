@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomInt } from 'crypto'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getDb } from '@/server/db/client'
+
+// 每位 seller 重新產碼的冷卻時間（秒），避免狂打此端點產生大量驗證碼
+const RESEND_COOLDOWN_SECONDS = 60
 
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient()
@@ -17,6 +21,25 @@ export async function POST(request: NextRequest) {
 
   const db = getDb()
 
+  // Rate limit：距離上次產碼未滿冷卻時間則拒絕
+  const { data: lastCode } = await db
+    .from('ig_verification_codes')
+    .select('created_at')
+    .eq('seller_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (lastCode?.created_at) {
+    const elapsedSec = (Date.now() - new Date(lastCode.created_at).getTime()) / 1000
+    if (elapsedSec < RESEND_COOLDOWN_SECONDS) {
+      return NextResponse.json(
+        { error: 'Too many requests', retry_after: Math.ceil(RESEND_COOLDOWN_SECONDS - elapsedSec) },
+        { status: 429 }
+      )
+    }
+  }
+
   // 清除此 seller 既有的未驗證碼
   await db
     .from('ig_verification_codes')
@@ -24,7 +47,8 @@ export async function POST(request: NextRequest) {
     .eq('seller_id', user.id)
     .is('verified_at', null)
 
-  const code = String(Math.floor(1000 + Math.random() * 9000))
+  // 用 CSPRNG 產 4 位數碼（randomInt 上界不含，故 10000 → 1000~9999）
+  const code = String(randomInt(1000, 10000))
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
 
   const { data, error } = await db

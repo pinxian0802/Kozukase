@@ -25,7 +25,8 @@ export const sellerRouter = router({
           id: ctx.user.id,
           name: input.name,
           phone_number: input.phone_number ?? null,
-          phone_verified: true, // TODO: implement OTP verification
+          // 尚未實作 OTP 驗證，不可謊稱已驗證；待 OTP 流程上線後改由驗證結果決定
+          phone_verified: false,
           bio: input.bio ?? null,
           avatar_url: input.avatar_url ?? null,
         })
@@ -195,8 +196,9 @@ export const sellerRouter = router({
         .order('created_at', { ascending: false })
 
       if (input.cursor) {
-        const { id } = await import('@/lib/utils/pagination').then(m => m.decodeCursor(input.cursor!))
-        query = query.lt('id', id)
+        const { decodeCursor } = await import('@/lib/utils/pagination')
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
@@ -205,7 +207,7 @@ export const sellerRouter = router({
       if (error) throw error
 
       const { paginateResults } = await import('@/lib/utils/pagination')
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
     }),
 
   getSellerRegions: sellerProcedure.query(async ({ ctx }) => {

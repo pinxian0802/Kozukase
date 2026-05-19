@@ -5,6 +5,38 @@ const r2PublicUrl = process.env.R2_PUBLIC_URL ? new URL(process.env.R2_PUBLIC_UR
 
 const nextConfig: NextConfig = {
 	allowedDevOrigins: ['wisplike-marina-emphasis.ngrok-free.dev'],
+	async headers() {
+		// 寬鬆 CSP：允許 self + 必要外部來源；保留 'unsafe-inline'/'unsafe-eval'
+		// 以相容 Next.js 與 Sentry。img/connect 放寬到 https:（站上有大量
+		// 遠端圖床、Supabase Realtime wss、Sentry ingest）。
+		const csp = [
+			"default-src 'self'",
+			"script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+			"style-src 'self' 'unsafe-inline'",
+			"img-src 'self' data: blob: https:",
+			"font-src 'self' data:",
+			"connect-src 'self' https: wss:",
+			"frame-src 'self'",
+			"frame-ancestors 'none'",
+			"base-uri 'self'",
+			"form-action 'self'",
+			"object-src 'none'",
+		].join('; ');
+
+		return [
+			{
+				source: '/:path*',
+				headers: [
+					{ key: 'Content-Security-Policy', value: csp },
+					{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+					{ key: 'X-Frame-Options', value: 'DENY' },
+					{ key: 'X-Content-Type-Options', value: 'nosniff' },
+					{ key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+					{ key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+				],
+			},
+		];
+	},
 	images: {
 		remotePatterns: [
 			{

@@ -56,14 +56,14 @@ export const wishRouter = router({
         .order('created_at', { ascending: false })
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
       const { data, error } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
     }),
 
   // Public wish list page - products sorted by wish count
@@ -82,16 +82,22 @@ export const wishRouter = router({
         `)
         .eq('is_removed', false)
         .gt('wish_count', 0)
+        // wish_count 大量重複，需用 (wish_count, id) 複合游標避免跳/漏/重
         .order('wish_count', { ascending: false })
+        .order('id', { ascending: false })
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { id, sortValue } = decodeCursor(input.cursor)
+        if (sortValue !== undefined) {
+          query = query.or(
+            `wish_count.lt.${sortValue},and(wish_count.eq.${sortValue},id.lt.${id})`
+          )
+        }
       }
 
       query = query.limit(input.limit + 1)
       const { data, error } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.wish_count)
     }),
 })

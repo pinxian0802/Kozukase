@@ -67,14 +67,14 @@ export const bookmarkRouter = router({
         .order('created_at', { ascending: false })
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
       const { data, error } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
     }),
 
   isConnectionBookmarked: protectedProcedure
@@ -132,14 +132,14 @@ export const bookmarkRouter = router({
         .order('created_at', { ascending: false })
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
       const { data, error } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
     }),
 
   myListingBookmarks: protectedProcedure
@@ -163,13 +163,13 @@ export const bookmarkRouter = router({
         .order('created_at', { ascending: false })
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
       const { data, error } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
     }),
 })

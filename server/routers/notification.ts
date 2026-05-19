@@ -21,15 +21,15 @@ export const notificationRouter = router({
       }
 
       if (input.cursor) {
-        const { id } = decodeCursor(input.cursor)
-        query = query.lt('id', id)
+        const { sortValue } = decodeCursor(input.cursor)
+        if (sortValue) query = query.lt('created_at', sortValue)
       }
 
       query = query.limit(input.limit + 1)
 
       const { data, error } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit)
+      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
     }),
 
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
