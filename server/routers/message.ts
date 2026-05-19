@@ -135,6 +135,14 @@ export const messageRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const r2Base = process.env.R2_PUBLIC_URL
+      if (input.image_url && (!r2Base || !input.image_url.startsWith(r2Base))) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '圖片必須來自受信任的儲存空間' })
+      }
+      if (input.context_image_url && (!r2Base || !input.context_image_url.startsWith(r2Base))) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '圖片必須來自受信任的儲存空間' })
+      }
+
       const { data: conv } = await ctx.db
         .from('conversations')
         .select('buyer_id, seller_id')
