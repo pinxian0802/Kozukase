@@ -51,7 +51,9 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     const nextErrors: ResetPasswordErrors = {}
 
-    if (password.length < 6) {
+    if (!password) {
+      nextErrors.password = '密碼為必填'
+    } else if (password.length < 6) {
       nextErrors.password = '密碼至少需要 6 個字元'
     }
 

@@ -29,8 +29,22 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  title: "Kozukase | 日本代購比價平台",
-  description: "比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務",
+  metadataBase: new URL('https://kozukase.com'),
+  title: 'Kozukase | 日本代購比價平台',
+  description: '比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務',
+  openGraph: {
+    siteName: 'Kozukase',
+    type: 'website',
+    locale: 'zh_TW',
+    title: 'Kozukase | 日本代購比價平台',
+    description: '比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務',
+    url: 'https://kozukase.com',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kozukase | 日本代購比價平台',
+    description: '比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務',
+  },
 };
 
 export default async function RootLayout({
