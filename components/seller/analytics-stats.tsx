@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TrendingUp, TrendingDown, Minus, Eye, Users, Instagram, AtSign, MessageCircle, Bookmark, UserPlus, Heart } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Eye, Users, Camera, AtSign, MessageCircle, Bookmark, UserPlus, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
@@ -72,7 +72,7 @@ export function AnalyticsStats() {
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
           <StatCard label="刊登瀏覽" icon={<Eye className="h-4 w-4" />} current={data.listingViews.current} trend={data.listingViews.trend} />
           <StatCard label="主頁訪客" icon={<Users className="h-4 w-4" />} current={data.profileViews.current} trend={data.profileViews.trend} />
-          <StatCard label="IG 點擊" icon={<Instagram className="h-4 w-4" />} current={data.igClicks.current} trend={data.igClicks.trend} />
+          <StatCard label="IG 點擊" icon={<Camera className="h-4 w-4" />} current={data.igClicks.current} trend={data.igClicks.trend} />
           <StatCard label="Threads 點擊" icon={<AtSign className="h-4 w-4" />} current={data.threadsClicks.current} trend={data.threadsClicks.trend} />
           <StatCard label="收到詢問" icon={<MessageCircle className="h-4 w-4" />} current={data.inquiries.current} trend={data.inquiries.trend} />
           <StatCard label="新增書籤" icon={<Bookmark className="h-4 w-4" />} current={data.bookmarks.current} trend={data.bookmarks.trend} />

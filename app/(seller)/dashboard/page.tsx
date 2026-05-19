@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
+import { AnalyticsStats } from '@/components/seller/analytics-stats'
 
 const MAX_LISTINGS = 25
 
@@ -80,6 +81,9 @@ export default function SellerDashboardPage() {
           </Button>
         </div>
       </div>
+
+      {/* Analytics */}
+      <AnalyticsStats />
 
       {/* Listing quota overview */}
       <Card className="ring-0 shadow-sm bg-white">
