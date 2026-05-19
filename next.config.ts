@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const r2PublicUrl = process.env.R2_PUBLIC_URL ? new URL(process.env.R2_PUBLIC_URL) : null;
 
@@ -112,4 +113,18 @@ const nextConfig: NextConfig = {
 	},
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+	// Sentry 組織 / 專案（source map 上傳目標）
+	org: "pinxian-chiang",
+	project: "kozukase",
+
+	// SENTRY_AUTH_TOKEN 由環境變數自動讀取（.env.local / Vercel）
+	// 非 CI 時靜音 wizard log
+	silent: !process.env.CI,
+
+	// 涵蓋更廣的 client 檔案以利 source map 還原
+	widenClientFileUpload: true,
+
+	// 移除 Sentry SDK debug log，縮小 bundle
+	disableLogger: true,
+});

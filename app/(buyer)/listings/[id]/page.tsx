@@ -17,8 +17,8 @@ export async function generateMetadata(
     return { title: 'Kozukase | 日本代購比價平台' }
   }
 
-  const productName = (data.product as { name: string } | null)?.name ?? ''
-  const sellerName = (data.seller as { name: string } | null)?.name ?? ''
+  const productName = (data.product as unknown as { name: string } | null)?.name ?? ''
+  const sellerName = (data.seller as unknown as { name: string } | null)?.name ?? ''
 
   return {
     title: `${productName} · ${sellerName} · Kozukase`,

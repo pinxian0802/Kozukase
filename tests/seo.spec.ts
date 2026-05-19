@@ -33,9 +33,10 @@ test('首頁有 og:title meta tag', async ({ page }) => {
 
 test('賣家頁 title 包含賣家名稱', async ({ page }) => {
   const { data } = await dbAdmin().from('sellers').select('name').eq('id', seed.sellerId).single()
+  expect(data).not.toBeNull()
   await page.goto(`/sellers/${seed.sellerId}`)
   const title = await page.title()
-  expect(title).toContain(data.name)
+  expect(title).toContain(data!.name)
 })
 
 test('商品頁 title 包含商品名稱', async ({ page }) => {
