@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useEffect } from 'react'
 import Image from 'next/image'
 import { Bookmark, ExternalLink, ChevronRight, MessageSquare, Truck } from 'lucide-react'
 import Link from 'next/link'
@@ -28,6 +28,20 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
   const bookmarkToggle = trpc.bookmark.toggleListingBookmark.useMutation({
     onSuccess: () => utils.listing.getById.invalidate({ id }),
   })
+
+  const recordView = trpc.analytics.recordListingView.useMutation()
+
+  useEffect(() => {
+    if (!listing) return
+    // 不記錄賣家自己瀏覽
+    if (session?.user?.id === listing.seller_id) return
+    // Session 內 dedup
+    const key = `lv_${id}`
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+    recordView.mutate({ listing_id: id })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing])
 
   const handleBookmark = () => {
     if (!session) {
