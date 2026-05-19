@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Loader2, Package, Check, X } from 'lucide-react'
+import { Plus, Loader2, Package, Check, X, Info } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { ProductCard } from '@/components/product/product-card'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/ui/date-picker'
 import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { buttonVariants } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
@@ -617,7 +618,19 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
 
       {/* Post URL */}
       <div>
-        <Label htmlFor="postUrl">貼文連結 *</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="postUrl">貼文連結 *</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>可貼上賣場連結或社群貼文連結（如 Instagram、蝦皮等）</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <div className="relative mt-1">
           <Input
             id="postUrl"
@@ -648,6 +661,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             ) : null}
           </span>
         </div>
+        <p className="text-xs text-muted-foreground">可貼上賣場連結或社群貼文連結（如 Instagram、蝦皮等）</p>
         {isCheckingUrl
           ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
           : <FormFieldError message={errors.postUrl} />}

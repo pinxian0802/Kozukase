@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Loader2, X } from 'lucide-react'
+import { Check, Loader2, X, Info } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { addDays, isAfter, parseISO, startOfDay } from 'date-fns'
 import { buttonVariants } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select'
 import { DatePicker } from '@/components/ui/date-picker'
 import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { BrandMultiSelect } from '@/components/shared/brand-select'
 import { trpc } from '@/lib/trpc/client'
 import { parseSafeHttpUrl } from '@/lib/utils/safe-url'
@@ -434,7 +435,19 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="postLink" className="text-sm font-medium text-foreground">貼文／群組連結（選填）</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="postLink" className="text-sm font-medium text-foreground">貼文／群組連結（選填）</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>可貼上連線相關的連結或貼文連結（如 Facebook 群組、Instagram 貼文等）</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <div className="relative mt-1">
           <Input
             id="postLink"
@@ -465,7 +478,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             ) : null}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">可貼上 Facebook、Instagram 貼文或代購群組等相關連結</p>
+        <p className="text-xs text-muted-foreground">可貼上連線相關的連結或貼文連結（如 Facebook 群組、Instagram 貼文等）</p>
         {isCheckingPostLink
           ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
           : <FormFieldError message={errors.postLink} />}
