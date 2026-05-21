@@ -21,17 +21,15 @@ type ImageRow = {
   sort_order: number
 }
 
+// 空圖片時的 fallback 漸層；chipBg/chipColor 經盤點未使用，已移除。
+// TODO: gradient 端點目前用深色狀態色（info/warning 變體），Phase 4 新增 status dark 色階後再收進 token。
 const CONTEXT_META = {
   connection: {
     label: '連線代購',
-    chipBg: '#EFF6FF',
-    chipColor: '#2563EB',
     gradient: 'linear-gradient(135deg, #1e3a5f 0%, #1a4a8a 100%)',
   },
   listing: {
     label: '代購商品',
-    chipBg: '#FFF7ED',
-    chipColor: '#C2410C',
     gradient: 'linear-gradient(135deg, #7c2d12 0%, #b45309 100%)',
   },
 } as const
@@ -43,18 +41,18 @@ function ViewButton({ href }: { href: string }) {
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         height: 34, padding: '0 14px', borderRadius: 8, gap: 5,
-        border: '1px solid #e0dbd3', background: '#f8f6f3',
-        fontSize: 13, fontWeight: 500, color: '#444',
+        border: '1px solid var(--border-soft)', background: 'var(--surface-muted)',
+        fontSize: 13, fontWeight: 500, color: 'var(--text-muted)',
         textDecoration: 'none', flexShrink: 0,
         transition: 'background .12s, border-color .12s',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.background = '#eeebe4'
-        e.currentTarget.style.borderColor = '#ccc8c0'
+        e.currentTarget.style.background = 'var(--neutral-200)'
+        e.currentTarget.style.borderColor = 'var(--border-strong)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.background = '#f8f6f3'
-        e.currentTarget.style.borderColor = '#e0dbd3'
+        e.currentTarget.style.background = 'var(--surface-muted)'
+        e.currentTarget.style.borderColor = 'var(--border-soft)'
       }}
     >
       查看 <ChevronRight style={{ width: 13, height: 13 }} />
@@ -73,8 +71,8 @@ function ConnectionContextCard({ contextId, contextLabel, imageUrl }: { contextI
   return (
     <div style={{
       display: 'flex', height: 130,
-      borderRadius: 14, border: '1px solid #e8e3dc',
-      background: '#fff', overflow: 'hidden',
+      borderRadius: 14, border: '1px solid var(--border-soft)',
+      background: 'var(--surface-card)', overflow: 'hidden',
       boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       {/* Left: square image = 130x130 */}
@@ -138,8 +136,8 @@ function ListingContextCard({ contextId, contextLabel, imageUrl }: { contextId: 
   return (
     <div style={{
       display: 'flex', height: 130,
-      borderRadius: 14, border: '1px solid #e8e3dc',
-      background: '#fff', overflow: 'hidden',
+      borderRadius: 14, border: '1px solid var(--border-soft)',
+      background: 'var(--surface-card)', overflow: 'hidden',
       boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ width: 130, height: 130, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>

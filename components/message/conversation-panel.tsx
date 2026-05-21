@@ -259,26 +259,26 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
   }
 
   return (
-    <section style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', background: '#fafaf8', overflow: 'hidden' }}>
+    <section style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--surface-page)', overflow: 'hidden' }}>
       {/* Chat Header */}
       <div style={{
-        height: 68, borderBottom: '1px solid #ececec', background: '#fff',
+        height: 68, borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-card)',
         padding: '0 20px', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0,
       }}>
         <Avatar style={{ width: 40, height: 40, flexShrink: 0 }}>
           <AvatarImage src={otherAvatar ?? undefined} />
-          <AvatarFallback style={{ background: 'linear-gradient(135deg, #2d3a5e, #0f1a36)', color: '#fff', fontFamily: 'Rubik, sans-serif', fontWeight: 700 }}>
+          <AvatarFallback style={{ background: 'linear-gradient(135deg, #2d3a5e, #0f1a36)', color: 'var(--surface-card)', fontFamily: 'Rubik, sans-serif', fontWeight: 700 }}>
             {otherName?.[0] ?? '?'}
           </AvatarFallback>
         </Avatar>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {otherName ?? '對話'}
           </div>
           {(() => {
             const lastSeenText = formatLastSeen(otherLastSeenAt)
             return lastSeenText ? (
-              <div style={{ fontSize: 12, color: '#9a9a9a', marginTop: 1 }}>
+              <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 1 }}>
                 {lastSeenText}
               </div>
             ) : null
@@ -316,15 +316,15 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
               disabled={isLoadingMore}
               style={{
                 height: 30, padding: '0 16px', borderRadius: 999,
-                border: '1px solid #e6e2dc', background: '#fff',
-                fontSize: 12, fontWeight: 500, color: '#555',
+                border: '1px solid var(--border-soft)', background: 'var(--surface-card)',
+                fontSize: 12, fontWeight: 500, color: 'var(--text-muted)',
                 cursor: isLoadingMore ? 'not-allowed' : 'pointer',
                 display: 'inline-flex', alignItems: 'center', gap: 6,
               }}
             >
               {isLoadingMore ? (
                 <>
-                  <span style={{ width: 12, height: 12, border: '2px solid #ccc', borderTopColor: '#555', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                  <span style={{ width: 12, height: 12, border: '2px solid var(--border-strong)', borderTopColor: 'var(--text-muted)', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
                   載入中…
                 </>
               ) : '載入更多訊息'}
@@ -348,8 +348,8 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
 function IconBtn({ children, title }: { children: React.ReactNode; title?: string }) {
   return (
     <button title={title} style={{
-      width: 34, height: 34, borderRadius: 8, border: '1px solid #e6e2dc', background: '#fff',
-      cursor: 'pointer', color: '#444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border-soft)', background: 'var(--surface-card)',
+      cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     }}>
       {children}
     </button>

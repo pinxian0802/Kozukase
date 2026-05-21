@@ -42,7 +42,7 @@ function StarRow({ value, size = 14 }: { value: number; size?: number }) {
         <Star
           key={i}
           style={{ width: size, height: size }}
-          className={i <= Math.round(value) ? 'fill-[#111] stroke-[#111]' : 'fill-none stroke-[#111]'}
+          className={i <= Math.round(value) ? 'fill-text-strong stroke-text-strong' : 'fill-none stroke-text-strong'}
           strokeWidth={1.5}
         />
       ))}
@@ -130,7 +130,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
       <main className="mx-auto max-w-4xl px-4 pb-20 pt-6">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1 text-[13px] text-[#888] hover:text-[#111] transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-text-strong transition-colors cursor-pointer"
         >
           <ChevronLeft className="h-4 w-4" />
           返回
@@ -155,7 +155,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     {seller.name}
                   </h1>
                   {seller.is_social_verified && <SocialBadge />}
-                  <span className="inline-flex items-center gap-1 text-[12px] text-[#aaa] font-normal ml-0.5">
+                  <span className="inline-flex items-center gap-1 text-[12px] text-text-faint font-normal ml-0.5">
                     <Calendar className="h-3 w-3" />
                     加入於 {formatDate(seller.created_at)}
                   </span>
@@ -167,7 +167,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     {seller.seller_regions.map((r: any) => (
                       <span
                         key={r.region?.id}
-                        className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[12.5px] font-medium bg-[#f5f5f5] text-[#444]"
+                        className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[12.5px] font-medium bg-surface-muted text-text-muted"
                       >
                         <MapPin className="h-3 w-3" />
                         {r.region?.name}
@@ -179,7 +179,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
               {/* Bio */}
               {(seller as any).bio && (
-                <p className="text-[14px] leading-[1.65] text-[#444] max-w-[520px] whitespace-pre-wrap">
+                <p className="text-[14px] leading-[1.65] text-text-muted max-w-[520px] whitespace-pre-wrap">
                   {(seller as any).bio}
                 </p>
               )}
@@ -188,7 +188,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
               {seller.avg_rating != null && (
                 <div className="flex items-center gap-2 md:hidden">
                   <StarRow value={seller.avg_rating} />
-                  <span className="text-[12.5px] text-[#888]">{seller.avg_rating.toFixed(1)} ({seller.review_count} 則評價)</span>
+                  <span className="text-[12.5px] text-text-muted">{seller.avg_rating.toFixed(1)} ({seller.review_count} 則評價)</span>
                 </div>
               )}
             </div>
@@ -205,8 +205,8 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                   className={cn(
                     'h-11 w-[148px] rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors shrink-0',
                     seller.isFollowing
-                      ? 'bg-[#f0f0f0] text-[#111] hover:bg-[#e4e4e4]'
-                      : 'bg-[#111] text-white hover:bg-[#222]'
+                      ? 'bg-surface-muted text-text-strong hover:bg-neutral-300'
+                      : 'bg-text-strong text-white hover:bg-neutral-800'
                   )}
                 >
                   {seller.isFollowing
@@ -215,13 +215,13 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                 </button>
                 <button
                   onClick={() => router.push(`/messages?seller_id=${id}`)}
-                  className="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors shrink-0"
+                  className="h-11 w-11 rounded-[10px] bg-white text-text-muted border border-border-soft inline-flex items-center justify-center hover:bg-surface-muted transition-colors shrink-0"
                 >
                   <MessageCircle className="h-4 w-4" />
                 </button>
                 <SharePopover
                   title={seller.name ?? ''}
-                  triggerClassName="h-11 w-11 rounded-[10px] bg-white text-[#444] border border-[#e0e0e0] inline-flex items-center justify-center hover:bg-[#f7f7f7] transition-colors cursor-pointer shrink-0"
+                  triggerClassName="h-11 w-11 rounded-[10px] bg-white text-text-muted border border-border-soft inline-flex items-center justify-center hover:bg-surface-muted transition-colors cursor-pointer shrink-0"
                 />
                 <ReportDialog seller_id={id} iconOnly />
               </div>
@@ -236,20 +236,20 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'ig' })}
-                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors"
+                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors"
                   >
                     <Image src="/images/instagram.png" alt="Instagram" width={24} height={24} className="rounded-[5px] shrink-0" />
-                    <span className="text-[13.5px] font-semibold text-[#111] group-hover:text-[#444] leading-tight break-all">{igHandle}</span>
+                    <span className="text-[13.5px] font-semibold text-text-strong group-hover:text-text-muted leading-tight break-all">{igHandle}</span>
                   </a>
                   <a
                     href={`https://www.threads.net/@${threadsHandle}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'threads' })}
-                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors"
+                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors"
                   >
                     <Image src="/images/threads.png" alt="Threads" width={24} height={24} className="rounded-[5px] shrink-0" />
-                    <span className="text-[13.5px] font-semibold text-[#111] group-hover:text-[#444] leading-tight break-all">{threadsHandle}</span>
+                    <span className="text-[13.5px] font-semibold text-text-strong group-hover:text-text-muted leading-tight break-all">{threadsHandle}</span>
                   </a>
                 </>
               ) : (
@@ -260,14 +260,14 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => recordSocialClick.mutate({ seller_id: id, platform: igHandle ? 'ig' : 'threads' })}
-                    className="w-[148px] shrink-0 min-h-[72px] flex items-center gap-2.5 group border border-[#ececec] rounded-[14px] bg-white px-3 hover:bg-[#fafafa] transition-colors overflow-hidden"
+                    className="w-[148px] shrink-0 min-h-[72px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors overflow-hidden"
                   >
                     <Image
                       src={igHandle ? '/images/instagram.png' : '/images/threads.png'}
                       alt={igHandle ? 'Instagram' : 'Threads'}
                       width={24} height={24} className="rounded-[5px] shrink-0"
                     />
-                    <span className="text-[13.5px] font-semibold text-[#111] group-hover:text-[#444] leading-tight break-all">{igHandle ?? threadsHandle}</span>
+                    <span className="text-[13.5px] font-semibold text-text-strong group-hover:text-text-muted leading-tight break-all">{igHandle ?? threadsHandle}</span>
                   </a>
                 </>
               )}
@@ -276,21 +276,21 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
         </div>
 
         {/* ── Stats bar ── */}
-        <div className="mt-7 mb-9 grid grid-cols-4 border border-[#ececec] rounded-[14px] overflow-hidden bg-white">
+        <div className="mt-7 mb-9 grid grid-cols-4 border border-border-soft rounded-[14px] overflow-hidden bg-white">
           {stats.map((s, i) => (
             <div
               key={s.label}
               className={cn(
                 'px-5 py-[18px] flex flex-col gap-1 items-center text-center justify-center',
-                i < stats.length - 1 && 'border-r border-[#ececec]'
+                i < stats.length - 1 && 'border-r border-border-soft'
               )}
             >
-              <div className="text-[11px] font-medium text-[#888] uppercase tracking-[.04em]">{s.label}</div>
-              <div className="flex items-baseline gap-1.5" style={{ fontFamily: 'Rubik, sans-serif', fontSize: 24, fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>
+              <div className="text-[11px] font-medium text-text-muted uppercase tracking-[.04em]">{s.label}</div>
+              <div className="flex items-baseline gap-1.5" style={{ fontFamily: 'Rubik, sans-serif', fontSize: 24, fontWeight: 700, color: 'var(--text-strong)', letterSpacing: '-0.01em' }}>
                 {s.value}
-                {s.star && s.value !== '-' && <Star className="h-3.5 w-3.5 fill-[#111] stroke-[#111] mb-0.5" strokeWidth={1.5} />}
+                {s.star && s.value !== '-' && <Star className="h-3.5 w-3.5 fill-text-strong stroke-text-strong mb-0.5" strokeWidth={1.5} />}
               </div>
-              {s.sub && <div className="text-[11.5px] text-[#999]">{s.sub}</div>}
+              {s.sub && <div className="text-[11.5px] text-text-faint">{s.sub}</div>}
             </div>
           ))}
         </div>
@@ -306,7 +306,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
           {/* ── Products tab ── */}
           <TabsContent value="listings" className="mt-5">
             <div className="flex items-center gap-3 mb-5 flex-wrap">
-              <div className="flex gap-1 p-[3px] bg-[#f5f5f5] rounded-full">
+              <div className="flex gap-1 p-[3px] bg-surface-muted rounded-full">
                 {LISTING_CATS.map(c => (
                   <button
                     key={c.key}
@@ -314,8 +314,8 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     className={cn(
                       'px-3.5 py-1.5 rounded-full text-[12.5px] font-medium transition-colors',
                       listingCat === c.key
-                        ? 'bg-white text-[#111] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
-                        : 'text-[#777] hover:text-[#444]'
+                        ? 'bg-white text-text-strong shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                        : 'text-text-muted hover:text-text-muted'
                     )}
                   >
                     {c.label}
@@ -323,12 +323,12 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                 ))}
               </div>
               <div className="flex-1" />
-              <div className="flex items-center gap-2 text-[12.5px] text-[#666]">
+              <div className="flex items-center gap-2 text-[12.5px] text-text-muted">
                 <span>排序</span>
                 <select
                   value={listingSort}
                   onChange={e => setListingSort(e.target.value)}
-                  className="h-8 border border-[#e8e8e8] rounded-lg px-2.5 text-[12.5px] bg-white cursor-pointer outline-none"
+                  className="h-8 border border-border-soft rounded-lg px-2.5 text-[12.5px] bg-white cursor-pointer outline-none"
                 >
                   <option value="latest">最新上架</option>
                   <option value="price-asc">價格 低 → 高</option>
@@ -365,30 +365,30 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
           <TabsContent value="reviews" className="mt-5">
             <div className="grid grid-cols-[300px_1fr] gap-9">
               {/* Rating sidebar */}
-              <aside className="bg-[#fafafa] border border-[#ececec] rounded-[14px] p-[22px] h-fit">
+              <aside className="bg-surface-muted border border-border-soft rounded-[14px] p-[22px] h-fit">
                 <div className="flex items-baseline gap-1.5 mb-1">
-                  <span style={{ fontFamily: 'Rubik, sans-serif', fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', color: '#111' }}>
+                  <span style={{ fontFamily: 'Rubik, sans-serif', fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-strong)' }}>
                     {seller.avg_rating?.toFixed(1) ?? '-'}
                   </span>
-                  <span className="text-[14px] text-[#888]">/ 5</span>
+                  <span className="text-[14px] text-text-muted">/ 5</span>
                 </div>
                 {seller.avg_rating != null && <StarRow value={seller.avg_rating} size={16} />}
-                <div className="text-[12.5px] text-[#888] mt-1.5">共 {seller.review_count ?? 0} 則評價</div>
+                <div className="text-[12.5px] text-text-muted mt-1.5">共 {seller.review_count ?? 0} 則評價</div>
                 <div className="mt-4 flex flex-col gap-2">
                   {ratingDist.map(r => {
                     const pct = ratingTotal ? (r.count / ratingTotal) * 100 : 0
                     return (
                       <div key={r.stars} className="grid items-center gap-2.5 text-[12px]" style={{ gridTemplateColumns: '36px 1fr 28px' }}>
-                        <span className="inline-flex items-center gap-1 text-[#555]">
-                          {r.stars} <Star className="h-2.5 w-2.5 fill-[#555] stroke-[#555]" strokeWidth={1.5} />
+                        <span className="inline-flex items-center gap-1 text-text-muted">
+                          {r.stars} <Star className="h-2.5 w-2.5 fill-text-muted stroke-text-muted" strokeWidth={1.5} />
                         </span>
-                        <div className="h-1.5 bg-[#ececec] rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-border-soft rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-[#111] rounded-full transition-all duration-500"
+                            className="h-full bg-text-strong rounded-full transition-all duration-500"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-[#888] text-right">{r.count}</span>
+                        <span className="text-text-muted text-right">{r.count}</span>
                       </div>
                     )
                   })}

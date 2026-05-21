@@ -17,15 +17,11 @@ import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { Package } from 'lucide-react'
 
-// Kozukase brand palette from logo
+// Kozukase brand palette
+// teal 改為指向 design-system token；pink 暫保留 hex，待 Phase 4 決定是否進 token。
 const KZ = {
-  teal:   '#26C8C2',
+  teal:   'var(--brand-500)',
   pink:   '#F0387A',
-  purple: '#8B24C0',
-  orange: '#F97316',
-  yellow: '#F5C200',
-  gray:   '#9CA3AF',
-  green:  '#7DC83A',
 } as const
 
 // /search 的篩選參數定義；useQueryStates 與返回連結序列化共用同一份，避免漂移。
@@ -186,8 +182,8 @@ function SearchContent() {
           categoryExpanded ? (
             <Button
               type="button"
-              variant="outline"
-              className="h-12 w-full rounded-[16px] border-[#e1ddd7] text-[#555] hover:bg-[#faf9f7] hover:text-[#333]"
+              variant="outline-soft"
+              className="h-12 w-full rounded-[16px]"
               onClick={() => setCategoryExpanded(false)}
             >
               收起分類
@@ -195,8 +191,8 @@ function SearchContent() {
           ) : (
             <Button
               type="button"
-              variant="outline"
-              className="h-12 w-full rounded-[16px] border-[#28a5cf] text-[#1a9ac4] hover:bg-[#f4fbfe] hover:text-[#168eb4]"
+              variant="cta-outline"
+              className="h-12 w-full rounded-[16px]"
               onClick={() => setCategoryExpanded(true)}
             >
               查看更多分類
@@ -225,7 +221,7 @@ function SearchContent() {
   )
 
   return (
-    <div className="min-h-screen bg-[#FAFAFD]">
+    <div className="min-h-screen bg-surface-page">
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="flex items-start gap-6">
         {/* Desktop sidebar */}
@@ -238,7 +234,7 @@ function SearchContent() {
         {/* Results */}
         <div className="min-w-0 flex-1">
           {/* Title card */}
-          <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+          <section className="mb-4 overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
             <div className="flex items-start justify-between gap-4 p-5">
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-2xl font-bold">
@@ -253,7 +249,7 @@ function SearchContent() {
                       <button
                         key={f.key}
                         type="button"
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                         onClick={f.onRemove}
                       >
                         {f.label}
@@ -314,8 +310,8 @@ function SearchContent() {
                   className={[
                     'rounded-t-lg px-6 py-2.5 text-sm font-semibold transition-colors',
                     tab === t
-                      ? 'bg-[#26C8C2] text-white'
-                      : 'text-[#aaa] hover:text-[#666]',
+                      ? 'bg-brand-500 text-text-inverse'
+                      : 'text-text-faint hover:text-text-muted',
                   ].join(' ')}
                 >
                   {t === 'products' ? '商品' : '代購'}
@@ -406,9 +402,9 @@ function FilterSection({
   children: ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+    <section className="overflow-hidden rounded-[24px] border border-border-soft bg-surface-card p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
       <div className="space-y-4">
-        <div className="text-sm font-semibold text-[#222]">{title}</div>
+        <div className="text-sm font-semibold text-text-strong">{title}</div>
         {children}
       </div>
     </section>

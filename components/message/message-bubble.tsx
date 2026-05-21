@@ -17,7 +17,7 @@ export function DateSeparator({ date }: { date: string }) {
       padding: '12px 0 4px',
     }}>
       <span style={{
-        fontSize: 11, fontWeight: 500, color: '#aaa',
+        fontSize: 11, fontWeight: 500, color: 'var(--text-faint)',
         fontVariantNumeric: 'tabular-nums',
       }}>
         {formatDateLabel(date)}
@@ -67,8 +67,8 @@ export function MessageBubble({ message, isOwn, prevMessage, localImageUrl, uplo
       <div style={{ maxWidth: '72%', display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start', gap: 4 }}>
         {displayImageUrl && (
           <div style={{
-            overflow: 'hidden', border: '1px solid #ececec',
-            background: '#f5f5f5', maxWidth: 280, position: 'relative',
+            overflow: 'hidden', border: '1px solid var(--border-soft)',
+            background: 'var(--surface-muted)', maxWidth: 280, position: 'relative',
             ...(isOwn ? ownCorners : otherCorners),
           }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -91,7 +91,7 @@ export function MessageBubble({ message, isOwn, prevMessage, localImageUrl, uplo
                 <div style={{
                   height: '100%',
                   width: `${uploadProgress}%`,
-                  background: '#fff',
+                  background: 'var(--surface-card)',
                   transition: 'width .1s ease',
                   borderRadius: '0 2px 2px 0',
                 }} />
@@ -105,9 +105,9 @@ export function MessageBubble({ message, isOwn, prevMessage, localImageUrl, uplo
             padding: '10px 14px',
             fontSize: 14,
             lineHeight: 1.55,
-            background: isOwn ? '#111' : '#fff',
-            color: isOwn ? '#fff' : '#111',
-            border: isOwn ? 'none' : '1px solid #ececec',
+            background: isOwn ? 'var(--text-strong)' : 'var(--surface-card)',
+            color: isOwn ? 'var(--surface-card)' : 'var(--text-strong)',
+            border: isOwn ? 'none' : '1px solid var(--border-soft)',
             opacity: uploadProgress !== undefined && uploadProgress < 100 ? 0.6 : 1,
             ...(isOwn ? ownCorners : otherCorners),
           }}>
@@ -116,7 +116,7 @@ export function MessageBubble({ message, isOwn, prevMessage, localImageUrl, uplo
         )}
 
         {showTime && (
-          <span style={{ fontSize: 10, color: '#aaa', fontVariantNumeric: 'tabular-nums', padding: '0 4px' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums', padding: '0 4px' }}>
             {format(new Date(message.created_at), 'HH:mm', { locale: zhTW })}
           </span>
         )}

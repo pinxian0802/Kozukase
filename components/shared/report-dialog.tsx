@@ -48,7 +48,7 @@ export function ReportDialog({ iconOnly, triggerClassName, ...props }: ReportDia
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {iconOnly ? (
-        <DialogTrigger nativeButton render={<Button variant="outline" size="icon" className={cn("h-11 w-11 rounded-[10px] text-[#444]", triggerClassName)} />}>
+        <DialogTrigger nativeButton render={<Button variant="outline" size="icon" className={cn("h-11 w-11 rounded-[10px] text-text-muted", triggerClassName)} />}>
           <Flag className="h-4 w-4" />
         </DialogTrigger>
       ) : (
@@ -60,7 +60,7 @@ export function ReportDialog({ iconOnly, triggerClassName, ...props }: ReportDia
 
       <DialogContent showCloseButton={false} className="gap-0 p-0 overflow-hidden sm:max-w-md rounded-2xl">
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-[#f0f0f0] px-5 py-4">
+        <div className="flex items-center gap-3 border-b border-border-soft px-5 py-4">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50">
             <Flag className="h-3.5 w-3.5 text-red-500" />
           </div>
@@ -100,8 +100,8 @@ export function ReportDialog({ iconOnly, triggerClassName, ...props }: ReportDia
               aria-invalid={!!reasonError}
               className={cn(
                 "resize-none rounded-xl text-sm placeholder:text-muted-foreground/50",
-                "border-[#e2e2e2] bg-[#fafafa] transition-colors",
-                "focus:border-[#28a5cf] focus:bg-white",
+                "border-border-soft bg-surface-muted transition-colors",
+                "focus:border-brand-500 focus:bg-surface-card",
                 reasonError && "border-red-400"
               )}
             />
@@ -121,7 +121,7 @@ export function ReportDialog({ iconOnly, triggerClassName, ...props }: ReportDia
               render={
                 <button
                   type="button"
-                  className="h-10 px-4 rounded-xl text-sm font-medium text-[#555] border border-[#e2e2e2] bg-white hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+                  className="h-10 px-4 rounded-xl text-sm font-medium text-text-muted border border-border-soft bg-surface-card hover:bg-surface-muted transition-colors cursor-pointer"
                 />
               }
             >

@@ -85,10 +85,10 @@ export default function MessagesPage() {
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 4rem)', display: 'flex', overflow: 'hidden', padding: '16px 24px 24px', background: '#FAFAFD' }}>
+    <div style={{ height: 'calc(100vh - 4rem)', display: 'flex', overflow: 'hidden', padding: '16px 24px 24px', background: 'var(--surface-page)' }}>
       <div style={{
-        flex: 1, display: 'flex', minHeight: 0, background: '#fff',
-        border: '1px solid #ececec', borderRadius: 18, overflow: 'hidden',
+        flex: 1, display: 'flex', minHeight: 0, background: 'var(--surface-card)',
+        border: '1px solid var(--border-soft)', borderRadius: 18, overflow: 'hidden',
         boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
       }}>
         {/* Left: Conversation List */}
@@ -104,7 +104,7 @@ export default function MessagesPage() {
           className={`flex flex-1 flex-col min-w-0 ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}`}
         >
           {/* Mobile back button */}
-          <div className="flex items-center border-b px-3 py-2 md:hidden" style={{ borderColor: '#ececec' }}>
+          <div className="flex items-center border-b px-3 py-2 md:hidden" style={{ borderColor: 'var(--border-soft)' }}>
             <Button
               variant="ghost"
               size="icon"
@@ -127,7 +127,7 @@ export default function MessagesPage() {
           ) : (
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 8, color: '#9a9a9a', fontSize: 14,
+              gap: 8, color: 'var(--text-faint)', fontSize: 14,
             }} className="hidden md:flex">
               <p>選擇一個對話開始聊天</p>
             </div>

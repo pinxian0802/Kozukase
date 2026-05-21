@@ -7,12 +7,12 @@ interface FilterCheckboxProps {
   onClick: () => void
 }
 
-export function FilterCheckbox({ label, checked, color = '#2da6cf', onClick }: FilterCheckboxProps) {
+export function FilterCheckbox({ label, checked, color = 'var(--brand-500)', onClick }: FilterCheckboxProps) {
   return (
     <button
       type="button"
       className={`flex w-full cursor-pointer items-center gap-3 py-2 text-left transition-colors ${
-        checked ? 'text-[#111]' : 'text-[#333] hover:text-[#111]'
+        checked ? 'text-text-strong' : 'text-text-muted hover:text-text-strong'
       }`}
       onClick={onClick}
     >
@@ -21,10 +21,10 @@ export function FilterCheckbox({ label, checked, color = '#2da6cf', onClick }: F
         style={
           checked
             ? { backgroundColor: color, borderColor: color }
-            : { backgroundColor: '#fff', borderColor: '#d2d7df' }
+            : { backgroundColor: 'var(--surface-card)', borderColor: 'var(--border-strong)' }
         }
       >
-        {checked && <Check className="size-3.5 text-white" />}
+        {checked && <Check className="size-3.5 text-text-inverse" />}
       </span>
       <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
     </button>

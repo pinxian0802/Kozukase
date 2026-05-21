@@ -205,7 +205,7 @@ export default function ConnectionsPage() {
                 value={regionSearch}
                 onChange={(event) => setRegionSearch(event.target.value)}
                 placeholder="搜尋國家..."
-                className="h-11 rounded-[16px] border-[#e1ddd7] bg-white pl-10 shadow-[0_1px_0_rgba(15,23,42,0.03)]"
+                className="h-11 rounded-[16px] border-border-soft bg-surface-card pl-10 shadow-[0_1px_0_rgba(15,23,42,0.03)]"
               />
             </div>
 
@@ -224,11 +224,8 @@ export default function ConnectionsPage() {
                     )}
                     <Button
                       type="button"
-                      variant="outline"
-                      className={showAllRegions
-                        ? "h-12 w-full rounded-[16px] border-[#e1ddd7] text-[#555] hover:bg-[#faf9f7] hover:text-[#333]"
-                        : "h-12 w-full rounded-[16px] border-[#28a5cf] text-[#1a9ac4] hover:bg-[#f4fbfe] hover:text-[#168eb4]"
-                      }
+                      variant={showAllRegions ? "outline-soft" : "cta-outline"}
+                      className="h-12 w-full rounded-[16px]"
                       onClick={() => setShowAllRegions(!showAllRegions)}
                     >
                       {showAllRegions ? '收起國家' : '查看更多國家'}
@@ -258,7 +255,7 @@ export default function ConnectionsPage() {
         <FilterSectionCard title="連線日期">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-[11px] font-medium text-[#999]">從</Label>
+              <Label className="text-[11px] font-medium text-text-faint">從</Label>
               <DatePicker
                 value={activeDuringStart}
                 onValueChange={(v) => setFilter({ dateStart: v })}
@@ -268,7 +265,7 @@ export default function ConnectionsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[11px] font-medium text-[#999]">到</Label>
+              <Label className="text-[11px] font-medium text-text-faint">到</Label>
               <DatePicker
                 value={activeDuringEnd}
                 onValueChange={(v) => setFilter({ dateEnd: v })}
@@ -294,7 +291,7 @@ export default function ConnectionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFD]">
+    <div className="min-h-screen bg-surface-page">
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="flex items-start gap-6">
         <aside className="hidden w-64 shrink-0 md:block">
@@ -304,7 +301,7 @@ export default function ConnectionsPage() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 pb-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+          <section className="mb-4 overflow-hidden rounded-2xl border border-border-soft bg-surface-card p-5 pb-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold font-heading">
@@ -315,7 +312,7 @@ export default function ConnectionsPage() {
                     {regionLabel && (
                       <button
                         type="button"
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                         onClick={() => setFilter({ region: null })}
                       >
                         {regionLabel}
@@ -325,7 +322,7 @@ export default function ConnectionsPage() {
                     {activeDateLabel && (
                       <button
                         type="button"
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                         onClick={() => setFilter({ dateStart: '', dateEnd: '' })}
                       >
                         {activeDateLabel}
@@ -335,7 +332,7 @@ export default function ConnectionsPage() {
                     {locationText && (
                       <button
                         type="button"
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                         onClick={() => onLocationChange('')}
                       >
                         地點：{locationText}
@@ -345,7 +342,7 @@ export default function ConnectionsPage() {
                     {brandLabel && (
                       <button
                         type="button"
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                         onClick={() => setFilter({ brand: null })}
                       >
                         {brandLabel}
@@ -355,7 +352,7 @@ export default function ConnectionsPage() {
                     {canWish && (
                       <button
                         type="button"
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                         onClick={() => setFilter({ canWish: false })}
                       >
                         可許願
@@ -365,7 +362,7 @@ export default function ConnectionsPage() {
                     {hasBillingMethod && (
                       <button
                         type="button"
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                         onClick={() => setFilter({ billing: false })}
                       >
                         提供付款方式
@@ -390,8 +387,8 @@ export default function ConnectionsPage() {
                 <SheetTrigger
                   render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}
                 />
-                <SheetContent side="left" className="border-r border-[#e8e3dc] bg-[#fbfaf8] p-0 gap-0">
-                  <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin] [scrollbar-color:#d4cfc9_transparent] [&::-webkit-scrollbar]:w-0.75 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d4cfc9]">
+                <SheetContent side="left" className="border-r border-border-soft bg-surface-page p-0 gap-0">
+                  <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent] [&::-webkit-scrollbar]:w-0.75 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border-strong">
                     <SheetHeader className="px-0 py-0">
                       <SheetTitle>篩選條件</SheetTitle>
                     </SheetHeader>
@@ -441,10 +438,10 @@ export default function ConnectionsPage() {
 
 function FilterSectionCard({ title, titleExtra, rightSlot, children }: { title: string; titleExtra?: ReactNode; rightSlot?: ReactNode; children?: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+    <section className="overflow-hidden rounded-[24px] border border-border-soft bg-surface-card p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-[#222]">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-text-strong">
             {title}
             {titleExtra}
           </div>

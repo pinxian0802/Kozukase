@@ -79,8 +79,8 @@ function ProfileContent() {
                 className="h-8 px-4 rounded-full text-sm font-medium transition-all cursor-pointer"
                 style={
                   bookmarkFilter === key
-                    ? { background: '#111', color: '#fff' }
-                    : { background: 'transparent', color: '#666', border: '1px solid #e2e2e2' }
+                    ? { background: 'var(--text-strong)', color: 'var(--text-inverse)' }
+                    : { background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-soft)' }
                 }
               >
                 {label}

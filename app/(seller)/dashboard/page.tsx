@@ -76,7 +76,7 @@ export default function SellerDashboardPage() {
           <Button size="sm" render={<Link href="/dashboard/listings/new" />}>
             <Plus className="mr-1 h-4 w-4" />新增代購
           </Button>
-          <Button variant="outline" size="sm" render={<Link href="/dashboard/connections/new" />}>
+          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/connections/new" />}>
             <Globe className="mr-1 h-4 w-4" />新增連線
           </Button>
         </div>
@@ -255,7 +255,7 @@ export default function SellerDashboardPage() {
                 <p className="text-sm text-muted-foreground">沒有進行中的連線</p>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="cta-outline"
                   className="mt-1"
                   render={<Link href="/dashboard/connections/new" />}
                 >

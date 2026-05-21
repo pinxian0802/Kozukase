@@ -66,7 +66,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
     ? `NT$${minPrice.toLocaleString()} ~ NT$${effectiveMax.toLocaleString()}`
     : ''
 
-  const thumbCls = 'pointer-events-none absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#2da6cf] [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-track]:bg-transparent'
+  const thumbCls = 'pointer-events-none absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand-500 [&::-webkit-slider-thumb]:bg-surface-card [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-track]:bg-transparent'
 
   const FilterContent = () => (
     <div className="space-y-4">
@@ -81,15 +81,15 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
       />
       <FilterSectionCard title="價格區間 (NT$)">
         <div className="space-y-4">
-          <div className="flex justify-between text-sm font-semibold text-[#222]">
+          <div className="flex justify-between text-sm font-semibold text-text-strong">
             <span>NT${minPrice.toLocaleString()}</span>
             <span>NT${effectiveMax.toLocaleString()}</span>
           </div>
 
           <div className="relative h-5">
-            <div className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-[#e8e3dc]" />
+            <div className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-border-soft" />
             <div
-              className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#2da6cf]"
+              className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand-500"
               style={{
                 left: `${(minPrice / PRICE_MAX) * 100}%`,
                 right: `${((PRICE_MAX - effectiveMax) / PRICE_MAX) * 100}%`,
@@ -131,7 +131,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FAFAFD]">
+      <div className="min-h-screen bg-surface-page">
         <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-64 w-full rounded-lg" />
@@ -142,7 +142,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#FAFAFD]">
+      <div className="min-h-screen bg-surface-page">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <EmptyState icon={Heart} title="找不到此商品" />
         </div>
@@ -158,7 +158,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
   ]
 
   return (
-    <div className="min-h-screen bg-[#FAFAFD]">
+    <div className="min-h-screen bg-surface-page">
       <div className="mx-auto max-w-6xl px-4 py-6">
         <PageBreadcrumb items={[
           { label: '商品', href: backHref },
@@ -169,7 +169,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
           <aside className="hidden w-64 shrink-0 md:block">
             <div className="space-y-4 pr-2">
               {/* Product info card */}
-              <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+              <section className="overflow-hidden rounded-[24px] border border-border-soft bg-surface-card p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
                 <div className="space-y-3">
                   <ImageGallery
                     images={galleryImages}
@@ -211,7 +211,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
           {/* Right content */}
           <div className="min-w-0 flex-1 space-y-4">
             {/* 尋找代購 title card */}
-            <section className="mb-4 overflow-hidden rounded-2xl border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+            <section className="mb-4 overflow-hidden rounded-2xl border border-border-soft bg-surface-card p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold font-heading">尋找代購，共 {filteredListings.length} 位</h2>
@@ -220,7 +220,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
                       {inStockOnly && (
                         <button
                           type="button"
-                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                           onClick={() => setInStockOnly(false)}
                         >
                           有現貨
@@ -230,7 +230,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
                       {isPriceFiltered && (
                         <button
                           type="button"
-                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-[#dde1e7] bg-white px-2.5 py-1 text-xs font-medium text-[#444e5a] shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-[#c5cad3] hover:bg-[#f8fafc]"
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
                           onClick={() => { setMinPrice(0); setMaxPrice(PRICE_MAX) }}
                         >
                           {priceRangeLabel}
@@ -256,7 +256,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
                   <SheetTrigger
                     render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}
                   />
-                  <SheetContent side="left" className="border-r border-[#e8e3dc] bg-[#fbfaf8] p-0 gap-0">
+                  <SheetContent side="left" className="border-r border-border-soft bg-surface-page p-0 gap-0">
                     <div className="h-full overflow-y-auto p-4">
                       <SheetHeader className="px-0 py-0">
                         <SheetTitle>篩選條件</SheetTitle>
@@ -291,10 +291,10 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
 
 function FilterSectionCard({ title, rightSlot, children }: { title: string; rightSlot?: ReactNode; children?: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-[24px] border border-[#ebe6dd] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+    <section className="overflow-hidden rounded-[24px] border border-border-soft bg-surface-card p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-[#222]">{title}</div>
+          <div className="text-sm font-semibold text-text-strong">{title}</div>
           {rightSlot}
         </div>
         {children}

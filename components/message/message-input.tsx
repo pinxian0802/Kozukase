@@ -110,7 +110,7 @@ export function MessageInput({
   const canSend = (body.trim().length > 0 || !!file) && !isSending && !processing
 
   return (
-    <div style={{ borderTop: '1px solid #ececec', background: '#fff', padding: '12px 20px 16px', flexShrink: 0 }}>
+    <div style={{ borderTop: '1px solid var(--border-soft)', background: 'var(--surface-card)', padding: '12px 20px 16px', flexShrink: 0 }}>
       {/* Context card */}
       {!contextSent && contextType && contextId && (
         <div style={{ marginBottom: 10 }}>
@@ -130,14 +130,14 @@ export function MessageInput({
           <img
             src={localPreviewUrl}
             alt="預覽"
-            style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover', border: '1px solid #ececec', display: 'block' }}
+            style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover', border: '1px solid var(--border-soft)', display: 'block' }}
           />
           <button
             onClick={clearImage}
             style={{
               position: 'absolute', top: -6, right: -6,
               width: 20, height: 20, borderRadius: '50%',
-              background: '#111', color: '#fff', border: 'none', cursor: 'pointer',
+              background: 'var(--text-strong)', color: 'var(--surface-card)', border: 'none', cursor: 'pointer',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
@@ -149,7 +149,7 @@ export function MessageInput({
       {/* Composer */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', gap: 6,
-        border: '1px solid #e6e2dc', borderRadius: 14, background: '#fafaf6', padding: '6px 6px 6px 10px',
+        border: '1px solid var(--border-soft)', borderRadius: 14, background: 'var(--surface-page)', padding: '6px 6px 6px 10px',
       }}>
         <input
           ref={fileRef}
@@ -165,7 +165,7 @@ export function MessageInput({
           onClick={() => fileRef.current?.click()}
           style={{
             width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent',
-            cursor: processing ? 'not-allowed' : 'pointer', color: '#666',
+            cursor: processing ? 'not-allowed' : 'pointer', color: 'var(--text-muted)',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
@@ -190,7 +190,7 @@ export function MessageInput({
           style={{
             flex: 1, resize: 'none', border: 'none', outline: 'none',
             background: 'transparent', fontSize: 14, lineHeight: 1.5,
-            color: '#111', padding: '8px 8px', maxHeight: 140, minHeight: 36,
+            color: 'var(--text-strong)', padding: '8px 8px', maxHeight: 140, minHeight: 36,
             fontFamily: 'inherit',
           }}
         />
@@ -202,8 +202,8 @@ export function MessageInput({
           style={{
             width: 36, height: 36, borderRadius: 10, border: 'none',
             cursor: canSend ? 'pointer' : 'not-allowed',
-            background: canSend ? '#111' : '#dedad4',
-            color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            background: canSend ? 'var(--text-strong)' : 'var(--neutral-300)',
+            color: 'var(--surface-card)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, transition: 'background .15s',
           }}
         >

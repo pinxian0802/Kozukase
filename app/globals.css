@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* ─── Legacy shadcn tokens（Phase 2 起逐步遷移到下方 semantic 層） */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -43,6 +44,61 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* ─── DS v1 — Raw brand teal scale ─────────────────────────── */
+  --color-brand-50:  var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-300: var(--brand-300);
+  --color-brand-500: var(--brand-500);
+  --color-brand-700: var(--brand-700);
+  --color-brand-900: var(--brand-900);
+
+  /* ─── DS v1 — Raw neutral scale ────────────────────────────── */
+  --color-neutral-0:    var(--neutral-0);
+  --color-neutral-50:   var(--neutral-50);
+  --color-neutral-100:  var(--neutral-100);
+  --color-neutral-200:  var(--neutral-200);
+  --color-neutral-300:  var(--neutral-300);
+  --color-neutral-400:  var(--neutral-400);
+  --color-neutral-500:  var(--neutral-500);
+  --color-neutral-600:  var(--neutral-600);
+  --color-neutral-700:  var(--neutral-700);
+  --color-neutral-800:  var(--neutral-800);
+  --color-neutral-900:  var(--neutral-900);
+  --color-neutral-1000: var(--neutral-1000);
+
+  /* ─── DS v1 — Semantic surfaces ────────────────────────────── */
+  --color-surface-page:    var(--surface-page);
+  --color-surface-card:    var(--surface-card);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-muted:   var(--surface-muted);
+
+  /* ─── DS v1 — Semantic borders ─────────────────────────────── */
+  --color-border-soft:   var(--border-soft);
+  --color-border-strong: var(--border-strong);
+
+  /* ─── DS v1 — Semantic text ────────────────────────────────── */
+  --color-text-strong:  var(--text-strong);
+  --color-text-muted:   var(--text-muted);
+  --color-text-faint:   var(--text-faint);
+  --color-text-inverse: var(--text-inverse);
+
+  /* ─── DS v1 — Status ───────────────────────────────────────── */
+  --color-success:            var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft:       var(--success-soft);
+  --color-success-fg-soft:    var(--success-fg-soft);
+  --color-warning:            var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft:       var(--warning-soft);
+  --color-warning-fg-soft:    var(--warning-fg-soft);
+  --color-info:               var(--info);
+  --color-info-foreground:    var(--info-foreground);
+  --color-info-soft:          var(--info-soft);
+  --color-info-fg-soft:       var(--info-fg-soft);
+  --color-destructive-bright: var(--destructive-bright);
+
+  /* ─── Radius scale ─────────────────────────────────────────── */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -57,6 +113,74 @@ button {
 }
 
 :root {
+  /* ═══════════════════════════════════════════════════════════════
+   * Design System v1
+   * 規格：docs/specs/2026-05-21-design-system-plan.md
+   * ═══════════════════════════════════════════════════════════════ */
+
+  /* ─── Brand teal scale ───────────────────────────────────────── */
+  --brand-50:  oklch(0.97 0.02 195);
+  --brand-100: oklch(0.93 0.05 195);
+  --brand-300: oklch(0.85 0.10 195);
+  --brand-500: oklch(0.74 0.12 195);  /* = #26C8C2 */
+  --brand-700: oklch(0.55 0.10 195);
+  --brand-900: oklch(0.35 0.06 195);
+
+  /* ─── Neutral scale ──────────────────────────────────────────
+   * 取代散落 #111 / #222 / #444 / #666 / #888 / #aaa / #ccc /
+   *           #e2e2e2 / #ececec / #fafafa */
+  --neutral-0:    oklch(1 0 0);
+  --neutral-50:   oklch(0.985 0 0);
+  --neutral-100:  oklch(0.96 0 0);
+  --neutral-200:  oklch(0.93 0 0);
+  --neutral-300:  oklch(0.88 0 0);
+  --neutral-400:  oklch(0.75 0 0);
+  --neutral-500:  oklch(0.60 0 0);
+  --neutral-600:  oklch(0.45 0 0);
+  --neutral-700:  oklch(0.32 0 0);
+  --neutral-800:  oklch(0.22 0 0);
+  --neutral-900:  oklch(0.13 0 0);
+  --neutral-1000: oklch(0.05 0 0);
+
+  /* ─── Status raw ─────────────────────────────────────────────── */
+  --success-500:     oklch(0.65 0.18 145);
+  --success-soft:    oklch(0.95 0.04 145);
+  --success-fg-soft: oklch(0.40 0.14 145);
+  --warning-500:     oklch(0.78 0.16 75);
+  --warning-soft:    oklch(0.96 0.05 75);
+  --warning-fg-soft: oklch(0.45 0.14 75);
+  --info-500:        oklch(0.65 0.18 245);
+  --info-soft:       oklch(0.95 0.04 245);
+  --info-fg-soft:    oklch(0.45 0.14 245);
+
+  /* ─── Semantic — Surfaces ────────────────────────────────────── */
+  --surface-page:    var(--neutral-50);
+  --surface-card:    var(--neutral-0);
+  --surface-overlay: var(--neutral-0);
+  --surface-muted:   var(--neutral-100);
+
+  /* ─── Semantic — Borders ─────────────────────────────────────── */
+  --border-soft:   var(--neutral-200);
+  --border-strong: var(--neutral-300);
+
+  /* ─── Semantic — Text ────────────────────────────────────────── */
+  --text-strong:  var(--neutral-900);
+  --text-muted:   var(--neutral-600);
+  --text-faint:   var(--neutral-500);
+  --text-inverse: var(--neutral-0);
+
+  /* ─── Semantic — Status ──────────────────────────────────────── */
+  --success:            var(--success-500);
+  --success-foreground: var(--neutral-0);
+  --warning:            var(--warning-500);
+  --warning-foreground: var(--neutral-900);
+  --info:               var(--info-500);
+  --info-foreground:    var(--neutral-0);
+
+  /* Destructive — 按鈕用亮淺紅；保留既有 --destructive 給文字訊息與 form required 星號 */
+  --destructive-bright: #F87171;
+
+  /* ─── Legacy shadcn tokens（Phase 2 起逐步遷移） ──────────────── */
   --background: oklch(1 0 0);
   --foreground: oklch(0.09 0 0);
   --card: oklch(1 0 0);
@@ -75,10 +199,13 @@ button {
   --border: oklch(0.88 0 0);
   --input: oklch(0.88 0 0);
   --ring: oklch(0.09 0 0);
-  --cta: oklch(0.09 0 0);
-  --cta-foreground: oklch(1 0 0);
-  --brand: oklch(0.09 0 0);
-  --brand-light: oklch(0.96 0 0);
+
+  /* CTA & Brand — DS v1 改用 teal（先前為黑） */
+  --cta: var(--brand-500);
+  --cta-foreground: var(--neutral-0);
+  --brand: var(--brand-500);
+  --brand-light: var(--brand-50);
+
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -95,40 +222,6 @@ button {
   --sidebar-ring: oklch(0.5 0 0);
 }
 
-.dark {
-  --background: oklch(0.1 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: oklch(0.14 0 0);
-  --card-foreground: oklch(0.96 0 0);
-  --popover: oklch(0.14 0 0);
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(0.96 0 0);
-  --primary-foreground: oklch(0.09 0 0);
-  --secondary: oklch(0.22 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.6 0 0);
-  --accent: oklch(0.22 0 0);
-  --accent-foreground: oklch(0.96 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.6 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.14 0 0);
-  --sidebar-foreground: oklch(0.96 0 0);
-  --sidebar-primary: oklch(0.96 0 0);
-  --sidebar-primary-foreground: oklch(0.09 0 0);
-  --sidebar-accent: oklch(0.22 0 0);
-  --sidebar-accent-foreground: oklch(0.96 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.6 0 0);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -139,6 +232,56 @@ button {
   html {
     font-family: var(--font-sans), var(--font-sans-tc), 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
     line-height: 1.6;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
+ * Typography utility classes (DS v1 Phase 3)
+ * 用 `.t-*` 取代逐處 `text-Xxl font-bold leading-...`
+ * 詳見 docs/design-system/tokens.md
+ * ─────────────────────────────────────────────────────────────── */
+@layer components {
+  .t-display {
+    font-family: var(--font-heading), var(--font-sans);
+    font-size: 2.5rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .t-h1 {
+    font-family: var(--font-heading), var(--font-sans);
+    font-size: 1.875rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .t-h2 {
+    font-size: 1.5rem;
+    line-height: 1.35;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .t-h3 {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+  .t-body {
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+  .t-caption {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  .t-overline {
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
   }
 }
 

@@ -62,7 +62,7 @@ export default async function RootLayout({
       className={`${rubik.variable} ${inter.variable} ${notoSansTC.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <NextTopLoader color="#0a0a0a" height={2} showSpinner={false} />
+        <NextTopLoader color="var(--brand-500)" height={2} showSpinner={false} />
         <NuqsAdapter>
           <TooltipProvider>
             <TRPCProvider>

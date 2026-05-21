@@ -8,7 +8,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        default: "bg-brand-500 text-cta-foreground hover:bg-brand-700 [a]:hover:bg-brand-700",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
@@ -16,8 +16,14 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "border-destructive-bright text-destructive-bright bg-surface-card hover:bg-destructive-bright hover:text-cta-foreground focus-visible:border-destructive-bright focus-visible:ring-destructive-bright/30",
         link: "text-primary underline-offset-4 hover:underline",
+        // DS v1 — brand teal 線框（次要 CTA）
+        "cta-outline":
+          "border-brand-500 text-brand-700 bg-surface-card hover:bg-brand-500 hover:text-cta-foreground",
+        // DS v1 — 中性線框（取代散落的 border-border-soft 自製按鈕）
+        "outline-soft":
+          "border-border-soft text-text-muted bg-surface-card hover:bg-surface-muted hover:text-text-strong",
       },
       size: {
         default:

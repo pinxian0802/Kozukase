@@ -19,6 +19,12 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // DS v1 status variants — 用於訂單/連線狀態 chip
+        neutral: "bg-surface-muted text-text-muted border-border-soft",
+        brand: "bg-brand-50 text-brand-700 border-transparent",
+        success: "bg-success-soft text-success-fg-soft border-transparent",
+        warning: "bg-warning-soft text-warning-fg-soft border-transparent",
+        info: "bg-info-soft text-info-fg-soft border-transparent",
       },
     },
     defaultVariants: {

@@ -107,7 +107,7 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
               onClick={handleBookmark}
               disabled={bookmarkToggle.isPending}
               className="shrink-0 self-start h-9 w-9 flex items-center justify-center rounded-full transition-all cursor-pointer disabled:opacity-60 hover:opacity-70 active:scale-[0.95]"
-              style={{ color: listing.hasBookmarked ? '#4ab0a9' : '#aaa' }}
+              style={{ color: listing.hasBookmarked ? 'var(--brand-500)' : 'var(--text-faint)' }}
             >
               <Bookmark className="h-5 w-5" fill={listing.hasBookmarked ? 'currentColor' : 'none'} />
             </button>
@@ -115,11 +115,11 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
 
           {/* Price */}
           <div>
-            <p className="text-3xl font-bold tabular-nums" style={{ color: '#1a9ac4' }}>
+            <p className="text-3xl font-bold tabular-nums" style={{ color: 'var(--brand-700)' }}>
               {formatPrice(listing.price, listing.is_price_on_request)}
             </p>
             {listing.shipping_date && (
-              <div className="mt-3 bg-background border border-[#ececec] rounded-2xl px-5 py-4">
+              <div className="mt-3 bg-background border border-border-soft rounded-2xl px-5 py-4">
                 <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                   <Truck className="h-4 w-4 shrink-0" />
                   <span>預計 <strong className="text-foreground">{formatDate(listing.shipping_date)}</strong> 出貨</span>
@@ -137,10 +137,10 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
                   <div key={i} className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-muted-foreground shrink-0">{spec.type}：</span>
                     {spec.is_all ? (
-                      <span className="inline-flex items-center rounded-[min(var(--radius-md),12px)] border border-[#e2e2e2] bg-muted px-2.5 py-1 text-xs font-medium">都有</span>
+                      <span className="inline-flex items-center rounded-[min(var(--radius-md),12px)] border border-border-soft bg-muted px-2.5 py-1 text-xs font-medium">都有</span>
                     ) : (
                       spec.options?.map((opt: string, j: number) => (
-                        <span key={j} className="inline-flex items-center rounded-[min(var(--radius-md),12px)] border border-[#e2e2e2] bg-muted px-2.5 py-1 text-xs font-medium">{opt}</span>
+                        <span key={j} className="inline-flex items-center rounded-[min(var(--radius-md),12px)] border border-border-soft bg-muted px-2.5 py-1 text-xs font-medium">{opt}</span>
                       ))
                     )}
                   </div>
@@ -161,7 +161,7 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
           <div className="flex flex-col gap-2.5">
             <div className="flex gap-2">
               {listing.post_url && (
-                <SafeExternalLink href={listing.post_url} className="flex-1 justify-center gap-2 h-12 rounded-xl text-sm font-semibold hover:opacity-85 active:scale-[0.98]" style={{ background: '#1a9ac4' }}>
+                <SafeExternalLink href={listing.post_url} className="flex-1 justify-center gap-2 h-12 rounded-xl text-sm font-semibold hover:opacity-85 active:scale-[0.98]" style={{ background: 'var(--brand-700)' }}>
                   <ExternalLink className="h-4 w-4" /> 查看原始貼文
                 </SafeExternalLink>
               )}
@@ -169,14 +169,14 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
               <ReportDialog
                 listing_id={id}
                 iconOnly
-                triggerClassName="h-11 w-11 rounded-xl border-[#e2e2e2] text-muted-foreground hover:bg-muted/50 active:scale-[0.96] transition-all cursor-pointer"
+                triggerClassName="h-11 w-11 rounded-xl border-border-soft text-muted-foreground hover:bg-muted/50 active:scale-[0.96] transition-all cursor-pointer"
               />
             </div>
           </div>
 
           {/* Seller info */}
           {listing.seller && (
-            <div className="bg-background border border-[#ececec] rounded-2xl p-4 flex items-center gap-3">
+            <div className="bg-background border border-border-soft rounded-2xl p-4 flex items-center gap-3">
               <Link href={`/sellers/${listing.seller.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1 min-w-0">
                 <Avatar className="h-14 w-14 shrink-0">
                   <AvatarImage src={(listing.seller as any).avatar_url ?? undefined} />
@@ -195,13 +195,13 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
               <div className="flex flex-col gap-1.5 shrink-0">
                 <Link
                   href={`/sellers/${listing.seller.id}`}
-                  className="h-10 px-6 min-w-[88px] rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
+                  className="h-10 px-6 min-w-[88px] rounded-lg border border-border-soft bg-background text-sm font-medium text-text-muted flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
                 >
                   主頁 <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
                 <Link
                   href={`/messages?seller_id=${listing.seller.id}&seller_name=${encodeURIComponent((listing.seller as any).profile?.display_name ?? listing.seller.name ?? '')}&seller_avatar=${encodeURIComponent((listing.seller as any).avatar_url ?? '')}&context_type=listing&context_id=${listing.id}&context_label=${encodeURIComponent(listing.title ?? listing.product?.name ?? '商品')}${images[0]?.url ? `&context_image=${encodeURIComponent(images[0].url)}` : ''}`}
-                  className="h-10 px-6 min-w-[88px] rounded-lg border border-[#e2e2e2] bg-background text-sm font-medium text-[#444] flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
+                  className="h-10 px-6 min-w-[88px] rounded-lg border border-border-soft bg-background text-sm font-medium text-text-muted flex items-center justify-center gap-1.5 hover:bg-muted/50 transition-colors"
                 >
                   詢問 <MessageSquare className="h-3.5 w-3.5" />
                 </Link>

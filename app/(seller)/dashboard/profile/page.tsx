@@ -436,13 +436,13 @@ export default function SellerProfilePage() {
                             <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
                           </div>
                           <div>
-                            <p className="font-semibold text-[15px] text-[#111]">驗證 Instagram</p>
-                            <p className="text-[13px] text-[#888] mt-1 leading-relaxed">輸入你的帳號名稱</p>
+                            <p className="font-semibold text-[15px] text-text-strong">驗證 Instagram</p>
+                            <p className="text-[13px] text-text-muted mt-1 leading-relaxed">輸入你的帳號名稱</p>
                           </div>
                         </div>
                         <div className="space-y-1.5">
                           <input
-                            className="w-full h-11 px-3.5 rounded-xl border border-[#ececec] bg-white text-[14px] text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
+                            className="w-full h-11 px-3.5 rounded-xl border border-border-soft bg-white text-[14px] text-text-strong placeholder:text-text-faint focus:outline-none focus:border-text-strong focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
                             placeholder="帳號名稱"
                             value={igUsernameInput}
                             onChange={e => { setIgUsernameInput(e.target.value); setIgInputError('') }}
@@ -454,13 +454,13 @@ export default function SellerProfilePage() {
                         <div className="flex flex-col gap-2">
                           <button
                             onClick={() => void handleIgVerifyStart()}
-                            className="h-11 w-full rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                            className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                           >
                             取得驗證碼
                           </button>
                           <button
                             onClick={cancelIgVerify}
-                            className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors"
+                            className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors"
                           >
                             取消
                           </button>
@@ -470,7 +470,7 @@ export default function SellerProfilePage() {
 
                     {igVerify.step === 'loading_code' && (
                       <div className="flex flex-col items-center gap-5 py-10 text-center">
-                        <div className="flex items-center gap-2 text-[#888]">
+                        <div className="flex items-center gap-2 text-text-muted">
                           <Loader2 className="h-4 w-4 animate-spin" />
                           <span className="text-[13px]">正在產生驗證碼⋯</span>
                         </div>
@@ -480,31 +480,31 @@ export default function SellerProfilePage() {
                     {igVerify.step === 'waiting_send' && (
                       <div className="flex flex-col gap-6">
                         <div className="text-center space-y-1">
-                          <p className="font-semibold text-[15px] text-[#111]">傳送驗證碼</p>
-                          <p className="text-[13px] text-[#888] leading-relaxed">
+                          <p className="font-semibold text-[15px] text-text-strong">傳送驗證碼</p>
+                          <p className="text-[13px] text-text-muted leading-relaxed">
                             用 Instagram 私訊以下數字給{' '}
-                            <a href={`https://www.instagram.com/${adminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#111] hover:underline">
+                            <a href={`https://www.instagram.com/${adminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-text-strong hover:underline">
                               @{adminHandle}
                             </a>
                           </p>
-                          <p className="text-[13px] text-[#888] leading-relaxed">傳送後請點擊『<span className="text-[#111]">我已傳送</span>』按鈕</p>
+                          <p className="text-[13px] text-text-muted leading-relaxed">傳送後請點擊『<span className="text-text-strong">我已傳送</span>』按鈕</p>
                         </div>
                         <div className="flex justify-center gap-2">
                           {igVerify.code.toString().split('').map((digit, i) => (
-                            <div key={i} className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm" style={{ width: 40, height: 52 }}>
+                            <div key={i} className="flex items-center justify-center rounded-xl border-2 border-border-soft bg-surface-muted text-[22px] font-mono font-bold text-text-strong shadow-sm" style={{ width: 40, height: 52 }}>
                               {digit}
                             </div>
                           ))}
                         </div>
-                        <span className="text-[12px] font-mono text-[#aaa] tabular-nums text-center">剩餘時間 {igCountdown}</span>
+                        <span className="text-[12px] font-mono text-text-faint tabular-nums text-center">剩餘時間 {igCountdown}</span>
                         <div className="flex flex-col gap-2">
                           <button
                             onClick={() => beginPolling(igVerify.id, igVerify.code, igVerify.expiresAt)}
-                            className="h-11 w-full rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                            className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                           >
                             我已傳送
                           </button>
-                          <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors">
+                          <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
                             取消
                           </button>
                         </div>
@@ -515,18 +515,18 @@ export default function SellerProfilePage() {
                       <div className="flex flex-col gap-6">
                         <div className="flex justify-center gap-2">
                           {igVerify.code.toString().split('').map((digit, i) => (
-                            <div key={i} className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm" style={{ width: 40, height: 52 }}>
+                            <div key={i} className="flex items-center justify-center rounded-xl border-2 border-border-soft bg-surface-muted text-[22px] font-mono font-bold text-text-strong shadow-sm" style={{ width: 40, height: 52 }}>
                               {digit}
                             </div>
                           ))}
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                          <span className="text-[12px] font-mono text-[#aaa] tabular-nums">剩餘時間 {igCountdown}</span>
-                          <div className="flex items-center gap-1.5 text-[12px] text-[#aaa]">
+                          <span className="text-[12px] font-mono text-text-faint tabular-nums">剩餘時間 {igCountdown}</span>
+                          <div className="flex items-center gap-1.5 text-[12px] text-text-faint">
                             <Loader2 className="h-3 w-3 animate-spin" />等待確認中⋯
                           </div>
                         </div>
-                        <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors">
+                        <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
                           取消
                         </button>
                       </div>
@@ -543,12 +543,12 @@ export default function SellerProfilePage() {
                           </div>
                         </div>
                         <div className="space-y-1.5">
-                          <p className="font-semibold text-[16px] text-[#111]">驗證失敗</p>
-                          <p className="text-[13px] text-[#888]">未收到驗證碼，請確認已傳送給正確帳號後重試</p>
+                          <p className="font-semibold text-[16px] text-text-strong">驗證失敗</p>
+                          <p className="text-[13px] text-text-muted">未收到驗證碼，請確認已傳送給正確帳號後重試</p>
                         </div>
                         <button
                           onClick={() => setIgVerify({ step: 'entering_username' })}
-                          className="h-11 px-10 rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                          className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                         >
                           重新驗證
                         </button>
@@ -566,12 +566,12 @@ export default function SellerProfilePage() {
                           </div>
                         </div>
                         <div className="space-y-1.5">
-                          <p className="font-semibold text-[16px] text-[#111]">驗證完成</p>
-                          <p className="text-[13px] text-[#888]">@{igHandle || igUsernameInput} 已成功連結至賣家頁面</p>
+                          <p className="font-semibold text-[16px] text-text-strong">驗證完成</p>
+                          <p className="text-[13px] text-text-muted">@{igHandle || igUsernameInput} 已成功連結至賣家頁面</p>
                         </div>
                         <button
                           onClick={() => setIgVerify({ step: 'idle' })}
-                          className="h-11 px-10 rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                          className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                         >
                           完成
                         </button>
@@ -603,7 +603,7 @@ export default function SellerProfilePage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13.5px] font-semibold text-[#111] leading-none mb-1">Instagram</p>
+                    <p className="text-[13.5px] font-semibold text-text-strong leading-none mb-1">Instagram</p>
                     {igConnectedAt ? (
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {igHandle && (
@@ -611,12 +611,12 @@ export default function SellerProfilePage() {
                             href={`https://www.instagram.com/${igHandle}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[12.5px] text-[#555] font-medium hover:underline"
+                            className="text-[12.5px] text-text-muted font-medium hover:underline"
                           >@{igHandle}</a>
                         )}
                         {igFollowers != null && (
                           <>
-                            <span className="text-[#ccc] text-[11px]">·</span>
+                            <span className="text-text-faint text-[11px]">·</span>
                             <span className="text-[12px] text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</span>
                           </>
                         )}
@@ -667,15 +667,15 @@ export default function SellerProfilePage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13.5px] font-semibold text-[#111] leading-none mb-1">Threads</p>
+                    <p className="text-[13.5px] font-semibold text-text-strong leading-none mb-1">Threads</p>
                     {threadsConnectedAt ? (
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {threadsHandle && (
-                          <span className="text-[12.5px] text-[#555] font-medium">@{threadsHandle}</span>
+                          <span className="text-[12.5px] text-text-muted font-medium">@{threadsHandle}</span>
                         )}
                         {threadsFollowers != null && (
                           <>
-                            <span className="text-[#ccc] text-[11px]">·</span>
+                            <span className="text-text-faint text-[11px]">·</span>
                             <span className="text-[12px] text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</span>
                           </>
                         )}

@@ -94,7 +94,7 @@ export function ListingComparison({ listings }: ListingComparisonProps) {
                         </span>
                         {!spec.is_all && spec.options?.length > 0 && (
                           <div className="absolute bottom-full left-0 mb-1.5 hidden group-hover/spec:block z-10">
-                            <div className="rounded-lg bg-[#1a1a1a] px-2.5 py-1.5 text-xs text-white shadow-lg whitespace-nowrap">
+                            <div className="rounded-lg bg-neutral-900 px-2.5 py-1.5 text-xs text-text-inverse shadow-lg whitespace-nowrap">
                               {spec.options.join('、')}
                             </div>
                           </div>
@@ -119,7 +119,7 @@ export function ListingComparison({ listings }: ListingComparisonProps) {
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1">
-                        <span className="truncate text-sm font-medium text-[#222]">{listing.seller.name}</span>
+                        <span className="truncate text-sm font-medium text-text-strong">{listing.seller.name}</span>
                         {listing.seller.is_social_verified && <SocialBadge className="h-3 w-3 shrink-0" />}
                       </div>
                       {listing.created_at && (

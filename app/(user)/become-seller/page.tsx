@@ -14,8 +14,10 @@ import Link from 'next/link'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 import Image from 'next/image'
 
+// Accent palette — 每個步驟一色，刻意保留多彩設計。
+// teal 已統一到 DS token；pink/purple/orange/yellow/green 待 Phase 4 收進 accent 色階。
 const KZ = {
-  teal: '#3ecfcf',
+  teal: 'var(--brand-500)',
   pink: '#e94aa1',
   purple: '#9b5fc8',
   orange: '#f4821f',
@@ -42,9 +44,9 @@ function FormSection({ index, accent, title, hint, done, required = true, meta, 
         <div
           style={{
             width: 34, height: 34, borderRadius: '50%',
-            background: done ? accent : '#fff',
-            border: `1px solid ${done ? accent : '#e0e0e0'}`,
-            color: done ? '#fff' : '#888',
+            background: done ? accent : 'var(--surface-card)',
+            border: `1px solid ${done ? accent : 'var(--border-soft)'}`,
+            color: done ? 'var(--text-inverse)' : 'var(--text-muted)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'Rubik, sans-serif', fontWeight: 700, fontSize: 14,
             transition: 'background .25s, color .25s, border-color .25s',
@@ -56,13 +58,13 @@ function FormSection({ index, accent, title, hint, done, required = true, meta, 
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2.5 mb-1">
-          <h2 className="font-semibold text-[17px] text-[#111]" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
+          <h2 className="font-semibold text-[17px] text-text-strong" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
             {title}
             {required && <span style={{ color: KZ.pink, fontWeight: 700 }}> *</span>}
           </h2>
-          {meta && <span className="text-[11.5px] text-[#888] tabular-nums">{meta}</span>}
+          {meta && <span className="text-[11.5px] text-text-muted tabular-nums">{meta}</span>}
         </div>
-        <p className="text-[12.5px] text-[#888] leading-relaxed mb-3.5 max-w-[560px]">{hint}</p>
+        <p className="text-[12.5px] text-text-muted leading-relaxed mb-3.5 max-w-[560px]">{hint}</p>
         {children}
       </div>
     </section>
@@ -87,8 +89,8 @@ function Perk({ color, icon, title, desc }: PerkProps) {
         {icon}
       </span>
       <div>
-        <div className="text-[13.5px] font-semibold text-[#111] mb-0.5">{title}</div>
-        <div className="text-[12px] text-[#666] leading-[1.5]">{desc}</div>
+        <div className="text-[13.5px] font-semibold text-text-strong mb-0.5">{title}</div>
+        <div className="text-[12px] text-text-muted leading-[1.5]">{desc}</div>
       </div>
     </div>
   )
@@ -144,13 +146,13 @@ export default function BecomeSellerPage() {
     return (
       <div className="min-h-screen">
         <div className="mx-auto max-w-2xl px-4 py-8">
-          <div className="border border-[#ececec] rounded-2xl p-6 bg-white">
+          <div className="border border-border-soft rounded-2xl p-6 bg-white">
             <h2 className="font-semibold text-[17px] mb-1" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
               你已經是賣家了
             </h2>
-            <p className="text-[14px] text-[#888] mb-4">前往賣家後台管理你的上架商品</p>
+            <p className="text-[14px] text-text-muted mb-4">前往賣家後台管理你的上架商品</p>
             <Link href="/dashboard">
-              <button className="h-11 px-5 rounded-xl bg-[#111] text-white text-[14px] font-semibold flex items-center gap-2 hover:bg-[#222] transition-colors">
+              <button className="h-11 px-5 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold flex items-center gap-2 hover:bg-brand-700 transition-colors">
                 <Store size={16} />前往賣家後台
               </button>
             </Link>
@@ -349,7 +351,7 @@ export default function BecomeSellerPage() {
                 </span>{' '}
                 賣家
               </h1>
-              <p className="text-[15px] text-[#555] leading-[1.65] mt-3">
+              <p className="text-[15px] text-text-muted leading-[1.65] mt-3">
                 {submitted ? '可以選擇連結社群帳號，增加買家對你的信任度。' : '完成下方資料就能開始上架代購，讓更多買家找到你。'}
               </p>
             </section>
@@ -364,7 +366,7 @@ export default function BecomeSellerPage() {
               <FormSection index={2} accent={KZ.orange} title="賣家名稱" hint=' ' done={sellerName.trim().length >= 2}>
                 <div className="relative">
                   <input
-                    className="w-full h-11 border border-[#ececec] rounded-[10px] px-3.5 text-[14px] bg-white text-[#111] pr-14 transition-[border-color,box-shadow] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] hover:border-[#dcdcdc]"
+                    className="w-full h-11 border border-border-soft rounded-[10px] px-3.5 text-[14px] bg-white text-text-strong pr-14 transition-[border-color,box-shadow] focus:outline-none focus:border-text-strong focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] hover:border-border-strong"
                     placeholder="例：潮流代購、東京小幫手"
                     value={sellerName}
                     maxLength={NAME_MAX}
@@ -372,7 +374,7 @@ export default function BecomeSellerPage() {
                     onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
                     aria-invalid={!!errors.sellerName}
                   />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11.5px] text-[#aaa] tabular-nums pointer-events-none">{sellerName.length}/{NAME_MAX}</span>
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11.5px] text-text-faint tabular-nums pointer-events-none">{sellerName.length}/{NAME_MAX}</span>
                 </div>
                 <FormFieldError message={errors.sellerName} />
               </FormSection>
@@ -390,11 +392,11 @@ export default function BecomeSellerPage() {
               <FormSection index={4} accent={KZ.yellow} title="簡介" hint="介紹你的代購，幫助買家認識你。" done={bio.trim().length > 0}>
                 <div className="relative">
                   <textarea
-                    className="w-full min-h-[120px] resize-y border border-[#ececec] rounded-[10px] px-3.5 py-3 pb-8 text-[14px] leading-relaxed bg-white text-[#111] transition-[border-color,box-shadow] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] hover:border-[#dcdcdc]"
+                    className="w-full min-h-[120px] resize-y border border-border-soft rounded-[10px] px-3.5 py-3 pb-8 text-[14px] leading-relaxed bg-white text-text-strong transition-[border-color,box-shadow] focus:outline-none focus:border-text-strong focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] hover:border-border-strong"
                     placeholder="例：專營日本潮流選品，東京實體店面採購、附購買憑證。每週 2 班次穩定出貨，急件可加單，歡迎私訊討論。"
                     value={bio} maxLength={BIO_MAX} onChange={e => setBio(e.target.value)} rows={5}
                   />
-                  <span className="absolute right-3.5 bottom-3 text-[11.5px] text-[#aaa] tabular-nums pointer-events-none">{bio.length}/{BIO_MAX}</span>
+                  <span className="absolute right-3.5 bottom-3 text-[11.5px] text-text-faint tabular-nums pointer-events-none">{bio.length}/{BIO_MAX}</span>
                 </div>
               </FormSection>
 
@@ -403,21 +405,21 @@ export default function BecomeSellerPage() {
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <button type="button" onClick={() => setAgree(v => !v)}
                     className="w-[18px] h-[18px] rounded-[5px] border flex items-center justify-center flex-shrink-0 mt-0.5 transition-[background,border-color]"
-                    style={{ background: agree ? '#111' : '#fff', borderColor: agree ? '#111' : '#ccc', color: agree ? '#fff' : 'transparent' }}
+                    style={{ background: agree ? 'var(--text-strong)' : 'var(--surface-card)', borderColor: agree ? 'var(--text-strong)' : 'var(--border-strong)', color: agree ? 'var(--text-inverse)' : 'transparent' }}
                   >
                     {agree && <Check size={11} strokeWidth={2.5} />}
                   </button>
-                  <span className="text-[13px] text-[#444] leading-[1.55] pt-0.5">
+                  <span className="text-[13px] text-text-muted leading-[1.55] pt-0.5">
                     我已閱讀並同意{' '}
-                    <span className="text-[#111] underline underline-offset-2 cursor-pointer">賣家服務條款</span>
+                    <span className="text-text-strong underline underline-offset-2 cursor-pointer">賣家服務條款</span>
                     {' '}與{' '}
-                    <span className="text-[#111] underline underline-offset-2 cursor-pointer">代購規範</span>
+                    <span className="text-text-strong underline underline-offset-2 cursor-pointer">代購規範</span>
                   </span>
                 </label>
                 <button
                   type="submit"
                   disabled={isPending || !agree || !filled.every(Boolean)}
-                  className="h-[52px] px-7 rounded-xl bg-[#111] text-white text-[15px] font-semibold inline-flex items-center gap-2 transition-[background,transform] hover:bg-[#222] active:translate-y-px disabled:bg-[#ccc] disabled:cursor-not-allowed w-fit"
+                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center gap-2 transition-[background,transform] hover:bg-brand-700 active:translate-y-px disabled:bg-border-strong disabled:cursor-not-allowed w-fit"
                 >
                   {isPending ? '送出中…' : '送出申請'}
                 </button>
@@ -442,14 +444,14 @@ export default function BecomeSellerPage() {
                           <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
                         </div>
                         <div>
-                          <p className="font-semibold text-[15px] text-[#111]">驗證 Instagram</p>
-                          <p className="text-[13px] text-[#888] mt-1 leading-relaxed">輸入你的帳號名稱</p>
+                          <p className="font-semibold text-[15px] text-text-strong">驗證 Instagram</p>
+                          <p className="text-[13px] text-text-muted mt-1 leading-relaxed">輸入你的帳號名稱</p>
                         </div>
                       </div>
                       <div className="space-y-1.5">
                         <div className="relative">
                           <input
-                            className="w-full h-11 px-3.5 rounded-xl border border-[#ececec] bg-white text-[14px] text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
+                            className="w-full h-11 px-3.5 rounded-xl border border-border-soft bg-white text-[14px] text-text-strong placeholder:text-text-faint focus:outline-none focus:border-text-strong focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
                             placeholder="帳號名稱"
                             value={igUsernameInput}
                             onChange={e => { setIgUsernameInput(e.target.value); setIgInputError('') }}
@@ -462,13 +464,13 @@ export default function BecomeSellerPage() {
                       <div className="flex flex-col gap-2">
                         <button
                           onClick={() => void handleIgVerifyStart()}
-                          className="h-11 w-full rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                          className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                         >
                           取得驗證碼
                         </button>
                         <button
                           onClick={cancelIgVerify}
-                          className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors"
+                          className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors"
                         >
                           取消
                         </button>
@@ -478,7 +480,7 @@ export default function BecomeSellerPage() {
 
                   {igVerify.step === 'loading_code' && (
                     <div className="flex flex-col items-center gap-5 py-10 text-center">
-                      <div className="flex items-center gap-2 text-[#888]">
+                      <div className="flex items-center gap-2 text-text-muted">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span className="text-[13px]">正在產生驗證碼⋯</span>
                       </div>
@@ -488,31 +490,31 @@ export default function BecomeSellerPage() {
                   {igVerify.step === 'waiting_send' && (
                     <div className="flex flex-col gap-6">
                       <div className="text-center space-y-1">
-                        <p className="font-semibold text-[15px] text-[#111]">傳送驗證碼</p>
-                        <p className="text-[13px] text-[#888] leading-relaxed">
+                        <p className="font-semibold text-[15px] text-text-strong">傳送驗證碼</p>
+                        <p className="text-[13px] text-text-muted leading-relaxed">
                           用 Instagram 私訊以下數字給{' '}
-                          <a href={`https://www.instagram.com/${adminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#111] hover:underline">
+                          <a href={`https://www.instagram.com/${adminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-text-strong hover:underline">
                             @{adminHandle}
                           </a>
                         </p>
-                        <p className="text-[13px] text-[#888] leading-relaxed">傳送後請點擊『<span className="text-[#111]">我已傳送</span>』按鈕</p>
+                        <p className="text-[13px] text-text-muted leading-relaxed">傳送後請點擊『<span className="text-text-strong">我已傳送</span>』按鈕</p>
                       </div>
                       <div className="flex justify-center gap-2">
                         {igVerify.code.toString().split('').map((digit, i) => (
-                          <div key={i} className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm" style={{ width: 40, height: 52 }}>
+                          <div key={i} className="flex items-center justify-center rounded-xl border-2 border-border-soft bg-surface-muted text-[22px] font-mono font-bold text-text-strong shadow-sm" style={{ width: 40, height: 52 }}>
                             {digit}
                           </div>
                         ))}
                       </div>
-                      <span className="text-[12px] font-mono text-[#aaa] tabular-nums text-center">剩餘時間 {igCountdown}</span>
+                      <span className="text-[12px] font-mono text-text-faint tabular-nums text-center">剩餘時間 {igCountdown}</span>
                       <div className="flex flex-col gap-2">
                         <button
                           onClick={() => beginPolling(igVerify.id, igVerify.code, igVerify.expiresAt)}
-                          className="h-11 w-full rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                          className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                         >
                           我已傳送
                         </button>
-                        <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors">
+                        <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
                           取消
                         </button>
                       </div>
@@ -523,18 +525,18 @@ export default function BecomeSellerPage() {
                     <div className="flex flex-col gap-6">
                       <div className="flex justify-center gap-2">
                         {igVerify.code.toString().split('').map((digit, i) => (
-                          <div key={i} className="flex items-center justify-center rounded-xl border-2 border-[#e8e8e8] bg-[#fafafa] text-[22px] font-mono font-bold text-[#111] shadow-sm" style={{ width: 40, height: 52 }}>
+                          <div key={i} className="flex items-center justify-center rounded-xl border-2 border-border-soft bg-surface-muted text-[22px] font-mono font-bold text-text-strong shadow-sm" style={{ width: 40, height: 52 }}>
                             {digit}
                           </div>
                         ))}
                       </div>
                       <div className="flex flex-col items-center gap-2">
-                        <span className="text-[12px] font-mono text-[#aaa] tabular-nums">剩餘時間 {igCountdown}</span>
-                        <div className="flex items-center gap-1.5 text-[12px] text-[#aaa]">
+                        <span className="text-[12px] font-mono text-text-faint tabular-nums">剩餘時間 {igCountdown}</span>
+                        <div className="flex items-center gap-1.5 text-[12px] text-text-faint">
                           <Loader2 className="h-3 w-3 animate-spin" />等待確認中⋯
                         </div>
                       </div>
-                      <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-[#888] hover:text-[#111] transition-colors">
+                      <button onClick={cancelIgVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
                         取消
                       </button>
                     </div>
@@ -551,12 +553,12 @@ export default function BecomeSellerPage() {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <p className="font-semibold text-[16px] text-[#111]">驗證失敗</p>
-                        <p className="text-[13px] text-[#888]">未收到驗證碼，請確認已傳送給正確帳號後重試</p>
+                        <p className="font-semibold text-[16px] text-text-strong">驗證失敗</p>
+                        <p className="text-[13px] text-text-muted">未收到驗證碼，請確認已傳送給正確帳號後重試</p>
                       </div>
                       <button
                         onClick={() => setIgVerify({ step: 'entering_username' })}
-                        className="h-11 px-10 rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                        className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                       >
                         重新驗證
                       </button>
@@ -574,12 +576,12 @@ export default function BecomeSellerPage() {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <p className="font-semibold text-[16px] text-[#111]">驗證完成</p>
-                        <p className="text-[13px] text-[#888]">@{igUsernameInput} 已成功連結至賣家頁面</p>
+                        <p className="font-semibold text-[16px] text-text-strong">驗證完成</p>
+                        <p className="text-[13px] text-text-muted">@{igUsernameInput} 已成功連結至賣家頁面</p>
                       </div>
                       <button
                         onClick={() => { setIgConnected(true); setIgVerify({ step: 'idle' }) }}
-                        className="h-11 px-10 rounded-xl bg-[#111] text-white text-[14px] font-semibold hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                        className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                       >
                         完成
                       </button>
@@ -607,8 +609,8 @@ export default function BecomeSellerPage() {
                           </div>
                         </div>
                         <div>
-                          <p className="text-[15px] font-semibold text-[#111]">Instagram</p>
-                          <p className="text-[13px] text-[#555] mt-0.5">@{igUsernameInput}</p>
+                          <p className="text-[15px] font-semibold text-text-strong">Instagram</p>
+                          <p className="text-[13px] text-text-muted mt-0.5">@{igUsernameInput}</p>
                         </div>
                       </div>
                     </div>
@@ -619,13 +621,13 @@ export default function BecomeSellerPage() {
                           <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
                         </div>
                         <div>
-                          <p className="text-[13px] font-semibold text-[#111]">Instagram</p>
-                          <p className="text-[11.5px] text-[#aaa]">尚未連結</p>
+                          <p className="text-[13px] font-semibold text-text-strong">Instagram</p>
+                          <p className="text-[11.5px] text-text-faint">尚未連結</p>
                         </div>
                       </div>
                       <button
                         onClick={() => setIgVerify({ step: 'entering_username' })}
-                        className="h-9 w-full rounded-xl bg-[#111] text-white text-[13px] font-medium hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                        className="h-9 w-full rounded-xl bg-brand-500 text-cta-foreground text-[13px] font-medium hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                       >
                         驗證
                       </button>
@@ -639,13 +641,13 @@ export default function BecomeSellerPage() {
                         <Image src="/images/threads.png" alt="Threads" width={40} height={40} />
                       </div>
                       <div>
-                        <p className="text-[13px] font-semibold text-[#111]">Threads</p>
-                        <p className="text-[11.5px] text-[#aaa]">尚未連結</p>
+                        <p className="text-[13px] font-semibold text-text-strong">Threads</p>
+                        <p className="text-[11.5px] text-text-faint">尚未連結</p>
                       </div>
                     </div>
                     <a
                       href="/api/auth/threads/connect"
-                      className="h-9 w-full rounded-xl bg-[#111] text-white text-[13px] font-medium hover:bg-[#222] active:translate-y-px transition-[background,transform] flex items-center justify-center"
+                      className="h-9 w-full rounded-xl bg-brand-500 text-cta-foreground text-[13px] font-medium hover:bg-brand-700 active:translate-y-px transition-[background,transform] flex items-center justify-center"
                     >
                       驗證
                     </a>
@@ -658,7 +660,7 @@ export default function BecomeSellerPage() {
               <div className="max-w-[500px] mx-auto w-full flex justify-end">
                 <button
                   onClick={() => { cancelIgVerify(); router.push('/dashboard') }}
-                  className="h-[52px] px-7 rounded-xl bg-[#111] text-white text-[15px] font-semibold inline-flex items-center gap-2 hover:bg-[#222] active:translate-y-px transition-[background,transform]"
+                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center gap-2 hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                 >
                   {igConnected ? '完成' : '先暫時跳過'}
                 </button>
@@ -671,14 +673,14 @@ export default function BecomeSellerPage() {
           {!submitted && <aside className="flex flex-col gap-4" style={{ position: 'sticky', top: 96, alignSelf: 'flex-start' }}>
 
             {/* Progress */}
-            <div className="border border-[#ececec] rounded-[14px] p-5 bg-white">
+            <div className="border border-border-soft rounded-[14px] p-5 bg-white">
               <div className="flex justify-between items-baseline mb-2">
-                <span className="text-[11px] font-medium text-[#888] uppercase tracking-[.05em]">完成度</span>
+                <span className="text-[11px] font-medium text-text-muted uppercase tracking-[.05em]">完成度</span>
                 <span className="text-[15px] font-bold" style={{ fontFamily: 'Rubik, sans-serif' }}>
-                  {filledCount}<span className="text-[#bbb]"> / {filled.length}</span>
+                  {filledCount}<span className="text-text-faint"> / {filled.length}</span>
                 </span>
               </div>
-              <div className="h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full"
                   style={{
@@ -688,12 +690,12 @@ export default function BecomeSellerPage() {
                   }}
                 />
               </div>
-              <div className="text-[11.5px] text-[#999] mt-2">填完全部欄位即可送出申請</div>
+              <div className="text-[11.5px] text-text-faint mt-2">填完全部欄位即可送出申請</div>
             </div>
 
             {/* Perks */}
-            <div className="border border-[#ececec] rounded-[14px] p-5">
-              <div className="text-[11px] font-medium text-[#888] uppercase tracking-[.05em] mb-3.5">賣家可以做什麼</div>
+            <div className="border border-border-soft rounded-[14px] p-5">
+              <div className="text-[11px] font-medium text-text-muted uppercase tracking-[.05em] mb-3.5">賣家可以做什麼</div>
               <div className="flex flex-col gap-3.5">
                 <Perk
                   color={KZ.teal}
@@ -729,11 +731,11 @@ export default function BecomeSellerPage() {
             </div>
 
             {/* Help */}
-            <div className="text-[11.5px] text-[#888] leading-relaxed px-1">
+            <div className="text-[11.5px] text-text-muted leading-relaxed px-1">
               有問題？查看{' '}
-              <span className="text-[#111] underline underline-offset-2 cursor-pointer">賣家申請指南</span>
+              <span className="text-text-strong underline underline-offset-2 cursor-pointer">賣家申請指南</span>
               {' '}或{' '}
-              <a href="mailto:contact@kozukase.com" className="text-[#111] underline underline-offset-2">聯絡客服</a>。
+              <a href="mailto:contact@kozukase.com" className="text-text-strong underline underline-offset-2">聯絡客服</a>。
             </div>
           </aside>}
         </div>
