@@ -733,7 +733,7 @@ export default function BecomeSellerPage() {
               有問題？查看{' '}
               <span className="text-[#111] underline underline-offset-2 cursor-pointer">賣家申請指南</span>
               {' '}或{' '}
-              <span className="text-[#111] underline underline-offset-2 cursor-pointer">聯絡客服</span>。
+              <a href="mailto:contact@kozukase.com" className="text-[#111] underline underline-offset-2">聯絡客服</a>。
             </div>
           </aside>}
         </div>

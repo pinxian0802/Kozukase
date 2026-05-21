@@ -164,6 +164,18 @@ export default function RegisterPage() {
               </button>
             </form>
           )}
+
+          <p className="pt-2 text-center text-xs leading-relaxed text-muted-foreground">
+            點選註冊即表示您已閱讀並同意{' '}
+            <Link href="/terms" target="_blank" className="text-foreground underline underline-offset-4 hover:text-muted-foreground">
+              使用者條款
+            </Link>
+            {' '}與{' '}
+            <Link href="/privacy" target="_blank" className="text-foreground underline underline-offset-4 hover:text-muted-foreground">
+              隱私權政策
+            </Link>
+            。
+          </p>
         </CardContent>
       </Card>
     </div>

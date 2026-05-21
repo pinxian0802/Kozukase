@@ -9,8 +9,7 @@ export function Footer() {
             Kozukase
           </Link>
           <nav className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="/about" className="hover:text-foreground transition-colors">關於我們</Link>
-            <Link href="/help" className="hover:text-foreground transition-colors">使用說明</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">使用者條款</Link>
             <Link href="/privacy" className="hover:text-foreground transition-colors">隱私權政策</Link>
           </nav>
           <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Kozukase</p>
