@@ -1,17 +1,15 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { ExternalLink, Globe, Images, Maximize2, Plus, Sparkles } from 'lucide-react'
-import { Tabs } from '@/components/ui/tabs'
-import { FilterTabsList } from '@/components/shared/filter-tabs-list'
+import { useRouter } from 'next/navigation'
+import { Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { EmptyState } from '@/components/shared/empty-state'
-import { SafeExternalLink } from '@/components/shared/safe-external-link'
-import { ImageLightbox } from '@/components/shared/image-lightbox'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DashboardListShell } from '@/components/dashboard/list-shell'
+import { DashboardStatusDot } from '@/components/dashboard/status-dot'
+import { DashboardThumbnailCell, type DashboardThumbnailImage } from '@/components/dashboard/thumbnail-cell'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -28,269 +26,224 @@ const statusDotColors: Record<string, string> = {
   pending_approval: 'bg-red-500',
 }
 
-const rowStyles: Record<string, string> = {
-  active: 'bg-white',
-  ended: 'bg-white',
-  pending_approval: 'bg-white',
+type ConnectionImage = { url: string; thumbnail_url?: string | null; sort_order: number }
+type ConnectionItem = {
+  id: string
+  title: string | null
+  status: string
+  start_date: string
+  end_date: string
+  shipping_date?: string | null
+  can_wish?: boolean | null
+  region?: { id: string; name: string } | null
+  connection_images?: ConnectionImage[] | null
 }
 
-const connectionGridClass = 'grid gap-5 lg:grid-cols-[minmax(0,4.2fr)_minmax(0,2fr)_minmax(0,2.8fr)_minmax(0,1.6fr)_max-content]'
-
-type ConnectionImage = {
-  url: string
-  alt?: string
-}
-
-function ConnectionThumbnail({ images, title }: { images: ConnectionImage[]; title: string }) {
-  const [viewerOpen, setViewerOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  if (images.length === 0) {
-    return (
-      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-muted/40">
-        <div className="flex h-full items-center justify-center text-muted-foreground/50">
-          <Globe className="h-7 w-7" />
-        </div>
-      </div>
-    )
-  }
-
-  const currentIndex = Math.min(activeIndex, Math.max(images.length - 1, 0))
-  const activeImage = images[currentIndex] ?? images[0]
-  const isLocalPreviewUrl = activeImage.url.startsWith('blob:') || activeImage.url.startsWith('data:')
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setViewerOpen(true)}
-        className="group relative h-24 cursor-pointer w-24 shrink-0 overflow-hidden rounded-2xl border bg-muted/40 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-        aria-label={`預覽 ${title}`}
-      >
-        <Image
-          src={activeImage.url}
-          alt={activeImage.alt ?? title}
-          fill
-          sizes="96px"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          unoptimized={isLocalPreviewUrl}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-        <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          <span className="inline-flex min-w-0 items-center gap-1 truncate">
-            <Images className="h-3.5 w-3.5 shrink-0" />
-            {images.length}
-          </span>
-          <Maximize2 className="h-3.5 w-3.5 shrink-0" />
-        </div>
-      </button>
-
-      <ImageLightbox
-        open={viewerOpen}
-        images={images}
-        activeIndex={currentIndex}
-        onActiveIndexChange={setActiveIndex}
-        onOpenChange={setViewerOpen}
-      />
-    </>
-  )
+function buildDisplayImages(conn: ConnectionItem): DashboardThumbnailImage[] {
+  const sorted = [...(conn.connection_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
+  return sorted.map((img) => ({
+    url: img.thumbnail_url ?? img.url,
+    alt: conn.title ?? '連線圖片',
+  }))
 }
 
 export default function SellerConnectionsPage() {
+  const router = useRouter()
   const [status, setStatus] = useState<string>('all')
   const utils = trpc.useUtils()
   const { data, isLoading } = trpc.connection.myConnections.useQuery({})
-  type SellerConnection = NonNullable<typeof data>[number] & { post_link?: string | null }
 
   const counts = {
     total: data?.length ?? 0,
-    active: data?.filter((conn) => conn.status === 'active').length ?? 0,
-    ended: data?.filter((conn) => conn.status === 'ended').length ?? 0,
-    pending_approval: data?.filter((conn) => conn.status === 'pending_approval').length ?? 0,
+    active: data?.filter((c) => c.status === 'active').length ?? 0,
+    ended: data?.filter((c) => c.status === 'ended').length ?? 0,
+    pending_approval: data?.filter((c) => c.status === 'pending_approval').length ?? 0,
   }
 
-  const filteredConnections = status === 'all'
-    ? data ?? []
-    : (data ?? []).filter((conn) => conn.status === status)
+  const filtered: ConnectionItem[] =
+    status === 'all'
+      ? ((data ?? []) as ConnectionItem[])
+      : ((data ?? []).filter((c) => c.status === status) as ConnectionItem[])
 
+  const invalidate = () => utils.connection.invalidate()
   const endConnection = trpc.connection.end.useMutation({
-    onSuccess: () => { toast.success('已結束連線'); utils.connection.invalidate() },
+    onSuccess: () => { toast.success('已結束連線'); invalidate() },
     onError: (err) => toast.error(err.message),
   })
-
   const reactivate = trpc.connection.reactivate.useMutation({
-    onSuccess: () => { toast.success('已更新連線狀態'); utils.connection.invalidate() },
+    onSuccess: () => { toast.success('已更新連線狀態'); invalidate() },
+    onError: (err) => toast.error(err.message),
+  })
+  const deleteConnection = trpc.connection.delete.useMutation({
+    onSuccess: () => { toast.success('已刪除連線'); invalidate() },
     onError: (err) => toast.error(err.message),
   })
 
-  const deleteConnection = trpc.connection.delete.useMutation({
-    onSuccess: () => { toast.success('已刪除連線'); utils.connection.invalidate() },
-    onError: (err) => toast.error(err.message),
+  const isEmpty = !isLoading && filtered.length === 0
+  const actionPending = endConnection.isPending || reactivate.isPending || deleteConnection.isPending
+
+  const actionHandlers = (id: string) => ({
+    onEnd: () => endConnection.mutate({ id }),
+    onReactivate: () => reactivate.mutate({ id }),
+    onDelete: () => deleteConnection.mutate({ id }),
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold font-heading">連線管理</h1>
-          <p className="text-sm text-muted-foreground">已使用 {counts.total} / 5</p>
-        </div>
-        <Button render={<Link href="/dashboard/connections/new" />}><Plus className="mr-1 h-4 w-4" />新增連線</Button>
+    <DashboardListShell
+      title="連線管理"
+      usageHint={`已使用 ${counts.total} / 5`}
+      newButton={{ href: '/dashboard/connections/new', label: '新增連線' }}
+      tabs={[
+        { value: 'all', label: '全部', count: counts.total },
+        { value: 'active', label: '進行中', count: counts.active },
+        { value: 'ended', label: '已結束', count: counts.ended },
+        { value: 'pending_approval', label: '待審核', count: counts.pending_approval },
+      ]}
+      currentTab={status}
+      onTabChange={setStatus}
+      isLoading={isLoading}
+      isEmpty={isEmpty}
+      emptyState={{ icon: Globe, title: '還沒有連線公告', description: '新增連線公告讓買家知道你的代購行程!' }}
+    >
+      <div className="hidden lg:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[96px]">圖片</TableHead>
+              <TableHead>標題</TableHead>
+              <TableHead>國家</TableHead>
+              <TableHead>連線日期</TableHead>
+              <TableHead>預計出貨</TableHead>
+              <TableHead>狀態</TableHead>
+              <TableHead className="w-[200px] text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.map((conn) => {
+              const displayImages = buildDisplayImages(conn)
+              const handlers = actionHandlers(conn.id)
+              return (
+                <TableRow
+                  key={conn.id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/dashboard/connections/${conn.id}/edit`)}
+                >
+                  <TableCell>
+                    <DashboardThumbnailCell
+                      images={displayImages}
+                      title={conn.title ?? '連線'}
+                      fallbackIcon={Globe}
+                    />
+                  </TableCell>
+                  <TableCell className="max-w-[28ch] truncate font-medium">
+                    {conn.title || <span className="font-normal text-muted-foreground">--</span>}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">{conn.region?.name ?? '--'}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {conn.shipping_date ? formatDate(conn.shipping_date) : <span className="text-muted-foreground">--</span>}
+                  </TableCell>
+                  <TableCell>
+                    <DashboardStatusDot
+                      label={statusLabels[conn.status] ?? conn.status}
+                      dotClassName={statusDotColors[conn.status]}
+                    />
+                  </TableCell>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <ConnectionActions
+                      connectionId={conn.id}
+                      connectionStatus={conn.status}
+                      pending={actionPending}
+                      {...handlers}
+                    />
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
       </div>
 
-      <Tabs value={status} onValueChange={setStatus}>
-        <FilterTabsList items={[
-          { value: 'all', label: '全部', count: counts.total },
-          { value: 'active', label: '進行中', count: counts.active },
-          { value: 'ended', label: '已結束', count: counts.ended },
-          { value: 'pending_approval', label: '待審核', count: counts.pending_approval },
-        ]} />
-      </Tabs>
-
-      {isLoading ? (
-        <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-[28px]" />)}</div>
-      ) : filteredConnections.length > 0 ? (
-        <div className="space-y-4">
-          <div className={`hidden items-center gap-4 px-4 text-xs font-medium tracking-[0.18em] text-muted-foreground/80 lg:${connectionGridClass}`}>
-            <span className="justify-self-start">標題 / 地點</span>
-            <span className="justify-self-start">計費方式 / 品牌</span>
-            <span className="justify-self-start">連線日期 / 預計出貨</span>
-            <span className="justify-self-start">連結</span>
-            <span className="justify-self-end text-center">操作</span>
-          </div>
-
-          {filteredConnections.map((conn: SellerConnection) => {
-            const sortedImages = [...(conn.connection_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
-            const displayImages = sortedImages.map((image) => ({
-              url: image.thumbnail_url ?? image.url,
-              alt: conn.title ?? '連線圖片',
-            }))
-            const regionName = conn.region?.name ?? '--'
-            const visibleLocations = conn.locations?.slice(0, 2) ?? []
-            const extraLocationCount = (conn.locations?.length ?? 0) - 2
-            const brandNames = (conn.connection_brands ?? []).map((cb: { brand_id: string; brand?: { id: string; name: string } | null }) => cb.brand?.name).filter(Boolean) as string[]
-            const visibleBrands = brandNames.slice(0, 2)
-            const extraBrandCount = brandNames.length - 2
-            const postLink = conn.post_link
-
-            return (
-              <div
-                key={conn.id}
-                className={`overflow-hidden rounded-[28px] p-4 shadow-sm transition-colors ${rowStyles[conn.status] ?? 'bg-white'} ${conn.status === 'ended' ? 'opacity-85' : ''}`}
-              >
-                <div className={`${connectionGridClass} lg:items-center`}>
-                  <div className="flex items-center min-w-0 gap-4">
-                    <ConnectionThumbnail images={displayImages} title={conn.title ?? '--'} />
-
-                    <div className="min-w-0 space-y-3">
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                            <span className={`h-2 w-2 shrink-0 rounded-full ${statusDotColors[conn.status] ?? 'bg-gray-400'}`} />
-                            {statusLabels[conn.status]}
-                          </span>
-                          {(conn as any).can_wish && (
-                            <span className="flex items-center gap-1 text-xs text-purple-700">
-                              <Sparkles className="h-3 w-3" />可許願
-                            </span>
-                          )}
-                        </div>
-                        <h2 className="truncate text-xl font-semibold text-foreground">
-                          {conn.title ?? <span className="font-normal text-muted-foreground">--</span>}
-                        </h2>
-                        <div className="grid gap-1 text-sm text-muted-foreground">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <span className="shrink-0 text-xs font-medium tracking-[0.16em]">國家</span>
-                            <span className="min-w-0 truncate text-sm text-foreground">{regionName}</span>
-                          </div>
-                          <div className="flex min-w-0 items-center gap-2">
-                            <span className="shrink-0 text-xs font-medium tracking-[0.16em]">地點</span>
-                            <div className="flex min-w-0 items-center gap-1">
-                              <span className="min-w-0 truncate text-sm text-foreground">
-                                {visibleLocations.length > 0 ? visibleLocations.join('、') : <span className="text-muted-foreground">--</span>}
-                              </span>
-                              {extraLocationCount > 0 && (
-                                <span className="shrink-0 text-xs text-muted-foreground">+{extraLocationCount}</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 rounded-2xl bg-background/70 p-3 min-w-0 lg:bg-transparent lg:p-0">
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">計費方式</p>
-                      <p className="line-clamp-2 text-sm text-foreground">{conn.billing_method || <span className="text-muted-foreground">--</span>}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">品牌</p>
-                      <div className="flex min-w-0 items-center gap-1">
-                        <span className="min-w-0 truncate text-sm text-foreground">
-                          {visibleBrands.length > 0 ? visibleBrands.join('、') : <span className="text-muted-foreground">--</span>}
-                        </span>
-                        {extraBrandCount > 0 && (
-                          <span className="shrink-0 text-xs text-muted-foreground">+{extraBrandCount}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 rounded-2xl bg-background/70 p-3 min-w-0 lg:bg-transparent lg:p-0">
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">連線日期</p>
-                      <p className="whitespace-nowrap text-sm text-foreground">{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">預計出貨</p>
-                      <p className="whitespace-nowrap text-sm text-foreground">{conn.shipping_date ? formatDate(conn.shipping_date) : <span className="text-muted-foreground">--</span>}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 flex items-center rounded-2xl bg-background/70 p-3 lg:bg-transparent lg:p-0 lg:self-center">
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-muted-foreground">
-                       貼文 / 群組連結
-                      </p>
-                      {postLink ? (
-                        <SafeExternalLink
-                          href={postLink}
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-center"
-                        >
-                          查看連結
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </SafeExternalLink>
-                      ) : (
-                        <p className="truncate text-sm text-muted-foreground">--</p>
-                      )}
-                  </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 justify-self-end lg:flex-col lg:items-end lg:justify-self-end">
-                    <Button size="sm" variant="outline" className="min-w-24" render={<Link href={`/dashboard/connections/${conn.id}/edit`} />}>編輯</Button>
-                    {conn.status === 'active' && (
-                      <Button size="sm" variant="destructive" className="min-w-24" onClick={() => endConnection.mutate({ id: conn.id })} disabled={endConnection.isPending}>結束</Button>
-                    )}
-                    {conn.status === 'ended' && (
-                      <>
-                        <Button size="sm" className="min-w-24" onClick={() => reactivate.mutate({ id: conn.id })} disabled={reactivate.isPending}>重新上架</Button>
-                        <Button size="sm" variant="destructive" className="min-w-24" onClick={() => deleteConnection.mutate({ id: conn.id })} disabled={deleteConnection.isPending}>刪除</Button>
-                      </>
-                    )}
-                    {conn.status === 'pending_approval' && (
-                      <Badge variant="outline" className="h-8 px-3">等待審核結果</Badge>
-                    )}
-                  </div>
+      <div className="lg:hidden space-y-3">
+        {filtered.map((conn) => {
+          const displayImages = buildDisplayImages(conn)
+          const handlers = actionHandlers(conn.id)
+          return (
+            <div
+              key={conn.id}
+              className="rounded-xl bg-white p-3 shadow-sm cursor-pointer"
+              onClick={() => router.push(`/dashboard/connections/${conn.id}/edit`)}
+            >
+              <div className="flex items-start gap-3 pb-3 border-b border-muted">
+                <DashboardThumbnailCell
+                  images={displayImages}
+                  title={conn.title ?? '連線'}
+                  fallbackIcon={Globe}
+                  size={56}
+                />
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h3 className="truncate font-semibold">{conn.title || '--'}</h3>
+                  <DashboardStatusDot
+                    label={statusLabels[conn.status] ?? conn.status}
+                    dotClassName={statusDotColors[conn.status]}
+                  />
                 </div>
               </div>
-            )
-          })}
-        </div>
-      ) : (
-        <EmptyState icon={Globe} title="還沒有連線公告" description="新增連線公告讓買家知道你的代購行程！" />
+              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 py-3 text-sm">
+                <span className="text-xs text-muted-foreground">國家</span>
+                <span className="text-right truncate">{conn.region?.name ?? '--'}</span>
+                <span className="text-xs text-muted-foreground">連線日期</span>
+                <span className="text-right">{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</span>
+                <span className="text-xs text-muted-foreground">預計出貨</span>
+                <span className="text-right">{conn.shipping_date ? formatDate(conn.shipping_date) : '--'}</span>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                <ConnectionActions
+                  connectionId={conn.id}
+                  connectionStatus={conn.status}
+                  pending={actionPending}
+                  {...handlers}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </DashboardListShell>
+  )
+}
+
+type ConnectionActionsProps = {
+  connectionId: string
+  connectionStatus: string
+  pending: boolean
+  onEnd: () => void
+  onReactivate: () => void
+  onDelete: () => void
+}
+
+function ConnectionActions({
+  connectionId,
+  connectionStatus,
+  pending,
+  onEnd,
+  onReactivate,
+  onDelete,
+}: ConnectionActionsProps) {
+  return (
+    <div className="inline-flex flex-wrap gap-2 justify-end">
+      <Button size="sm" variant="outline" render={<Link href={`/dashboard/connections/${connectionId}/edit`} />}>編輯</Button>
+      {connectionStatus === 'active' && (
+        <Button size="sm" variant="destructive" onClick={onEnd} disabled={pending}>結束</Button>
+      )}
+      {connectionStatus === 'ended' && (
+        <>
+          <Button size="sm" onClick={onReactivate} disabled={pending}>重新上架</Button>
+          <Button size="sm" variant="destructive" onClick={onDelete} disabled={pending}>刪除</Button>
+        </>
+      )}
+      {connectionStatus === 'pending_approval' && (
+        <Badge variant="outline" className="h-8 px-3">等待審核結果</Badge>
       )}
     </div>
   )
