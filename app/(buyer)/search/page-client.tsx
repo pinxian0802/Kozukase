@@ -201,7 +201,6 @@ function SearchContent() {
                 key={brand.id}
                 label={brand.name}
                 checked={brandId === brand.id}
-                color={KZ.pink}
                 onClick={() => updateParam('brand', brandId === brand.id ? null : brand.id)}
               />
             ))}
