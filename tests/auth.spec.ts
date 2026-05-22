@@ -31,8 +31,8 @@ test.describe('認證流程（未登入）', () => {
     await expect(page.getByText('密碼為必填')).toBeVisible()
   })
 
-  test('未登入訪問 /profile 應導向登入', async ({ page }) => {
-    await page.goto('/profile')
+  test('未登入訪問 /favorites 應導向登入', async ({ page }) => {
+    await page.goto('/favorites')
     await page.waitForURL(/\/login/, { timeout: 15000 })
     expect(page.url()).toContain('/login')
   })

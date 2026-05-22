@@ -65,8 +65,23 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
   const { data: reviews } = trpc.review.getBySeller.useQuery({ seller_id: id })
 
   const followToggle = trpc.follow.toggle.useMutation({
-    onSuccess: () => utils.seller.getById.invalidate({ id }),
-    onError: (err) => toast.error(err.message),
+    onMutate: async () => {
+      await utils.seller.getById.cancel({ id })
+      const prev = utils.seller.getById.getData({ id })
+      if (prev) {
+        utils.seller.getById.setData({ id }, {
+          ...prev,
+          isFollowing: !prev.isFollowing,
+          follow_count: prev.follow_count + (prev.isFollowing ? -1 : 1),
+        })
+      }
+      return { prev }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.prev) utils.seller.getById.setData({ id }, context.prev)
+      toast.error(err.message)
+    },
+    onSettled: () => utils.seller.getById.invalidate({ id }),
   })
 
   const recordProfileView = trpc.analytics.recordProfileView.useMutation()
@@ -236,7 +251,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'ig' })}
-                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors"
+                    className="flex-1 min-w-0 min-h-[64px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors"
                   >
                     <Image src="/images/instagram.png" alt="Instagram" width={24} height={24} className="rounded-[5px] shrink-0" />
                     <span className="text-[13.5px] font-semibold text-text-strong group-hover:text-text-muted leading-tight break-all">{igHandle}</span>
@@ -246,7 +261,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'threads' })}
-                    className="flex-1 min-w-0 min-h-[72px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors"
+                    className="flex-1 min-w-0 min-h-[64px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors"
                   >
                     <Image src="/images/threads.png" alt="Threads" width={24} height={24} className="rounded-[5px] shrink-0" />
                     <span className="text-[13.5px] font-semibold text-text-strong group-hover:text-text-muted leading-tight break-all">{threadsHandle}</span>
@@ -260,7 +275,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => recordSocialClick.mutate({ seller_id: id, platform: igHandle ? 'ig' : 'threads' })}
-                    className="w-[148px] shrink-0 min-h-[72px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors overflow-hidden"
+                    className="w-[148px] shrink-0 min-h-[64px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors overflow-hidden"
                   >
                     <Image
                       src={igHandle ? '/images/instagram.png' : '/images/threads.png'}

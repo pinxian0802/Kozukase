@@ -11,7 +11,7 @@ const listingSpecSchema = z.object({
 
 export const createListingInput = z.object({
   product_id: z.string().uuid(),
-  title: z.string().min(1).max(30),
+  title: z.string().min(1).max(100),
   status: z.enum(['draft', 'active']),
   price: z.number().min(1).optional(),
   is_price_on_request: z.boolean().default(false),
@@ -25,7 +25,7 @@ export const createListingInput = z.object({
 
 export const updateListingInput = z.object({
   id: z.string().uuid(),
-  title: z.string().min(1).max(30).optional(),
+  title: z.string().min(1).max(100).optional(),
   product_id: z.string().uuid().optional(),
   price: z.number().min(1).optional(),
   is_price_on_request: z.boolean().optional(),

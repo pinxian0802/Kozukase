@@ -93,6 +93,16 @@ export const authRouter = router({
       return { available: !data }
     }),
 
+  checkEmailRegistered: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db.rpc('email_is_verified', {
+        p_email: input.email.trim(),
+      })
+      if (error) throw error
+      return { registered: data === true }
+    }),
+
   completeOnboarding: protectedProcedure
     .input(z.object({
       username: z.string().regex(/^[a-z0-9]{3,20}$/, 'username 只能包含小寫英文和數字，長度 3-20'),

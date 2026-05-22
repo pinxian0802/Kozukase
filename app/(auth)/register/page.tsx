@@ -13,16 +13,20 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { trpc } from '@/lib/trpc/client'
 import {
   buildAuthCallbackUrl,
   getAuthErrorMessage,
   getSafeNextPath,
 } from '@/lib/supabase/auth-error'
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 type RegisterAction = 'google' | 'email' | null
 
 export default function RegisterPage() {
   const searchParams = useSearchParams()
+  const utils = trpc.useUtils()
 
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -59,8 +63,27 @@ export default function RegisterPage() {
       return
     }
 
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setEmailError('Email 格式不正確')
+      return
+    }
+
     setEmailError(undefined)
     setLoadingAction('email')
+
+    try {
+      const { registered } = await utils.auth.checkEmailRegistered.fetch({
+        email: trimmedEmail,
+      })
+      if (registered) {
+        setEmailError('此 Email 已註冊，請前往登入')
+        setLoadingAction(null)
+        return
+      }
+    } catch {
+      // 檢查服務異常時不阻擋註冊：寄出的仍是一次性連結，對既有帳號只會變成登入連結，無重複建立風險。
+    }
+
     const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
@@ -81,8 +104,8 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-sm shadow-none">
-        <CardHeader className="space-y-1 text-center pb-4">
+      <Card className="w-full max-w-sm shadow-none py-6">
+        <CardHeader className="space-y-2 text-center pb-6">
           <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
             Kozukase
           </Link>
@@ -95,7 +118,7 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <Button
             type="button"
             variant="outline"
@@ -131,7 +154,7 @@ export default function RegisterPage() {
               <p className="mt-1 text-muted-foreground">請到 <span className="font-medium text-foreground">{email.trim()}</span> 的信箱點擊連結完成驗證。</p>
             </div>
           ) : (
-            <form onSubmit={handleEmailRegister} className="space-y-3" noValidate>
+            <form onSubmit={handleEmailRegister} className="space-y-4" noValidate>
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input

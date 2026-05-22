@@ -464,7 +464,7 @@ export default function BecomeSellerPage() {
                       <div className="flex flex-col gap-2">
                         <button
                           onClick={() => void handleIgVerifyStart()}
-                          className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                          className="h-11 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[14px] font-semibold hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                         >
                           取得驗證碼
                         </button>
@@ -510,7 +510,7 @@ export default function BecomeSellerPage() {
                       <div className="flex flex-col gap-2">
                         <button
                           onClick={() => beginPolling(igVerify.id, igVerify.code, igVerify.expiresAt)}
-                          className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                          className="h-11 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[14px] font-semibold hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                         >
                           我已傳送
                         </button>
@@ -558,7 +558,7 @@ export default function BecomeSellerPage() {
                       </div>
                       <button
                         onClick={() => setIgVerify({ step: 'entering_username' })}
-                        className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                        className="h-11 px-10 rounded-xl bg-white text-brand-500 border border-brand-500 text-[14px] font-semibold hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                       >
                         重新驗證
                       </button>
@@ -581,7 +581,7 @@ export default function BecomeSellerPage() {
                       </div>
                       <button
                         onClick={() => { setIgConnected(true); setIgVerify({ step: 'idle' }) }}
-                        className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                        className="h-11 px-10 rounded-xl bg-white text-brand-500 border border-brand-500 text-[14px] font-semibold hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                       >
                         完成
                       </button>
@@ -627,7 +627,7 @@ export default function BecomeSellerPage() {
                       </div>
                       <button
                         onClick={() => setIgVerify({ step: 'entering_username' })}
-                        className="h-9 w-full rounded-xl bg-brand-500 text-cta-foreground text-[13px] font-medium hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                        className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                       >
                         驗證
                       </button>
@@ -647,7 +647,7 @@ export default function BecomeSellerPage() {
                     </div>
                     <a
                       href="/api/auth/threads/connect"
-                      className="h-9 w-full rounded-xl bg-brand-500 text-cta-foreground text-[13px] font-medium hover:bg-brand-700 active:translate-y-px transition-[background,transform] flex items-center justify-center"
+                      className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform] flex items-center justify-center"
                     >
                       驗證
                     </a>

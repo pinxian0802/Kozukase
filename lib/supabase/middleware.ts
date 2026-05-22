@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 // Routes that require a logged-in session.
 // Seller / admin role checks are handled in the respective layouts.
 const AUTH_REQUIRED_PREFIXES = [
-  '/profile',
+  '/favorites',
   '/settings',
   '/notifications',
   '/messages',
@@ -58,6 +58,12 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
   const requiresAuth = AUTH_REQUIRED_PREFIXES.some((p) => pathname.startsWith(p))
 
+  if (!user) {
+    // 沒有登入者（含登出後）時清掉 onboarding 記號，
+    // 避免同一瀏覽器換帳號時沿用前一個人的「已完成設定」狀態而跳過 onboarding。
+    supabaseResponse.cookies.delete({ name: ONBOARDING_COOKIE, path: '/' })
+  }
+
   if (requiresAuth && !user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
@@ -88,6 +94,7 @@ export async function updateSession(request: NextRequest) {
       supabaseResponse.cookies.set(ONBOARDING_COOKIE, '1', {
         httpOnly: true,
         sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
         path: '/',
         maxAge: 60 * 60 * 24 * 365,
       })

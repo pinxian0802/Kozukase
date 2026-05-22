@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
           .insert(buildProfilePayload(user))
 
         if (profileError && profileError.code !== '23505') {
-          throw profileError
+          const params = new URLSearchParams({ error: 'auth_failed' })
+          if (profileError.message) params.set('error_description', profileError.message)
+          return NextResponse.redirect(`${origin}/login?${params.toString()}`)
         }
 
         getDb()

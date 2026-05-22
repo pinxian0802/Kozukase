@@ -88,7 +88,7 @@ GET /callback?code=...&next=...
 若未登入且訪問以下路徑 → redirect `/login?next=pathname`
 
 ```
-/profile
+/favorites
 /settings
 /notifications
 /dashboard
@@ -101,11 +101,24 @@ GET /callback?code=...&next=...
 若已登入但 `profiles.username` 為空，且不在以下 bypass 路徑 → redirect `/onboarding`
 
 ```
-/onboarding   ← onboarding 本身
-/login        ← 允許重新登入
-/register     ← 允許註冊
-/auth         ← ⚠️ 見問題說明
+/onboarding         ← onboarding 本身
+/login              ← 允許重新登入
+/register           ← 允許註冊
+/callback           ← OAuth / magic link 換 session
+/forgot-password    ← 忘記密碼
+/reset-password     ← 重設密碼
+/api                ← API 路由
 ```
+
+### 規則三：onboarding 狀態的 cookie 快取
+
+為避免每個請求都查一次 `profiles.username`，完成 onboarding 後 middleware 會種一個
+`onboarding_done=1` cookie（httpOnly、正式環境帶 `secure`、效期一年）。之後請求只要看到
+這顆 cookie 就略過 DB 查詢。
+
+**換帳號防護**：因為這顆 cookie 沒有綁定特定使用者，middleware 在偵測到「目前沒有登入者」
+（登出後）時會主動刪除它，避免同一瀏覽器換另一個尚未完成 onboarding 的帳號時，沿用前一個人的
+「已完成」狀態而跳過設定頁。
 
 ---
 
@@ -115,37 +128,26 @@ GET /callback?code=...&next=...
 - 再次查詢 `profiles.username`，已有值 → throw `BAD_REQUEST '個人資料已設定完成'`
 - username 衝突（DB unique 23505）→ throw `CONFLICT '此 username 已被使用'`
 
----
-
-## 已知問題
-
-### 問題一：`/callback` 未加入 bypass 清單（會造成斷流）
-
-**影響場景**：已登入但尚未完成 onboarding 的用戶，點擊 email magic link 或重新 OAuth 時，
-request 會先進 middleware → `user` 存在且無 username → redirect 到 `/onboarding`，
-導致 `/callback` handler 根本不會執行，code 無法被換成 session。
-
-**修法**：將 `/callback` 加入 `ONBOARDING_BYPASS_PREFIXES`。
+`auth.checkEmailRegistered`：
+- 註冊頁送驗證信前呼叫，輸入 Email → 回傳 `{ registered }`
+- 底層呼叫 DB 函式 `email_is_verified(p_email)`（SECURITY DEFINER，僅 service_role 可執行），
+  查 `auth.users` 中 `email_confirmed_at` 不為空的帳號
+- 只擋「已完成驗證」的帳號；還沒點驗證信的人允許重寄，不會被卡死
 
 ---
 
-### 問題二：`/auth` 是無效的 bypass 設定
+## 註冊重複防護
 
-`app/(auth)/callback/route.ts` 中的 `(auth)` 是 Next.js route group，**不影響 URL**，
-實際路徑是 `/callback` 而非 `/auth/callback`。
-目前 `/auth` bypass 項目沒有對應到任何真實路由，等同無用。
+`/register` 的 Email 註冊在送出驗證信前，先呼叫 `auth.checkEmailRegistered`：
 
-**修法**：移除 `/auth`，改為 `/callback`。
+```
+輸入 Email → checkEmailRegistered
+  ├─ 已驗證帳號 → 顯示「此 Email 已註冊，請改用登入」，不寄信
+  └─ 未驗證 / 全新 → 照舊 signInWithOtp 寄出驗證信
+```
 
----
-
-### 問題三：每次請求都查詢 DB（效能）
-
-middleware 的 onboarding 檢查對每一個已登入的請求都執行一次 `profiles.username` 查詢。
-用戶完成 onboarding 後，這個查詢在每次頁面請求都重複發生，屬於不必要的開銷。
-
-**建議修法**：完成 onboarding 後在 cookie 寫入一個 `onboarding_done=1` 的 flag，
-middleware 優先讀 cookie，只有 cookie 不存在時才查 DB，避免每次都打資料庫。
+- 檢查服務異常時採「放行」：寄出的仍是一次性連結，對既有帳號只會變成登入連結，無重複建立風險。
+- Google 註冊不受影響：同一 Email 走 Google 本來就是登入同一帳號，不算重複註冊。
 
 ---
 
@@ -153,8 +155,10 @@ middleware 優先讀 cookie，只有 cookie 不存在時才查 DB，避免每次
 
 | 層級 | 位置 | 防護內容 |
 |------|------|----------|
-| Server（最強） | `middleware.ts` | 已登入無 username → 強制 /onboarding |
-| Server | `callback/route.ts` | OAuth/OTP 後查 username 決定導向 |
+| Server（最強） | `middleware.ts` | 已登入無 username → 強制 /onboarding；無登入者時清掉 onboarding cookie |
+| Server | `callback/route.ts` | OAuth/OTP 後查 username 決定導向；建 profile 失敗導回 /login |
 | Server | `tRPC completeOnboarding` | 防止重複完成 onboarding |
+| Server | `tRPC checkEmailRegistered` | 註冊頁擋掉已驗證的 Email |
 | Client | `login/page.tsx` | 密碼登入後查 username 決定導向 |
+| Client | `register/page.tsx` | 送驗證信前先檢查 Email 是否已註冊 |
 | Client | `onboarding/page.tsx` | 已有 username 者進入頁面直接導回首頁 |

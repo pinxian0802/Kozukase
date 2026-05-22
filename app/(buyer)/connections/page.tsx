@@ -64,6 +64,10 @@ export default function ConnectionsPage() {
 
   const [regionSearch, setRegionSearch] = useState('')
   const [showAllRegions, setShowAllRegions] = useState(false)
+  const [showAllBrands, setShowAllBrands] = useState(false)
+
+  // 品牌超過這個數量就收合，多的藏在「查看更多品牌」後面
+  const BRAND_VISIBLE_LIMIT = 6
 
   // 任一離散篩選改變 → 回第 1 頁（取代原 reset-page effect）
   const setFilter = (
@@ -222,14 +226,13 @@ export default function ConnectionsPage() {
                     {showAllRegions && (
                       <div className="space-y-3">{otherRegions.map(renderRegionRow)}</div>
                     )}
-                    <Button
+                    <button
                       type="button"
-                      variant={showAllRegions ? "outline-soft" : "cta-outline"}
-                      className="h-12 w-full rounded-[16px]"
+                      className="mx-auto block text-sm font-medium text-brand-700 transition-colors hover:text-brand-500"
                       onClick={() => setShowAllRegions(!showAllRegions)}
                     >
                       {showAllRegions ? '收起國家' : '查看更多國家'}
-                    </Button>
+                    </button>
                   </>
                 )}
               </>
@@ -240,7 +243,7 @@ export default function ConnectionsPage() {
         {brands.length > 0 && (
           <FilterSectionCard title="品牌">
             <div className="space-y-3">
-              {brands.map((brand: any) => (
+              {(showAllBrands ? brands : brands.slice(0, BRAND_VISIBLE_LIMIT)).map((brand: any) => (
                 <FilterCheckbox
                   key={brand.id}
                   label={brand.name}
@@ -248,6 +251,15 @@ export default function ConnectionsPage() {
                   onClick={() => setFilter({ brand: brandId === brand.id ? null : brand.id })}
                 />
               ))}
+              {brands.length > BRAND_VISIBLE_LIMIT && (
+                <button
+                  type="button"
+                  className="mx-auto block text-sm font-medium text-brand-700 transition-colors hover:text-brand-500"
+                  onClick={() => setShowAllBrands(!showAllBrands)}
+                >
+                  {showAllBrands ? '收起品牌' : '查看更多品牌'}
+                </button>
+              )}
             </div>
           </FilterSectionCard>
         )}

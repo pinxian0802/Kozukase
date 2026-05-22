@@ -15,6 +15,7 @@ import { ReportDialog } from '@/components/shared/report-dialog'
 import { SharePopover } from '@/components/shared/share-popover'
 import { useSession } from '@/lib/context/session-context'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 const DateTimeline = ({ start, end, startRaw, endRaw }: { start: string; end: string; startRaw: string; endRaw: string }) => {
   const days = Math.round((new Date(endRaw).getTime() - new Date(startRaw).getTime()) / 86400000)
@@ -56,7 +57,19 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
   )
 
   const toggleBookmark = trpc.bookmark.toggleConnectionBookmark.useMutation({
-    onSuccess: () => utils.bookmark.isConnectionBookmarked.invalidate({ connection_id: id }),
+    onMutate: async () => {
+      await utils.bookmark.isConnectionBookmarked.cancel({ connection_id: id })
+      const prev = utils.bookmark.isConnectionBookmarked.getData({ connection_id: id })
+      if (prev) {
+        utils.bookmark.isConnectionBookmarked.setData({ connection_id: id }, { ...prev, bookmarked: !prev.bookmarked })
+      }
+      return { prev }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.prev) utils.bookmark.isConnectionBookmarked.setData({ connection_id: id }, context.prev)
+      toast.error(err.message)
+    },
+    onSettled: () => utils.bookmark.isConnectionBookmarked.invalidate({ connection_id: id }),
   })
 
   const isBookmarked = bookmarkData?.bookmarked ?? false

@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { FormFieldError } from '@/components/shared/form-field-error'
@@ -335,8 +336,43 @@ export default function SellerProfilePage() {
             </CardHeader>
             <CardContent>
               {(isSellerLoading || isRegionsLoading) ? (
-                <div className="flex items-center justify-center py-10">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <div className="space-y-5">
+                  {/* 頭貼 */}
+                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                    <Skeleton className="mt-2 h-4 w-10" />
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="h-24 w-24 rounded-full" />
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-3.5 w-16" />
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 賣家名稱 */}
+                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                    <Skeleton className="mt-2 h-4 w-20" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  </div>
+
+                  {/* 代購地區 */}
+                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                    <Skeleton className="mt-2 h-4 w-20" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  </div>
+
+                  {/* 簡介 */}
+                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                    <Skeleton className="mt-2 h-4 w-10" />
+                    <Skeleton className="h-44 w-full rounded-md" />
+                  </div>
+
+                  {/* 儲存按鈕 */}
+                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                    <div />
+                    <Skeleton className="h-9 w-28 justify-self-end rounded-md" />
+                  </div>
                 </div>
               ) : (
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
@@ -454,7 +490,7 @@ export default function SellerProfilePage() {
                         <div className="flex flex-col gap-2">
                           <button
                             onClick={() => void handleIgVerifyStart()}
-                            className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                            className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
                           >
                             取得驗證碼
                           </button>
@@ -500,7 +536,7 @@ export default function SellerProfilePage() {
                         <div className="flex flex-col gap-2">
                           <button
                             onClick={() => beginPolling(igVerify.id, igVerify.code, igVerify.expiresAt)}
-                            className="h-11 w-full rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                            className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
                           >
                             我已傳送
                           </button>
@@ -548,7 +584,7 @@ export default function SellerProfilePage() {
                         </div>
                         <button
                           onClick={() => setIgVerify({ step: 'entering_username' })}
-                          className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                          className="h-11 px-10 rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
                         >
                           重新驗證
                         </button>
@@ -571,7 +607,7 @@ export default function SellerProfilePage() {
                         </div>
                         <button
                           onClick={() => setIgVerify({ step: 'idle' })}
-                          className="h-11 px-10 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                          className="h-11 px-10 rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
                         >
                           完成
                         </button>

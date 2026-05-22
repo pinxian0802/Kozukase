@@ -73,10 +73,10 @@ export default function SellerDashboardPage() {
           <p className="text-sm text-muted-foreground mt-0.5">{today}</p>
         </div>
         <div className="flex gap-2 mt-3 sm:mt-0">
-          <Button size="sm" render={<Link href="/dashboard/listings/new" />}>
+          <Button variant="cta-outline" size="default" render={<Link href="/dashboard/listings/new" />}>
             <Plus className="mr-1 h-4 w-4" />新增代購
           </Button>
-          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/connections/new" />}>
+          <Button variant="cta-outline" size="default" render={<Link href="/dashboard/connections/new" />}>
             <Globe className="mr-1 h-4 w-4" />新增連線
           </Button>
         </div>
@@ -100,20 +100,26 @@ export default function SellerDashboardPage() {
           <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden flex">
             {active > 0 && (
               <div
-                className="h-full bg-foreground transition-all"
+                className="h-full bg-green-500 transition-all"
                 style={{ width: `${(active / MAX_LISTINGS) * 100}%` }}
               />
             )}
             {pending > 0 && (
               <div
-                className="h-full bg-foreground/45 transition-all"
+                className="h-full bg-amber-400 transition-all"
                 style={{ width: `${(pending / MAX_LISTINGS) * 100}%` }}
               />
             )}
             {draft > 0 && (
               <div
-                className="h-full bg-foreground/20 transition-all"
+                className="h-full bg-blue-400 transition-all"
                 style={{ width: `${(draft / MAX_LISTINGS) * 100}%` }}
+              />
+            )}
+            {inactive > 0 && (
+              <div
+                className="h-full bg-red-400 transition-all"
+                style={{ width: `${(inactive / MAX_LISTINGS) * 100}%` }}
               />
             )}
           </div>
@@ -121,20 +127,20 @@ export default function SellerDashboardPage() {
           {/* Legend */}
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2 w-2 rounded-sm bg-foreground" />
+              <span className="inline-block h-2 w-2 rounded-sm bg-green-500" />
               上架中 <strong className="text-foreground">{active}</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2 w-2 rounded-sm bg-foreground/45" />
+              <span className="inline-block h-2 w-2 rounded-sm bg-amber-400" />
               待審核 <strong className="text-foreground">{pending}</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2 w-2 rounded-sm bg-foreground/20" />
+              <span className="inline-block h-2 w-2 rounded-sm bg-blue-400" />
               草稿 <strong className="text-foreground">{draft}</strong>
             </span>
             {inactive > 0 && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-sm bg-muted-foreground/30" />
+                <span className="inline-block h-2 w-2 rounded-sm bg-red-400" />
                 已下架 <strong className="text-foreground">{inactive}</strong>
               </span>
             )}
@@ -197,8 +203,8 @@ export default function SellerDashboardPage() {
                 <Package className="h-8 w-8 text-muted-foreground/30" />
                 <p className="text-sm text-muted-foreground">還沒有代購</p>
                 <Button
-                  size="sm"
-                  variant="outline"
+                  variant="cta-outline"
+                  size="default"
                   className="mt-1"
                   render={<Link href="/dashboard/listings/new" />}
                 >
@@ -254,8 +260,8 @@ export default function SellerDashboardPage() {
                 <Globe className="h-8 w-8 text-muted-foreground/30" />
                 <p className="text-sm text-muted-foreground">沒有進行中的連線</p>
                 <Button
-                  size="sm"
                   variant="cta-outline"
+                  size="default"
                   className="mt-1"
                   render={<Link href="/dashboard/connections/new" />}
                 >

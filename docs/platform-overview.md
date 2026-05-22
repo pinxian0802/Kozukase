@@ -381,7 +381,7 @@ active ◄──── pending_approval
 ### 已登入買家
 | 路由 | 說明 |
 |------|------|
-| `/profile` | 個人頁（許願、收藏、追蹤） |
+| `/favorites` | 我的收藏（商品、代購、連線） |
 | `/account` | 帳號設定 |
 | `/notifications` | 通知中心 |
 | `/become-seller` | 申請成為賣家 |

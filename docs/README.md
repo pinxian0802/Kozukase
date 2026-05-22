@@ -18,6 +18,7 @@
 | [auth-flow.md](./auth-flow.md) | 登入 / 註冊流程（Google OAuth、Email Magic Link、Email/Password） |
 | [buyer-flow.md](./buyer-flow.md) | 買家頁面、操作、互動規則 |
 | [seller-flow.md](./seller-flow.md) | 賣家上架、連線公告、後台操作 |
+| [field-length-limits.md](./field-length-limits.md) | 全站使用者輸入欄位的長度限制總表 |
 
 ## 二、安全性
 

@@ -128,8 +128,8 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-sm shadow-none">
-        <CardHeader className="space-y-1 text-center pb-4">
+      <Card className="w-full max-w-sm shadow-none py-6">
+        <CardHeader className="space-y-2 text-center pb-6">
           <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
             Kozukase
           </Link>
@@ -142,7 +142,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <Button
             type="button"
             variant="outline"
@@ -184,7 +184,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <form onSubmit={handlePasswordLogin} className="space-y-3" noValidate>
+          <form onSubmit={handlePasswordLogin} className="space-y-4" noValidate>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -239,10 +239,8 @@ export default function LoginPage() {
             <button type="submit" className={buttonVariants({ className: 'w-full' })} disabled={loadingAction !== null}>
               {loadingAction === 'password' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <KeyRound className="mr-2 h-4 w-4" />
-              )}
-              使用密碼登入
+              ) : ""}
+              登入
             </button>
           </form>
 

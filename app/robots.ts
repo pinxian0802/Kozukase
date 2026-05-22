@@ -11,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         '/account',
         '/messages',
         '/notifications',
-        '/profile',
+        '/favorites',
         '/become-seller',
         '/onboarding',
         '/reset-password',

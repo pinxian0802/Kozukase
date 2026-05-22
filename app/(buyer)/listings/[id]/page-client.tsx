@@ -13,6 +13,7 @@ import { ImageGallery } from '@/components/shared/image-gallery'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
+import { toast } from 'sonner'
 import { formatPrice, formatDate, formatLastSeen } from '@/lib/utils/format'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
 import { useSession } from '@/lib/context/session-context'
@@ -26,7 +27,19 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
   const { data: listing, isLoading } = trpc.listing.getById.useQuery({ id })
 
   const bookmarkToggle = trpc.bookmark.toggleListingBookmark.useMutation({
-    onSuccess: () => utils.listing.getById.invalidate({ id }),
+    onMutate: async () => {
+      await utils.listing.getById.cancel({ id })
+      const prev = utils.listing.getById.getData({ id })
+      if (prev) {
+        utils.listing.getById.setData({ id }, { ...prev, hasBookmarked: !prev.hasBookmarked })
+      }
+      return { prev }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.prev) utils.listing.getById.setData({ id }, context.prev)
+      toast.error(err.message)
+    },
+    onSettled: () => utils.listing.getById.invalidate({ id }),
   })
 
   const recordView = trpc.analytics.recordListingView.useMutation()

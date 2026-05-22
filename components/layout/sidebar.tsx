@@ -66,7 +66,7 @@ export function Sidebar({ mode, sellerProfile }: SidebarProps) {
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? 'bg-muted text-foreground font-medium'
+                  ? 'bg-brand-100 text-brand-700 font-medium'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >

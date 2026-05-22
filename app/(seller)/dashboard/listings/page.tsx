@@ -3,13 +3,15 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Package, ExternalLink, MoreHorizontal } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DashboardListShell } from '@/components/dashboard/list-shell'
 import { DashboardStatusDot } from '@/components/dashboard/status-dot'
 import { DashboardThumbnailCell, type DashboardThumbnailImage } from '@/components/dashboard/thumbnail-cell'
+import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { trpc } from '@/lib/trpc/client'
 import { formatPrice, formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -43,6 +45,7 @@ type ListingItem = {
   price: number | null
   is_price_on_request: boolean
   expires_at: string | null
+  post_url?: string | null
 }
 
 function buildDisplayImages(listing: ListingItem): DashboardThumbnailImage[] {
@@ -127,7 +130,8 @@ export default function SellerListingsPage() {
               <TableHead>售價</TableHead>
               <TableHead>截止日</TableHead>
               <TableHead>狀態</TableHead>
-              <TableHead className="w-[200px] text-right">操作</TableHead>
+              <TableHead className="w-[120px] text-center">貼文/群組</TableHead>
+              <TableHead className="w-[120px] text-left">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -147,8 +151,10 @@ export default function SellerListingsPage() {
                       fallbackIcon={Package}
                     />
                   </TableCell>
-                  <TableCell className="max-w-[28ch] truncate font-medium">
-                    {listing.title || <span className="font-normal text-muted-foreground">--</span>}
+                  <TableCell className="max-w-[28ch] font-medium">
+                    <span className="line-clamp-2">
+                      {listing.title || <span className="font-normal text-muted-foreground">--</span>}
+                    </span>
                   </TableCell>
                   <TableCell className="max-w-[24ch] truncate">
                     {listing.product?.name ? (
@@ -174,6 +180,22 @@ export default function SellerListingsPage() {
                       label={statusLabels[listing.status] ?? listing.status}
                       dotClassName={statusDotColors[listing.status]}
                     />
+                  </TableCell>
+                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    {listing.post_url ? (
+                      <SafeExternalLink
+                        href={listing.post_url}
+                        variant="outline"
+                        size="sm"
+                        aria-label="前往貼文或群組"
+                        title="前往貼文／群組"
+                      >
+                        連結
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </SafeExternalLink>
+                    ) : (
+                      <span className="text-muted-foreground">--</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <ListingActions
@@ -232,6 +254,21 @@ export default function SellerListingsPage() {
                 <span className="text-right font-semibold">{formatPrice(listing.price, listing.is_price_on_request)}</span>
                 <span className="text-xs text-muted-foreground">截止日</span>
                 <span className="text-right">{listing.expires_at ? formatDate(listing.expires_at) : '--'}</span>
+                {listing.post_url && (
+                  <>
+                    <span className="text-xs text-muted-foreground">貼文／群組</span>
+                    <span className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <SafeExternalLink
+                        href={listing.post_url}
+                        variant="outline"
+                        size="sm"
+                      >
+                        連結
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </SafeExternalLink>
+                    </span>
+                  </>
+                )}
               </div>
               <div className="flex flex-wrap justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                 <ListingActions
@@ -269,25 +306,40 @@ function ListingActions({
   onDelete,
 }: ListingActionsProps) {
   return (
-    <div className="inline-flex flex-wrap gap-2 justify-end">
+    <div className="inline-flex items-center justify-end gap-2">
       <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listingId}/edit`} />}>編輯</Button>
-      {listingStatus === 'draft' && (
-        <>
-          <Button size="sm" onClick={onPublish} disabled={pending}>上架</Button>
-          <Button size="sm" variant="destructive" onClick={onDelete} disabled={pending}>刪除</Button>
-        </>
-      )}
-      {listingStatus === 'active' && (
-        <Button size="sm" variant="destructive" onClick={onDeactivate} disabled={pending}>下架</Button>
-      )}
-      {listingStatus === 'inactive' && (
-        <>
-          <Button size="sm" onClick={onReactivate} disabled={pending}>重新上架</Button>
-          <Button size="sm" variant="destructive" onClick={onDelete} disabled={pending}>刪除</Button>
-        </>
-      )}
-      {listingStatus === 'pending_approval' && (
+      {listingStatus === 'pending_approval' ? (
         <Badge variant="outline" className="h-8 px-3">等待審核結果</Badge>
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            nativeButton={false}
+            disabled={pending}
+            aria-label="更多操作"
+            render={
+              <span className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}>
+                <MoreHorizontal className="h-4 w-4" />
+              </span>
+            }
+          />
+          <DropdownMenuContent align="end">
+            {listingStatus === 'draft' && (
+              <>
+                <DropdownMenuItem onClick={onPublish}>上架</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={onDelete}>刪除</DropdownMenuItem>
+              </>
+            )}
+            {listingStatus === 'active' && (
+              <DropdownMenuItem variant="destructive" onClick={onDeactivate}>下架</DropdownMenuItem>
+            )}
+            {listingStatus === 'inactive' && (
+              <>
+                <DropdownMenuItem onClick={onReactivate}>重新上架</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={onDelete}>刪除</DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </div>
   )

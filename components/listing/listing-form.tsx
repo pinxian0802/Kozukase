@@ -424,7 +424,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
           }}
           onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
           placeholder="輸入標題"
-          maxLength={30}
+          maxLength={100}
           className="mt-1"
           aria-invalid={!!errors.title}
         />

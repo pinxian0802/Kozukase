@@ -6,7 +6,6 @@ import { SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/product/product-card'
 import { ListingComparison } from '@/components/product/listing-comparison'
@@ -65,6 +64,10 @@ function SearchContent() {
   const brandArg = brandId ?? undefined
 
   const [categoryExpanded, setCategoryExpanded] = useState(false)
+  const [brandExpanded, setBrandExpanded] = useState(false)
+
+  // 品牌超過這個數量就收合，多的藏在「查看更多品牌」後面
+  const BRAND_VISIBLE_LIMIT = 6
 
   const { data: brandsData } = trpc.brand.forSearch.useQuery({
     query: q || undefined,
@@ -179,25 +182,13 @@ function SearchContent() {
             ))}
         </div>
         {secondHalf.length > 0 && (
-          categoryExpanded ? (
-            <Button
-              type="button"
-              variant="outline-soft"
-              className="h-12 w-full rounded-[16px]"
-              onClick={() => setCategoryExpanded(false)}
-            >
-              收起分類
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="cta-outline"
-              className="h-12 w-full rounded-[16px]"
-              onClick={() => setCategoryExpanded(true)}
-            >
-              查看更多分類
-            </Button>
-          )
+          <button
+            type="button"
+            className="mx-auto block text-sm font-medium text-brand-700 transition-colors hover:text-brand-500"
+            onClick={() => setCategoryExpanded(!categoryExpanded)}
+          >
+            {categoryExpanded ? '收起分類' : '查看更多分類'}
+          </button>
         )}
       </FilterSection>
 
@@ -205,7 +196,7 @@ function SearchContent() {
       {brands.length > 0 && (
         <FilterSection title="品牌">
           <div className="space-y-1">
-            {brands.map((brand) => (
+            {(brandExpanded ? brands : brands.slice(0, BRAND_VISIBLE_LIMIT)).map((brand) => (
               <FilterCheckbox
                 key={brand.id}
                 label={brand.name}
@@ -214,6 +205,15 @@ function SearchContent() {
                 onClick={() => updateParam('brand', brandId === brand.id ? null : brand.id)}
               />
             ))}
+            {brands.length > BRAND_VISIBLE_LIMIT && (
+              <button
+                type="button"
+                className="mx-auto block text-sm font-medium text-brand-700 transition-colors hover:text-brand-500"
+                onClick={() => setBrandExpanded(!brandExpanded)}
+              >
+                {brandExpanded ? '收起品牌' : '查看更多品牌'}
+              </button>
+            )}
           </div>
         </FilterSection>
       )}

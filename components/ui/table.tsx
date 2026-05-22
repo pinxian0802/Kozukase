@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 function Table({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) {
   return (
     <div className="relative w-full">
-      <table className={cn('w-full caption-bottom text-base', className)} {...props} />
+      <table className={cn('w-full caption-bottom text-sm', className)} {...props} />
     </div>
   )
 }
@@ -52,7 +52,7 @@ function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
   return (
     <th
       className={cn(
-        'h-14 px-4 text-left align-middle text-sm font-medium uppercase tracking-wider text-muted-foreground [&:has([role=checkbox])]:pr-0',
+        'h-12 px-4 text-left align-middle text-xs font-medium uppercase tracking-wider text-muted-foreground [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}
@@ -63,7 +63,7 @@ function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
 function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
     <td
-      className={cn('px-4 py-5 align-middle [&:has([role=checkbox])]:pr-0', className)}
+      className={cn('px-4 py-3 align-middle [&:has([role=checkbox])]:pr-0', className)}
       {...props}
     />
   )

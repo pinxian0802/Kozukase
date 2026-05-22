@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Search, Menu, User, Bell, LogOut, Store, Heart, Settings } from 'lucide-react'
+import { Search, Menu, Bell, LogOut, Store, Heart, Settings } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -112,16 +112,13 @@ export function Header() {
                 >
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem render={<Link href="/profile" />}>
-                    <User className="mr-2 h-4 w-4" />個人頁面
-                  </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/notifications" />}>
                     <Bell className="mr-2 h-4 w-4" />通知
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/account" />}>
                     <Settings className="mr-2 h-4 w-4" />帳號設定
                   </DropdownMenuItem>
-                  <DropdownMenuItem render={<Link href="/profile?tab=bookmarks" />}>
+                  <DropdownMenuItem render={<Link href="/favorites" />}>
                     <Heart className="mr-2 h-4 w-4" />我的收藏
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
