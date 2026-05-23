@@ -18,6 +18,19 @@ test.describe('買家瀏覽與搜尋', () => {
     }
   })
 
+  test('首頁顯示主視覺、分類、熱門商品(含 seed 商品)與成為賣家 CTA', async ({ page }) => {
+    await page.goto('/')
+    await expect(
+      page.getByRole('heading', { name: '找到最適合你的日本代購' })
+    ).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: '商品分類' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '熱門商品' })).toBeVisible()
+    await expect(page.getByText(seed.productName).first()).toBeVisible({ timeout: 20000 })
+    await expect(
+      page.getByRole('heading', { name: '成為 Kozukase 賣家' })
+    ).toBeVisible()
+  })
+
   test('可搜尋到 seed 商品', async ({ page }) => {
     await page.goto(`/search?tab=products&q=${encodeURIComponent(seed.productName)}`)
     await page.waitForLoadState('domcontentloaded')
@@ -109,6 +122,26 @@ test.describe('評價', () => {
           .from('reviews')
           .select('id', { count: 'exact', head: true })
           .eq('seller_id', seed.sellerId)
+        return count ?? 0
+      }, { timeout: 15000 })
+      .toBeGreaterThan(0)
+  })
+})
+
+test.describe('瀏覽記錄', () => {
+  test.afterEach(async () => {
+    await dbAdmin().from('product_views').delete().eq('product_id', seed.productId)
+  })
+
+  test('開啟商品頁會新增一筆 product_views', async ({ page }) => {
+    await page.goto(`/products/${seed.productId}`)
+    await expect(page.getByText(seed.productName).first()).toBeVisible({ timeout: 20000 })
+    await expect
+      .poll(async () => {
+        const { count } = await dbAdmin()
+          .from('product_views')
+          .select('id', { count: 'exact', head: true })
+          .eq('product_id', seed.productId)
         return count ?? 0
       }, { timeout: 15000 })
       .toBeGreaterThan(0)

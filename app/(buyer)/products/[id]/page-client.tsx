@@ -11,30 +11,43 @@ import { ListingComparison } from '@/components/product/listing-comparison'
 import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ImageGallery } from '@/components/shared/image-gallery'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
+import { useSession } from '@/lib/context/session-context'
 
 export default function ProductPageClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const searchParams = useSearchParams()
+  const session = useSession()
   const backHref = searchParams.get('from') ?? '/search'
   const utils = trpc.useUtils()
   const { data: product, isLoading } = trpc.product.getById.useQuery({ id })
+  const recordView = trpc.analytics.recordProductView.useMutation()
+  useEffect(() => {
+    if (!product) return
+    if (session?.user?.id === product.created_by) return
+    const key = `pv_${id}`
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+    recordView.mutate({ product_id: id })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product])
   const brandLabel = product && (typeof product.brand === 'string' ? product.brand : product.brand?.name ?? null)
 
-  const [pageSize, setPageSize] = useState(9)
+  // 固定每頁顯示 5 個橫列卡片（已移除使用者可選的每頁筆數下拉）。
+  // ListingComparison 卡片格狀桌機為 3 欄 → 5 列 = 15 筆。
+  const PAGE_SIZE = 5 * 3
   const PRICE_STEP = 100
   const [minPrice, setMinPrice] = useState(0)
   const [maxPrice, setMaxPrice] = useState<number | null>(null)
   const [inStockOnly, setInStockOnly] = useState(false)
   const [listPage, setListPage] = useState(1)
 
-  useEffect(() => { setListPage(1) }, [inStockOnly, minPrice, maxPrice, pageSize])
+  useEffect(() => { setListPage(1) }, [inStockOnly, minPrice, maxPrice])
 
   const wishToggle = trpc.wish.toggle.useMutation({
     onMutate: async () => {
@@ -82,8 +95,8 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
     return true
   })
 
-  const totalListPages = Math.ceil(filteredListings.length / pageSize)
-  const paginatedListings = filteredListings.slice((listPage - 1) * pageSize, listPage * pageSize)
+  const totalListPages = Math.ceil(filteredListings.length / PAGE_SIZE)
+  const paginatedListings = filteredListings.slice((listPage - 1) * PAGE_SIZE, listPage * PAGE_SIZE)
 
   const priceRangeLabel = isPriceFiltered
     ? `NT$${minPrice.toLocaleString()} ~ NT$${effectiveMax.toLocaleString()}`
@@ -265,16 +278,6 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">
-                  <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
-                    <SelectTrigger className="h-9 w-24 text-sm">
-                      <SelectValue>{pageSize} 筆</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="6">6 筆</SelectItem>
-                      <SelectItem value="9">9 筆</SelectItem>
-                      <SelectItem value="12">12 筆</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <Sheet>
                   <SheetTrigger
                     render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}

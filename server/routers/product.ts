@@ -17,6 +17,17 @@ type ProductSearchRow = {
   similarity_score: number
 }
 
+type PopularProductRow = {
+  id: string
+  name: string
+  brand: string | null
+  category: string | null
+  model_number: string | null
+  catalog_image_url: string | null
+  wish_count: number | null
+  view_count: number
+}
+
 export const productRouter = router({
   // Instant search for listing/wish flow - returns up to 20 product names
   search: publicProcedure
@@ -118,6 +129,16 @@ export const productRouter = router({
         page: input.page,
         totalPages: Math.ceil(total / input.limit),
       }
+    }),
+
+  popular: publicProcedure
+    .input(z.object({ limit: z.number().min(1).max(24).default(12) }).optional())
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db.rpc('popular_products', {
+        result_limit: input?.limit ?? 12,
+      })
+      if (error) throw error
+      return (data ?? []) as PopularProductRow[]
     }),
 
   getById: publicProcedure

@@ -22,9 +22,18 @@ type ProductCardProps = {
   onClick?: () => void
   className?: string
   variant?: 'default' | 'compact'
+  imageAspect?: '4/5' | '3/4' | '2/3' | '1/1' | '5/4'
 }
 
-export function ProductCard({ product, href, linkToProduct = true, onClick, className, variant = 'default' }: ProductCardProps) {
+const IMAGE_ASPECT_CLASS: Record<'4/5' | '3/4' | '2/3' | '1/1' | '5/4', string> = {
+  '4/5': 'aspect-[4/5]',
+  '3/4': 'aspect-[3/4]',
+  '2/3': 'aspect-[2/3]',
+  '1/1': 'aspect-square',
+  '5/4': 'aspect-[5/4]',
+}
+
+export function ProductCard({ product, href, linkToProduct = true, onClick, className, variant = 'default', imageAspect = '1/1' }: ProductCardProps) {
   const imageUrl = getCardImageUrl(product)
   const isLocalPreviewUrl = imageUrl?.startsWith('blob:') || imageUrl?.startsWith('data:')
   const brandLabel = typeof product.brand === 'string' ? product.brand : product.brand?.name ?? null
@@ -39,7 +48,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
     >
       {/* Default variant: full-width square image */}
       {variant !== 'compact' && (
-        <div className="relative aspect-[4/5] bg-muted">
+        <div className={cn('relative bg-muted', IMAGE_ASPECT_CLASS[imageAspect])}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -78,19 +87,24 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       )}
 
       {/* Text content */}
-      <div className={variant === 'compact' ? 'min-w-0 flex-1' : 'absolute bottom-0 left-0 right-0 bg-white px-4 pb-3 pt-4'}>
-        {variant === 'compact' ? (
-          <div>
-            {brandLabel && (
-              <p className="truncate text-xs text-muted-foreground mb-1.5">{brandLabel}</p>
-            )}
-            <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
-            {product.model_number && (
-              <p className="text-xs text-muted-foreground mt-0.5 break-all">{product.model_number}</p>
-            )}
+      {variant === 'compact' ? (
+        <div className="min-w-0 flex-1">
+          {brandLabel && (
+            <p className="truncate text-xs text-muted-foreground mb-1.5">{brandLabel}</p>
+          )}
+          <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+          {product.model_number && (
+            <p className="text-xs text-muted-foreground mt-0.5 break-all">{product.model_number}</p>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* 佔位:在 flex flow 撐出 name 區高度,卡片總高 = 圖片 + 此佔位 */}
+          <div aria-hidden className="invisible bg-white px-4 pb-3 pt-4">
+            <p className="line-clamp-2 min-h-[2.75rem] font-bold leading-snug text-base">.</p>
           </div>
-        ) : (
-          <div>
+          {/* 實際文字:absolute 蓋在佔位區上方;hover 時 brand/model 展開,往上長覆蓋圖片底部,卡片總高不變 */}
+          <div className="absolute bottom-0 left-0 right-0 min-h-[4.5rem] bg-white px-4 pb-3 pt-4">
             {/* Brand — expands from 0 height on hover */}
             {brandLabel && (
               <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
@@ -109,8 +123,8 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
               </div>
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   )
 

@@ -1,0 +1,80 @@
+'use client'
+
+import { useRef, useState, useEffect } from 'react'
+import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+
+export function SectionCarousel({
+  title,
+  viewAllHref,
+  children,
+}: {
+  title: string
+  viewAllHref: string
+  children: React.ReactNode
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const update = () => {
+      setCanScrollLeft(el.scrollLeft > 0)
+      setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      el.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  const scroll = (dir: 1 | -1) => {
+    scrollRef.current?.scrollBy({ left: dir * 360, behavior: 'smooth' })
+  }
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-8">
+      <div className="mb-4 flex items-baseline justify-between">
+        <h2 className="font-heading text-xl font-bold text-foreground md:text-2xl">{title}</h2>
+        <Link href={viewAllHref} className="shrink-0 text-sm font-medium text-brand-700 hover:underline">
+          看全部 →
+        </Link>
+      </div>
+
+      <div className="relative">
+        <div
+          ref={scrollRef}
+          className="flex flex-wrap gap-4 xl:flex-nowrap xl:overflow-x-auto xl:scroll-smooth xl:pb-2 xl:snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {children}
+        </div>
+
+        {canScrollLeft && (
+          <button
+            type="button"
+            aria-label="往左捲動"
+            onClick={() => scroll(-1)}
+            className="absolute -left-14 top-1/2 hidden -translate-y-1/2 items-center justify-center rounded-full border border-border-soft bg-white p-2 shadow-md hover:bg-muted xl:flex"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
+        {canScrollRight && (
+          <button
+            type="button"
+            aria-label="往右捲動"
+            onClick={() => scroll(1)}
+            className="absolute -right-14 top-1/2 hidden -translate-y-1/2 items-center justify-center rounded-full border border-border-soft bg-white p-2 shadow-md hover:bg-muted xl:flex"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+    </section>
+  )
+}

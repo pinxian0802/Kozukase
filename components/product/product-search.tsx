@@ -95,7 +95,7 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
           {/* Add new product option */}
           {query.trim() && !showLoading && (
             <Button
-              variant="outline"
+              variant="cta-outline"
               className="w-full gap-2"
               onClick={() => onCreateNew(query.trim())}
             >

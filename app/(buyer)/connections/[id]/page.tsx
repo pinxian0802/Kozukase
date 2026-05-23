@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useEffect } from 'react'
 import Link from 'next/link'
 import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -50,6 +50,17 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
   const utils = trpc.useUtils()
 
   const { data: connection, isLoading } = trpc.connection.getById.useQuery({ id })
+
+  const recordView = trpc.analytics.recordConnectionView.useMutation()
+  useEffect(() => {
+    if (!connection) return
+    if (session?.user?.id === connection.seller_id) return
+    const key = `cv_${id}`
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+    recordView.mutate({ connection_id: id })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connection])
 
   const { data: bookmarkData } = trpc.bookmark.isConnectionBookmarked.useQuery(
     { connection_id: id },

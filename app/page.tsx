@@ -1,9 +1,17 @@
 import Link from 'next/link'
-import { ShoppingBag, Sparkles, Candy, Smartphone, Home, Gamepad2, MoreHorizontal, HeartPulse, Dumbbell, BookOpen, PawPrint, Landmark, Car, Baby, Gem, Star } from 'lucide-react'
+import { format } from 'date-fns'
+import {
+  ShoppingBag, Sparkles, Candy, Smartphone, Home, Gamepad2, MoreHorizontal,
+  HeartPulse, Dumbbell, BookOpen, PawPrint, Landmark, Car, Baby, Gem, Star,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
-import { HomeSearchBar } from './home-search-bar'
+import { ProductCard } from '@/components/product/product-card'
+import { ConnectionCard } from '@/components/connection/connection-card'
+import { createServerCaller } from '@/lib/trpc/server'
+import { HomeHero } from './_home/home-hero'
+import { SectionCarousel } from './_home/section-carousel'
 
 const categories = [
   { key: 'fashion', label: '時尚穿搭', icon: ShoppingBag },
@@ -24,29 +32,25 @@ const categories = [
   { key: 'other', label: '其他', icon: MoreHorizontal },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const trpc = await createServerCaller()
+  const today = format(new Date(), 'yyyy-MM-dd')
+
+  const [popularProducts, connectionsResult] = await Promise.all([
+    trpc.product.popular({ limit: 12 }),
+    trpc.connection.browse({ active_during: { start: today }, page: 1, limit: 10 }),
+  ])
+  const upcomingConnections = connectionsResult.items
+
   return (
     <>
       <Header />
       <main className="flex-1">
-        {/* Hero */}
-        <section className="border-b py-20 md:py-28">
-          <div className="mx-auto max-w-2xl px-4 text-center">
-            <h1 className="font-heading text-4xl font-bold text-foreground md:text-5xl leading-tight">
-              找到最適合你的日本代購
-            </h1>
-            <p className="mt-4 text-base text-muted-foreground">
-              比較多家代購的價格、評價、運送速度，一次搞定
-            </p>
-            <div className="mt-8 mx-auto max-w-xl">
-              <HomeSearchBar />
-            </div>
-          </div>
-        </section>
+        <HomeHero />
 
         {/* Categories */}
-        <section className="mx-auto max-w-6xl px-4 py-14">
-          <h2 className="font-heading text-lg font-semibold mb-5 text-foreground">商品分類</h2>
+        <section className="mx-auto max-w-6xl px-4 py-10">
+          <h2 className="font-heading text-xl font-bold mb-5 text-foreground md:text-2xl">商品分類</h2>
           <div className="grid grid-cols-5 gap-1 md:grid-cols-8">
             {categories.map((cat) => {
               const Icon = cat.icon
@@ -65,6 +69,30 @@ export default function HomePage() {
             })}
           </div>
         </section>
+
+        {/* 熱門商品 */}
+        {popularProducts.length > 0 && (
+          <div className="bg-surface-muted/40">
+            <SectionCarousel title="熱門商品" viewAllHref="/search">
+              {popularProducts.map((p) => (
+                <div key={p.id} className="w-40 shrink-0 snap-start md:w-[calc((100%-64px)/5)]">
+                  <ProductCard product={p} imageAspect="1/1" />
+                </div>
+              ))}
+            </SectionCarousel>
+          </div>
+        )}
+
+        {/* 即將出發的連線代購 */}
+        {upcomingConnections.length > 0 && (
+          <SectionCarousel title="即將出發的連線代購" viewAllHref="/connections">
+            {upcomingConnections.map((c) => (
+              <div key={c.id} className="w-72 shrink-0 snap-start md:w-[calc((100%-48px)/4)]">
+                <ConnectionCard connection={c} />
+              </div>
+            ))}
+          </SectionCarousel>
+        )}
 
         {/* CTA */}
         <section className="border-t bg-foreground">

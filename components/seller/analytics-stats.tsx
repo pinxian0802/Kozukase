@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TrendingUp, TrendingDown, Minus, Eye, Users, Camera, AtSign, MessageCircle, Bookmark, UserPlus, Heart } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Eye, Users, Camera, AtSign, MessageCircle, Bookmark, UserPlus, Heart, Package, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
@@ -64,7 +64,7 @@ export function AnalyticsStats() {
 
       {isLoading ? (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
+          {Array.from({ length: 10 }).map((_, i) => (
             <Skeleton key={i} className="h-24 rounded-xl" />
           ))}
         </div>
@@ -78,6 +78,8 @@ export function AnalyticsStats() {
           <StatCard label="新增書籤" icon={<Bookmark className="h-4 w-4" />} current={data.bookmarks.current} trend={data.bookmarks.trend} />
           <StatCard label="新增追蹤" icon={<UserPlus className="h-4 w-4" />} current={data.newFollowers.current} trend={data.newFollowers.trend} />
           <StatCard label="心願符合" icon={<Heart className="h-4 w-4" />} current={data.wishMatches.current} trend={data.wishMatches.trend} />
+          <StatCard label="商品瀏覽" icon={<Package className="h-4 w-4" />} current={data.productViews.current} trend={data.productViews.trend} />
+          <StatCard label="連線瀏覽" icon={<MapPin className="h-4 w-4" />} current={data.connectionViews.current} trend={data.connectionViews.trend} />
         </div>
       ) : null}
     </div>

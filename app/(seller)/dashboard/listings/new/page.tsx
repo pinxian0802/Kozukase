@@ -127,7 +127,7 @@ export default function NewListingPage() {
   // ── Step: select product ─────────────────────────────────────────────────
   if (step.type === 'select') {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex items-center gap-3">
           <Button type="button" variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />

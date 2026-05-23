@@ -4,7 +4,6 @@ import { Suspense, useState, type ReactNode } from 'react'
 import { useQueryState, useQueryStates, parseAsString, parseAsInteger, parseAsStringEnum, createSerializer } from 'nuqs'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/product/product-card'
@@ -23,13 +22,18 @@ const KZ = {
   pink:   '#F0387A',
 } as const
 
+// 固定每頁顯示 5 個橫列卡片（已移除使用者可選的每頁筆數下拉）。
+// 依桌機格狀欄數換算每頁筆數：商品 4 欄、代購 3 欄。
+const ROWS_PER_PAGE = 5
+const PRODUCT_PAGE_SIZE = ROWS_PER_PAGE * 4 // 桌機 4 欄 → 20 筆
+const LISTING_PAGE_SIZE = ROWS_PER_PAGE * 3 // 桌機 3 欄 → 15 筆
+
 // /search 的篩選參數定義；useQueryStates 與返回連結序列化共用同一份，避免漂移。
 const filterParsers = {
   category: parseAsString,
   brand: parseAsString,
   tab: parseAsStringEnum(['listings', 'products'] as const).withDefault('listings'),
   page: parseAsInteger.withDefault(1),
-  pageSize: parseAsInteger.withDefault(20),
 }
 // 從目前 nuqs 篩選狀態（唯一真實來源）序列化出 /search querystring，
 // 不再依賴可能與 nuqs shallow 更新脫節的 useSearchParams()。
@@ -52,14 +56,13 @@ function SearchContent() {
   // 刻意不傳 startTransition：篩選參數同步更新，避免被 React transition 延遲
   // 而與 react-query（useSyncExternalStore）脫節造成計數抖動；loading 全由
   // react-query 的 isFetching 提供。
-  const [{ category, brand: brandId, tab, page, pageSize }, setParams] = useQueryStates(
+  const [{ category, brand: brandId, tab, page }, setParams] = useQueryStates(
     filterParsers,
     { history: 'push', scroll: false, shallow: true }
   )
 
   // 保留原有的輸入夾擠/白名單防呆
   const safePage = Math.max(1, page)
-  const safePageSize = [10, 20, 50].includes(pageSize) ? pageSize : 20
   const categoryArg = (category ?? undefined) as ProductCategory | undefined
   const brandArg = brandId ?? undefined
 
@@ -81,7 +84,7 @@ function SearchContent() {
       category: categoryArg,
       brandId: brandArg,
       page: safePage,
-      limit: safePageSize,
+      limit: PRODUCT_PAGE_SIZE,
     },
     {
       enabled: tab === 'products',
@@ -102,7 +105,7 @@ function SearchContent() {
       category: categoryArg,
       brandId: brandArg,
       page: safePage,
-      limit: safePageSize,
+      limit: LISTING_PAGE_SIZE,
     },
     {
       enabled: tab === 'listings',
@@ -119,11 +122,7 @@ function SearchContent() {
     setParams({ tab: newTab, page: 1 })
   }
 
-  const updateParam = (key: 'category' | 'brand' | 'pageSize', value: string | null) => {
-    if (key === 'pageSize') {
-      setParams({ pageSize: value ? parseInt(value, 10) : 20, page: 1 })
-      return
-    }
+  const updateParam = (key: 'category' | 'brand', value: string | null) => {
     setParams({ [key]: value, page: 1 })
   }
 
@@ -260,19 +259,6 @@ function SearchContent() {
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                <Select value={String(safePageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
-                  <SelectTrigger className="h-9 w-24 text-sm">
-                    <SelectValue>
-                      {(v: string) => (v ? `${v} 筆` : undefined)}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 筆</SelectItem>
-                    <SelectItem value="20">20 筆</SelectItem>
-                    <SelectItem value="50">50 筆</SelectItem>
-                  </SelectContent>
-                </Select>
-
                 <Sheet>
                   <SheetTrigger
                     render={
@@ -337,7 +323,7 @@ function SearchContent() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      href={`/products/${product.id}?from=${encodeURIComponent(`/search${serializeSearch({ q, category, brand: brandId, tab, page: safePage, pageSize: safePageSize })}`)}`}
+                      href={`/products/${product.id}?from=${encodeURIComponent(`/search${serializeSearch({ q, category, brand: brandId, tab, page: safePage })}`)}`}
                     />
                   ))}
                 </div>

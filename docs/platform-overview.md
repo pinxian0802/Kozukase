@@ -371,7 +371,7 @@ active ◄──── pending_approval
 ### 公開頁面（未登入可訪問）
 | 路由 | 說明 |
 |------|------|
-| `/` | 首頁 |
+| `/` | 首頁（主視覺 + 商品分類 + 熱門商品橫滑 + 即將出發連線橫滑 + 成為賣家 CTA；async RSC，熱門商品依 `product_views` 排序，無瀏覽以最新遞補；任一排無資料則不渲染） |
 | `/search` | 商品搜尋與瀏覽（篩選狀態由 nuqs 管理，URL 即 state，取代原手寫 useSearchParams + 樂觀鏡像） |
 | `/connections` | 連線公告瀏覽（篩選狀態由 nuqs 管理，URL 即 state，沿用 /search 模式；location 文字框用 replace+throttle） |
 | `/sellers/[id]` | 賣家詳情頁 |
@@ -440,6 +440,18 @@ active ◄──── pending_approval
 | `review_count` | `sellers` | `reviews` 新增 / 刪除 / 更新時 |
 | `like_count` | `reviews` | `review_likes` 新增 / 刪除時 |
 | `updated_at` | 多個資料表 | 記錄更新時 |
+
+### 瀏覽記錄(Analytics views)
+
+| 資料表 | 寫入時機 | 用途 |
+|--------|---------|------|
+| `listing_views` | 開啟 `/listings/[id]` 時(非擁有者、同 session 去重) | 賣家後台「刊登瀏覽」、聚合分析 |
+| `product_views` | 開啟 `/products/[id]` 時(非建立者、同 session 去重) | 首頁「熱門商品」排序、賣家後台「商品瀏覽」 |
+| `connection_views` | 開啟 `/connections/[id]` 時(非賣家本人、同 session 去重) | 賣家後台「連線瀏覽」 |
+| `profile_views` | 開啟 `/sellers/[id]` 時(非本人、同 session 去重) | 賣家後台「主頁訪客」 |
+| `social_link_clicks` | 點擊 IG / Threads 連結時 | 賣家後台「IG / Threads 點擊」 |
+
+賣家後台 `/dashboard` 數據總覽以 `analytics.getSellerStats` 聚合上列計數,提供 7 / 30 / 90 天視窗與環比趨勢。
 
 ---
 

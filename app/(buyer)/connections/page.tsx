@@ -12,12 +12,15 @@ import { Pagination } from '@/components/ui/pagination'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { trpc } from '@/lib/trpc/client'
+
+// 固定每頁顯示 5 個橫列卡片（已移除使用者可選的每頁筆數下拉）。
+// 卡片格狀桌機為 3 欄 → 5 列 = 15 筆。
+const PAGE_SIZE = 5 * 3
 
 export default function ConnectionsPage() {
   // q 由全站搜尋框帶入，本頁唯讀
@@ -41,7 +44,6 @@ export default function ConnectionsPage() {
       dateStart: activeDuringStart,
       dateEnd: activeDuringEnd,
       page,
-      pageSize,
     },
     setParams,
   ] = useQueryStates(
@@ -53,14 +55,12 @@ export default function ConnectionsPage() {
       dateStart: parseAsString.withDefault(''),
       dateEnd: parseAsString.withDefault(''),
       page: parseAsInteger.withDefault(1),
-      pageSize: parseAsInteger.withDefault(20),
     },
     { history: 'push', scroll: false, shallow: true },
   )
 
   // 防呆（對齊原本 useState 預設與白名單）
   const safePage = Math.max(1, page)
-  const safePageSize = [10, 20, 50].includes(pageSize) ? pageSize : 20
 
   const [regionSearch, setRegionSearch] = useState('')
   const [showAllRegions, setShowAllRegions] = useState(false)
@@ -109,7 +109,7 @@ export default function ConnectionsPage() {
   const { data, isLoading, isFetching } =
     trpc.connection.browse.useQuery(
       {
-        limit: safePageSize,
+        limit: PAGE_SIZE,
         page: safePage,
         title_query: q || undefined,
         region_id: regionId || undefined,
@@ -385,16 +385,6 @@ export default function ConnectionsPage() {
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Select value={String(safePageSize)} onValueChange={(v) => setParams({ pageSize: Number(v), page: 1 })}>
-                  <SelectTrigger className="h-9 w-24 text-sm">
-                    <SelectValue>{safePageSize} 筆</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 筆</SelectItem>
-                    <SelectItem value="20">20 筆</SelectItem>
-                    <SelectItem value="50">50 筆</SelectItem>
-                  </SelectContent>
-                </Select>
                 <Sheet>
                 <SheetTrigger
                   render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}

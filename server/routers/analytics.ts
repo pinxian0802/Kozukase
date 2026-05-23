@@ -48,6 +48,24 @@ export const analyticsRouter = router({
       })
     }),
 
+  recordProductView: publicProcedure
+    .input(z.object({ product_id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.from('product_views').insert({
+        product_id: input.product_id,
+        viewer_id: ctx.user?.id ?? null,
+      })
+    }),
+
+  recordConnectionView: publicProcedure
+    .input(z.object({ connection_id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.from('connection_views').insert({
+        connection_id: input.connection_id,
+        viewer_id: ctx.user?.id ?? null,
+      })
+    }),
+
   recordSocialClick: publicProcedure
     .input(z.object({
       seller_id: z.string().uuid(),
@@ -81,6 +99,12 @@ export const analyticsRouter = router({
 
       const sellerId = ctx.user.id
 
+      const { data: myConnections } = await ctx.db
+        .from('connections')
+        .select('id')
+        .eq('seller_id', sellerId)
+      const connectionIds = (myConnections ?? []).map((c: any) => c.id)
+
       const [
         listingViewsCur, listingViewsPrev,
         profileViewsCur, profileViewsPrev,
@@ -90,6 +114,8 @@ export const analyticsRouter = router({
         bookmarksCur, bookmarksPrev,
         followersCur, followersPrev,
         wishMatchesCur, wishMatchesPrev,
+        productViewsCur, productViewsPrev,
+        connectionViewsCur, connectionViewsPrev,
       ] = await Promise.all([
         countInPeriod(ctx.db, 'listing_views', [{ field: 'listing_id', value: listingIds }], 'viewed_at', curStart),
         countInPeriod(ctx.db, 'listing_views', [{ field: 'listing_id', value: listingIds }], 'viewed_at', prevStart, curStart),
@@ -114,6 +140,12 @@ export const analyticsRouter = router({
 
         countInPeriod(ctx.db, 'wishes', [{ field: 'product_id', value: productIds }], 'created_at', curStart),
         countInPeriod(ctx.db, 'wishes', [{ field: 'product_id', value: productIds }], 'created_at', prevStart, curStart),
+
+        countInPeriod(ctx.db, 'product_views', [{ field: 'product_id', value: productIds }], 'viewed_at', curStart),
+        countInPeriod(ctx.db, 'product_views', [{ field: 'product_id', value: productIds }], 'viewed_at', prevStart, curStart),
+
+        countInPeriod(ctx.db, 'connection_views', [{ field: 'connection_id', value: connectionIds }], 'viewed_at', curStart),
+        countInPeriod(ctx.db, 'connection_views', [{ field: 'connection_id', value: connectionIds }], 'viewed_at', prevStart, curStart),
       ])
 
       return {
@@ -125,6 +157,8 @@ export const analyticsRouter = router({
         bookmarks:     { current: bookmarksCur,     trend: calcTrend(bookmarksCur,     bookmarksPrev) },
         newFollowers:  { current: followersCur,     trend: calcTrend(followersCur,     followersPrev) },
         wishMatches:   { current: wishMatchesCur,   trend: calcTrend(wishMatchesCur,   wishMatchesPrev) },
+        productViews:    { current: productViewsCur,    trend: calcTrend(productViewsCur,    productViewsPrev) },
+        connectionViews: { current: connectionViewsCur, trend: calcTrend(connectionViewsCur, connectionViewsPrev) },
       }
     }),
 })
