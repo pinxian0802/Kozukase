@@ -1,18 +1,10 @@
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { router, protectedProcedure } from '../trpc'
-
-const s3Client = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
-  },
-})
+import { s3Client } from '@/lib/r2'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -43,7 +35,7 @@ function assertUrlMatchesKey(url: string, r2Key: string) {
 export const uploadRouter = router({
   getPresignedUrl: protectedProcedure
     .input(z.object({
-      purpose: z.enum(['product', 'listing', 'connection', 'avatar', 'message']),
+      purpose: z.enum(['product', 'listing', 'connection', 'avatar', 'message', 'banner']),
       contentType: z.string(),
       fileSize: z.number(),
       variant: z.enum(['original', 'thumbnail']).default('original'),

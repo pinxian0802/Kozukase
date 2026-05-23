@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users, CalendarDays, Images } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +32,7 @@ const adminLinks = [
   { href: '/admin/reports', label: '檢舉處理', icon: Flag },
   { href: '/admin/sellers', label: '賣家管理', icon: Users },
   { href: '/admin/categories', label: '分類管理', icon: Tags },
+  { href: '/admin/banners', label: '輪播管理', icon: Images },
 ]
 
 export function Sidebar({ mode, sellerProfile }: SidebarProps) {

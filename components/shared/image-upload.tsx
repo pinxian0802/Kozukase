@@ -22,7 +22,7 @@ interface ImageUploadProps {
   invalid?: boolean
 }
 
-type Purpose = 'product' | 'listing' | 'connection' | 'avatar'
+type Purpose = 'product' | 'listing' | 'connection' | 'avatar' | 'banner'
 type GetPresignedUrl = (params: {
   purpose: Purpose
   contentType: string
@@ -77,7 +77,7 @@ export async function uploadImageFiles(
         throw new Error('圖片上傳失敗')
       }
 
-      if (purpose === 'avatar') {
+      if (purpose === 'avatar' || purpose === 'banner') {
         return { url: publicUrl, r2Key }
       }
 

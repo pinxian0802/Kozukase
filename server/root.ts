@@ -15,6 +15,7 @@ import { adminRouter } from './routers/admin'
 import { brandRouter } from './routers/brand'
 import { messageRouter } from './routers/message'
 import { analyticsRouter } from './routers/analytics'
+import { bannerRouter } from './routers/banner'
 
 export const appRouter = router({
   auth: authRouter,
@@ -33,6 +34,7 @@ export const appRouter = router({
   admin: adminRouter,
   message: messageRouter,
   analytics: analyticsRouter,
+  banner: bannerRouter,
 })
 
 export type AppRouter = typeof appRouter

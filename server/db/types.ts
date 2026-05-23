@@ -40,7 +40,6 @@ export type NotificationType =
   | 'followed_seller_new_listing'
   | 'wish_product_removed'
   | 'bookmarked_product_removed'
-  | 'new_message'
 
 export type ConnectionStatus = 'active' | 'ended' | 'pending_approval'
 

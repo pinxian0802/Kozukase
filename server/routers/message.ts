@@ -183,28 +183,6 @@ export const messageRouter = router({
         .eq('id', input.conversation_id)
         .then(() => {})
 
-      const recipient_id =
-        conv.buyer_id === ctx.user.id ? conv.seller_id : conv.buyer_id
-
-      const { data: profile } = await ctx.db
-        .from('profiles')
-        .select('display_name')
-        .eq('id', ctx.user.id)
-        .maybeSingle()
-
-      ctx.db
-        .from('notifications')
-        .insert({
-          recipient_id,
-          type: 'new_message' as const,
-          payload: {
-            conversation_id: input.conversation_id,
-            sender_name: profile?.display_name ?? '用戶',
-            preview,
-          },
-        })
-        .then(() => {})
-
       const isBuyer = conv.buyer_id === ctx.user.id
       const readField = isBuyer ? 'buyer_last_read_at' : 'seller_last_read_at'
       ctx.db

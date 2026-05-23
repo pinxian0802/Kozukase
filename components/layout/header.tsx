@@ -74,6 +74,9 @@ export function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-2">
+          <Link href="/search?tab=listings" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+            商品代購
+          </Link>
           <Link href="/connections" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
             連線代購
           </Link>
@@ -170,6 +173,9 @@ export function Header() {
               <nav className="flex flex-col gap-2 pt-8">
                 <Link href="/search" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                   搜尋商品
+                </Link>
+                <Link href="/search?tab=listings" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
+                  商品代購
                 </Link>
                 <Link href="/connections" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                   連線代購

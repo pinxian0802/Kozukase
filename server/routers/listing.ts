@@ -58,6 +58,20 @@ export const listingRouter = router({
         query = query.in('product_id', productIds)
       }
 
+      if (input.socialVerifiedOnly) {
+        const { data: verifiedSellers } = await ctx.db
+          .from('sellers')
+          .select('id')
+          .eq('is_social_verified', true)
+        const ids = (verifiedSellers ?? []).map((r) => r.id)
+        const safeIds = ids.length ? ids : ['00000000-0000-0000-0000-000000000000']
+        query = query.in('seller_id', safeIds)
+      }
+
+      if (input.inStockOnly) {
+        query = query.eq('is_in_stock', true)
+      }
+
       const offset = (input.page - 1) * input.limit
       query = query
         .order('created_at', { ascending: false })

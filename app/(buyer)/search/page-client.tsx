@@ -1,9 +1,11 @@
 'use client'
 
 import { Suspense, useState, type ReactNode } from 'react'
-import { useQueryState, useQueryStates, parseAsString, parseAsInteger, parseAsStringEnum, createSerializer } from 'nuqs'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { useQueryState, useQueryStates, parseAsString, parseAsInteger, parseAsStringEnum, parseAsBoolean, createSerializer } from 'nuqs'
+import { Info, SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
+import { Switch } from '@/components/ui/switch'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/product/product-card'
@@ -32,6 +34,9 @@ const LISTING_PAGE_SIZE = ROWS_PER_PAGE * 3 // 桌機 3 欄 → 15 筆
 const filterParsers = {
   category: parseAsString,
   brand: parseAsString,
+  social: parseAsBoolean.withDefault(false),
+  // 僅作用於「代購」分頁（is_in_stock）；商品分頁無現貨概念
+  stock: parseAsBoolean.withDefault(false),
   tab: parseAsStringEnum(['listings', 'products'] as const).withDefault('listings'),
   page: parseAsInteger.withDefault(1),
 }
@@ -56,7 +61,7 @@ function SearchContent() {
   // 刻意不傳 startTransition：篩選參數同步更新，避免被 React transition 延遲
   // 而與 react-query（useSyncExternalStore）脫節造成計數抖動；loading 全由
   // react-query 的 isFetching 提供。
-  const [{ category, brand: brandId, tab, page }, setParams] = useQueryStates(
+  const [{ category, brand: brandId, social: socialVerifiedOnly, stock: inStockOnly, tab, page }, setParams] = useQueryStates(
     filterParsers,
     { history: 'push', scroll: false, shallow: true }
   )
@@ -83,6 +88,7 @@ function SearchContent() {
       query: q || undefined,
       category: categoryArg,
       brandId: brandArg,
+      socialVerifiedOnly: socialVerifiedOnly || undefined,
       page: safePage,
       limit: PRODUCT_PAGE_SIZE,
     },
@@ -104,6 +110,8 @@ function SearchContent() {
       query: q || undefined,
       category: categoryArg,
       brandId: brandArg,
+      socialVerifiedOnly: socialVerifiedOnly || undefined,
+      inStockOnly: inStockOnly || undefined,
       page: safePage,
       limit: LISTING_PAGE_SIZE,
     },
@@ -154,9 +162,60 @@ function SearchContent() {
       onRemove: () => updateParam('brand', null),
     })
   }
+  if (socialVerifiedOnly) {
+    activeFilters.push({
+      key: 'social',
+      label: '社群驗證',
+      color: KZ.teal,
+      onRemove: () => setParams({ social: false, page: 1 }),
+    })
+  }
+  // 有現貨僅作用於代購分頁
+  if (tab === 'listings' && inStockOnly) {
+    activeFilters.push({
+      key: 'stock',
+      label: '有現貨',
+      color: KZ.teal,
+      onRemove: () => setParams({ stock: false, page: 1 }),
+    })
+  }
 
   const FilterPanel = () => (
     <div className="space-y-4">
+      {/* Social verification toggle */}
+      <FilterSection
+        title="社群驗證"
+        titleExtra={
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger render={<span className="flex cursor-default items-center" />}>
+                <Info className="size-3.5 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent side="right">只顯示已連結社群帳號的賣家</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        }
+        rightSlot={
+          <Switch
+            checked={socialVerifiedOnly}
+            onCheckedChange={(v) => setParams({ social: v, page: 1 })}
+          />
+        }
+      />
+
+      {/* In-stock toggle — 僅代購分頁 */}
+      {tab === 'listings' && (
+        <FilterSection
+          title="有現貨"
+          rightSlot={
+            <Switch
+              checked={inStockOnly}
+              onCheckedChange={(v) => setParams({ stock: v, page: 1 })}
+            />
+          }
+        />
+      )}
+
       {/* Category section */}
       <FilterSection title="商品類別">
         <div className="space-y-1">
@@ -323,7 +382,7 @@ function SearchContent() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      href={`/products/${product.id}?from=${encodeURIComponent(`/search${serializeSearch({ q, category, brand: brandId, tab, page: safePage })}`)}`}
+                      href={`/products/${product.id}?from=${encodeURIComponent(`/search${serializeSearch({ q, category, brand: brandId, social: socialVerifiedOnly, stock: inStockOnly, tab, page: safePage })}`)}`}
                     />
                   ))}
                 </div>
@@ -381,15 +440,25 @@ function SearchContent() {
 
 function FilterSection({
   title,
+  titleExtra,
+  rightSlot,
   children,
 }: {
   title: string
-  children: ReactNode
+  titleExtra?: ReactNode
+  rightSlot?: ReactNode
+  children?: ReactNode
 }) {
   return (
     <section className="overflow-hidden rounded-[24px] border border-border-soft bg-surface-card p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
       <div className="space-y-4">
-        <div className="text-sm font-semibold text-text-strong">{title}</div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-text-strong">
+            {title}
+            {titleExtra}
+          </div>
+          {rightSlot}
+        </div>
         {children}
       </div>
     </section>

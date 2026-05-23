@@ -36,17 +36,19 @@ export default async function HomePage() {
   const trpc = await createServerCaller()
   const today = format(new Date(), 'yyyy-MM-dd')
 
-  const [popularProducts, connectionsResult] = await Promise.all([
+  const [popularProducts, connectionsResult, banners] = await Promise.all([
     trpc.product.popular({ limit: 12 }),
     trpc.connection.browse({ active_during: { start: today }, page: 1, limit: 10 }),
+    trpc.banner.listActive(),
   ])
   const upcomingConnections = connectionsResult.items
+  const heroSlides = banners.map((b) => ({ id: b.id, src: b.image_url, href: b.link_url, alt: '' }))
 
   return (
     <>
       <Header />
       <main className="flex-1">
-        <HomeHero />
+        <HomeHero slides={heroSlides} />
 
         {/* Categories */}
         <section className="mx-auto max-w-6xl px-4 py-10">
@@ -58,9 +60,9 @@ export default async function HomePage() {
                 <Link
                   key={cat.key}
                   href={`/search?category=${cat.key}`}
-                  className="flex flex-col items-center gap-2 rounded-md p-3 transition-colors hover:bg-muted"
+                  className="group flex flex-col items-center gap-2 rounded-md p-3 transition-colors hover:bg-brand-50"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-50 text-brand-500">
                     <Icon className="h-5 w-5" />
                   </div>
                   <span className="text-xs text-center text-muted-foreground leading-tight">{cat.label}</span>

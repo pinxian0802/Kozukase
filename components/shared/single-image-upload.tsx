@@ -9,7 +9,7 @@ import { uploadImageFiles } from '@/components/shared/image-upload'
 import { normalizeImageFile } from '@/lib/utils/heic'
 
 interface SingleImageUploadProps {
-  purpose: 'product' | 'listing' | 'connection' | 'avatar'
+  purpose: 'product' | 'listing' | 'connection' | 'avatar' | 'banner'
   value: { url: string; r2Key: string } | null
   onChange: (value: { url: string; r2Key: string } | null) => void
   pendingFile?: File | null

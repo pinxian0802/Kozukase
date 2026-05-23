@@ -626,7 +626,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent>
-                <p>可貼上賣場連結或社群貼文連結（如 Instagram、蝦皮等）</p>
+                <p>可貼上賣場連結或社群貼文連結（如 Instagram、賣貨便等）</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -661,7 +661,6 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             ) : null}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">可貼上賣場連結或社群貼文連結（如 Instagram、蝦皮等）</p>
         {isCheckingUrl
           ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
           : <FormFieldError message={errors.postUrl} />}

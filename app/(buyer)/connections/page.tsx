@@ -41,6 +41,7 @@ export default function ConnectionsPage() {
       brand: brandId,
       billing: hasBillingMethod,
       canWish,
+      social: socialVerifiedOnly,
       dateStart: activeDuringStart,
       dateEnd: activeDuringEnd,
       page,
@@ -52,6 +53,7 @@ export default function ConnectionsPage() {
       brand: parseAsString,
       billing: parseAsBoolean.withDefault(false),
       canWish: parseAsBoolean.withDefault(false),
+      social: parseAsBoolean.withDefault(false),
       dateStart: parseAsString.withDefault(''),
       dateEnd: parseAsString.withDefault(''),
       page: parseAsInteger.withDefault(1),
@@ -76,6 +78,7 @@ export default function ConnectionsPage() {
       brand: string | null
       billing: boolean
       canWish: boolean
+      social: boolean
       dateStart: string
       dateEnd: string
     }>,
@@ -117,6 +120,7 @@ export default function ConnectionsPage() {
         has_billing_method: hasBillingMethod || undefined,
         brand_id: brandId || undefined,
         can_wish: canWish || undefined,
+        social_verified_only: socialVerifiedOnly || undefined,
         active_during: (activeDuringStart || activeDuringEnd)
           ? {
               start: activeDuringStart || undefined,
@@ -144,7 +148,7 @@ export default function ConnectionsPage() {
   }
 
   // date range counts as one filter, not two
-  const activeFilterCount = [regionId, activeDuringStart || activeDuringEnd, locationText, hasBillingMethod, brandId, canWish].filter(Boolean).length
+  const activeFilterCount = [regionId, activeDuringStart || activeDuringEnd, locationText, hasBillingMethod, brandId, canWish, socialVerifiedOnly].filter(Boolean).length
   const brandLabel = brands.find((b: any) => b.id === brandId)?.name ?? ''
 
   const activeDateLabel =
@@ -167,6 +171,28 @@ export default function ConnectionsPage() {
 
     return (
       <div className="space-y-4">
+        <FilterSectionCard
+          title="社群驗證"
+          titleExtra={
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger render={<span className="flex cursor-default items-center" />}>
+                  <Info className="size-3.5 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  只顯示已連結社群帳號的賣家
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          }
+          rightSlot={
+            <Switch
+              checked={socialVerifiedOnly}
+              onCheckedChange={(v) => setFilter({ social: v })}
+            />
+          }
+        />
+
         <FilterSectionCard
           title="可許願"
           titleExtra={
@@ -368,6 +394,16 @@ export default function ConnectionsPage() {
                         onClick={() => setFilter({ canWish: false })}
                       >
                         可許願
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                    {socialVerifiedOnly && (
+                      <button
+                        type="button"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                        onClick={() => setFilter({ social: false })}
+                      >
+                        社群驗證
                         <X className="h-3 w-3" />
                       </button>
                     )}

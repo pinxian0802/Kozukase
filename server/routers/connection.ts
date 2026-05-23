@@ -225,6 +225,7 @@ export const connectionRouter = router({
       has_billing_method: z.boolean().optional(),
       brand_id: z.string().uuid().optional(),
       can_wish: z.boolean().optional(),
+      social_verified_only: z.boolean().optional(),
       page: z.number().min(1).default(1),
       limit: z.number().min(1).max(50).default(20),
     }))
@@ -294,6 +295,17 @@ export const connectionRouter = router({
       if (input.can_wish) {
         query = query.eq('can_wish', true)
         countQuery = countQuery.eq('can_wish', true)
+      }
+
+      if (input.social_verified_only) {
+        const { data: verifiedSellers } = await ctx.db
+          .from('sellers')
+          .select('id')
+          .eq('is_social_verified', true)
+        const ids = (verifiedSellers ?? []).map((r) => r.id)
+        const safeIds = ids.length ? ids : ['00000000-0000-0000-0000-000000000000']
+        query = query.in('seller_id', safeIds)
+        countQuery = countQuery.in('seller_id', safeIds)
       }
 
       const from = (input.page - 1) * input.limit
