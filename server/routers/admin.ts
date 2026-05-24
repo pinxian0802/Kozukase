@@ -23,8 +23,8 @@ export const adminRouter = router({
   removeProduct: adminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      // Soft delete product
-      await ctx.db
+      // Soft delete product (return name for notifications)
+      const { data: product } = await ctx.db
         .from('products')
         .update({
           is_removed: true,
@@ -32,6 +32,10 @@ export const adminRouter = router({
           removed_by: ctx.user.id,
         })
         .eq('id', input.id)
+        .select('name')
+        .maybeSingle()
+
+      const productName = product?.name ?? null
 
       // Get affected listings
       const { data: listings } = await ctx.db
@@ -52,56 +56,13 @@ export const adminRouter = router({
         const sellerNotifications = listings.map((listing: { id: string; seller_id: string }) => ({
           recipient_id: listing.seller_id,
           type: 'product_removed' as const,
-          payload: { product_id: input.id, listing_id: listing.id },
+          payload: { product_id: input.id, listing_id: listing.id, product_name: productName },
         }))
         await ctx.db.from('notifications').insert(sellerNotifications)
       }
 
-      // Notify product creator
-      const { data: product } = await ctx.db
-        .from('products')
-        .select('created_by')
-        .eq('id', input.id)
-        .single()
-
-      if (product) {
-        await ctx.db.from('notifications').insert({
-          recipient_id: product.created_by,
-          type: 'product_removed_creator',
-          payload: { product_id: input.id },
-        })
-      }
-
-      // Cancel all wishes and notify wishers
-      const { data: wishes } = await ctx.db
-        .from('wishes')
-        .select('user_id')
-        .eq('product_id', input.id)
-
-      if (wishes?.length) {
-        const wishNotifications = wishes.map((wish: { user_id: string }) => ({
-          recipient_id: wish.user_id,
-          type: 'wish_product_removed' as const,
-          payload: { product_id: input.id },
-        }))
-        await ctx.db.from('notifications').insert(wishNotifications)
-        await ctx.db.from('wishes').delete().eq('product_id', input.id)
-      }
-
-      // Notify users who bookmarked
-      const { data: bookmarks } = await ctx.db
-        .from('product_bookmarks')
-        .select('user_id')
-        .eq('product_id', input.id)
-
-      if (bookmarks?.length) {
-        const bookmarkNotifications = bookmarks.map((bookmark: { user_id: string }) => ({
-          recipient_id: bookmark.user_id,
-          type: 'bookmarked_product_removed' as const,
-          payload: { product_id: input.id },
-        }))
-        await ctx.db.from('notifications').insert(bookmarkNotifications)
-      }
+      // Cancel all wishes for this product
+      await ctx.db.from('wishes').delete().eq('product_id', input.id)
 
       return { success: true }
     }),
@@ -149,7 +110,7 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data: listing } = await ctx.db
         .from('listings')
-        .select('seller_id')
+        .select('seller_id, product:products(name)')
         .eq('id', input.id)
         .single()
 
@@ -165,10 +126,15 @@ export const adminRouter = router({
         .eq('id', input.id)
 
       // Notify seller
+      const listingProduct = Array.isArray(listing.product) ? listing.product[0] : listing.product
       await ctx.db.from('notifications').insert({
         recipient_id: listing.seller_id,
         type: 'listing_removed_by_admin',
-        payload: { listing_id: input.id, admin_note: input.admin_note },
+        payload: {
+          listing_id: input.id,
+          admin_note: input.admin_note,
+          product_name: listingProduct?.name ?? null,
+        },
       })
 
       return { success: true }
@@ -179,7 +145,7 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data: listing } = await ctx.db
         .from('listings')
-        .select('seller_id')
+        .select('seller_id, product:products(name)')
         .eq('id', input.id)
         .eq('status', 'pending_approval')
         .single()
@@ -191,10 +157,11 @@ export const adminRouter = router({
         .update({ status: 'active', admin_note: null })
         .eq('id', input.id)
 
+      const listingProduct = Array.isArray(listing.product) ? listing.product[0] : listing.product
       await ctx.db.from('notifications').insert({
         recipient_id: listing.seller_id,
         type: 'listing_republish_approved',
-        payload: { listing_id: input.id },
+        payload: { listing_id: input.id, product_name: listingProduct?.name ?? null },
       })
 
       return { success: true }
@@ -209,7 +176,7 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data: connection } = await ctx.db
         .from('connections')
-        .select('seller_id')
+        .select('seller_id, title')
         .eq('id', input.id)
         .single()
 
@@ -227,7 +194,11 @@ export const adminRouter = router({
       await ctx.db.from('notifications').insert({
         recipient_id: connection.seller_id,
         type: 'connection_removed_by_admin',
-        payload: { connection_id: input.id, admin_note: input.admin_note },
+        payload: {
+          connection_id: input.id,
+          admin_note: input.admin_note,
+          connection_title: connection.title ?? null,
+        },
       })
 
       return { success: true }
@@ -238,7 +209,7 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data: connection } = await ctx.db
         .from('connections')
-        .select('seller_id')
+        .select('seller_id, title')
         .eq('id', input.id)
         .eq('status', 'pending_approval')
         .single()
@@ -253,7 +224,7 @@ export const adminRouter = router({
       await ctx.db.from('notifications').insert({
         recipient_id: connection.seller_id,
         type: 'connection_republish_approved',
-        payload: { connection_id: input.id },
+        payload: { connection_id: input.id, connection_title: connection.title ?? null },
       })
 
       return { success: true }

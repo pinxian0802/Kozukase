@@ -107,9 +107,11 @@ interface ListingFormProps {
   mode: 'create' | 'edit'
   initialData?: any
   onCreateProduct?: () => Promise<string>
+  /** True when the listing's original product was removed by an admin. */
+  productRemoved?: boolean
 }
 
-export function ListingForm({ productId, mode, initialData, onCreateProduct }: ListingFormProps) {
+export function ListingForm({ productId, mode, initialData, onCreateProduct, productRemoved = false }: ListingFormProps) {
   const router = useRouter()
   const utils = trpc.useUtils()
   const selectedProductImageUrl = initialData?.product?.catalog_image?.thumbnail_url
@@ -152,11 +154,17 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
   const checkPostUrl = trpc.listing.checkPostUrl.useMutation()
   const createListing = trpc.listing.create.useMutation()
   const updateListing = trpc.listing.update.useMutation()
+  const reactivateListing = trpc.listing.reactivate.useMutation()
   const publishListing = trpc.listing.publish.useMutation()
   const deleteListing = trpc.listing.delete.useMutation()
   const confirmImages = trpc.upload.confirmListingImages.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
+
+  // In a removed-product edit, the seller must pick a replacement before
+  // the primary (relist) submit is allowed.
+  const hasReplacement = !!productId || !!onCreateProduct
+  const requiresReselect = mode === 'edit' && productRemoved && !hasReplacement
 
   const clearError = (field: keyof typeof errors) => {
     setErrors((current) => {
@@ -362,12 +370,30 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         toast.success(status === 'draft' ? '\u5df2\u5132\u5b58\u8349\u7a3f' : '\u5df2\u4e0a\u67b6')
       } else {
         // ── Edit flow: order unchanged (update data → upload → confirm) ──
+        // When the original product was removed, resolve the replacement
+        // product id (creating a draft product on the fly if needed).
+        let replacementProductId: string | undefined
+        if (productRemoved && hasReplacement) {
+          replacementProductId = productId
+          if (!replacementProductId && onCreateProduct) {
+            replacementProductId = await onCreateProduct()
+          }
+        }
+        if (productRemoved && status === 'active' && !replacementProductId) {
+          throw new Error('請先重新選擇商品')
+        }
+
         const uploadedImages = pendingFiles.length > 0
           ? await uploadImageFiles('listing', pendingFiles, getPresignedUrl.mutateAsync)
           : []
         const allImages = [...images, ...uploadedImages]
-        const { product_id: _, status: __, ...updateData } = buildInput(status, productId ?? initialData.product_id)
-        await updateListing.mutateAsync({ id: initialData.id, ...updateData, shipping_date: shippingDate || null })
+        const { product_id: _, status: __, ...updateData } = buildInput(status, initialData.product_id)
+        await updateListing.mutateAsync({
+          id: initialData.id,
+          ...updateData,
+          ...(replacementProductId ? { product_id: replacementProductId } : {}),
+          shipping_date: shippingDate || null,
+        })
         await confirmImages.mutateAsync({
           listing_id: initialData.id,
           images: allImages.map((img, i) => ({
@@ -378,8 +404,13 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
             sort_order: i,
           })),
         })
+        // Primary submit on a removed-product listing relists for re-approval.
+        if (productRemoved && status === 'active') {
+          await reactivateListing.mutateAsync({ id: initialData.id })
+        }
+
         toast.dismiss(toastId)
-        toast.success('\u5df2\u66f4\u65b0')
+        toast.success(productRemoved && status === 'active' ? '\u5df2\u91cd\u65b0\u9001\u51fa\uff0c\u7b49\u5f85\u5be9\u6838' : '\u5df2\u66f4\u65b0')
       }
 
       utils.listing.myListings.invalidate()
@@ -431,7 +462,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
         <FormFieldError message={errors.title} />
       </div>
 
-      {mode === 'edit' && initialData?.product && (
+      {mode === 'edit' && initialData?.product && !productRemoved && (
         <div>
           <Label>商品</Label>
           <ProductCard
@@ -679,15 +710,20 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct }: L
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={() => handleSave('draft')} disabled={isSubmitDisabled}>
-          {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-          {mode === 'edit' ? '儲存變更' : '儲存代購'}
-        </Button>
-        <button type="submit" disabled={isSubmitDisabled} className={buttonVariants({ className: 'flex-1' })}>
-          {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-          {mode === 'create' ? '直接上架' : '更新代購'}
-        </button>
+      <div className="space-y-2 pt-4">
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" onClick={() => handleSave('draft')} disabled={isSubmitDisabled}>
+            {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+            {mode === 'edit' ? '儲存變更' : '儲存代購'}
+          </Button>
+          <button type="submit" disabled={isSubmitDisabled || requiresReselect} className={buttonVariants({ className: 'flex-1' })}>
+            {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+            {mode === 'create' ? '直接上架' : (productRemoved ? '重新送出審核' : '更新代購')}
+          </button>
+        </div>
+        {requiresReselect && (
+          <p className="text-xs text-muted-foreground text-right">請先重新選擇商品才能重新送出</p>
+        )}
       </div>
     </form>
   )

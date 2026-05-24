@@ -115,21 +115,6 @@ export const reviewRouter = router({
         user_id: ctx.user.id,
       })
 
-      // Notify review author
-      const { data: review } = await ctx.db
-        .from('reviews')
-        .select('reviewer_id')
-        .eq('id', input.review_id)
-        .single()
-
-      if (review && review.reviewer_id !== ctx.user.id) {
-        await ctx.db.from('notifications').insert({
-          recipient_id: review.reviewer_id,
-          type: 'review_liked',
-          payload: { review_id: input.review_id, liker_id: ctx.user.id },
-        })
-      }
-
       return { liked: true }
     }),
 

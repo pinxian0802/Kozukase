@@ -34,11 +34,11 @@ export function NotificationBell() {
 
   return (
     <Button variant="ghost" size="icon" render={<Link href="/notifications" />} className="relative">
-        <Bell className="h-5 w-5" />
+        <Bell className="h-7 w-7" />
         {unreadCount > 0 && (
           <Badge
-            variant="destructive"
-            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px]"
+            variant="default"
+            className="absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ring-2 ring-background bg-brand-500 text-cta-foreground"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </Badge>

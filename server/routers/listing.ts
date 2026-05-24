@@ -131,7 +131,7 @@ export const listingRouter = router({
 
       // If publishing (active), send notifications
       if (input.status === 'active') {
-        await sendNewListingNotifications(ctx.db, data.id, input.product_id, ctx.seller.id)
+        await sendNewListingNotifications(ctx.db, data.id, input.product_id)
       }
 
       return data
@@ -207,7 +207,7 @@ export const listingRouter = router({
 
       if (error) throw error
 
-      await sendNewListingNotifications(ctx.db, data.id, data.product_id, ctx.seller.id)
+      await sendNewListingNotifications(ctx.db, data.id, data.product_id)
       return data
     }),
 
@@ -253,7 +253,7 @@ export const listingRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data: listing } = await ctx.db
         .from('listings')
-        .select('*')
+        .select('*, product:products(is_removed)')
         .eq('id', input.id)
         .eq('seller_id', ctx.seller.id)
         .single()
@@ -262,12 +262,20 @@ export const listingRouter = router({
       if (listing.status !== 'inactive') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: '只有已下架的 Listing 可以重新上架' })
       }
-      if (listing.inactive_reason === 'product_removed') {
+
+      // Gate on the CURRENT product: if it is still removed, the seller must
+      // reselect a valid product (done via update) before reactivating.
+      const product = Array.isArray(listing.product) ? listing.product[0] : listing.product
+      if (product?.is_removed) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: '原商品已被移除，請重新選擇商品' })
       }
 
-      // If admin-removed, goes to pending_approval; otherwise back to active
-      const newStatus = listing.inactive_reason === 'admin' ? 'pending_approval' : 'active'
+      // admin- or product_removed-originated downs require re-approval;
+      // self / expired go straight back to active.
+      const newStatus =
+        listing.inactive_reason === 'admin' || listing.inactive_reason === 'product_removed'
+          ? 'pending_approval'
+          : 'active'
 
       const { data, error } = await ctx.db
         .from('listings')
@@ -287,7 +295,7 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *,
-          product:products(id, name, brand:brands(name), model_number, category, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
+          product:products(id, name, is_removed, brand:brands(name), model_number, category, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
           seller:sellers(
             id, name, ig_handle, threads_handle, ig_follower_count,
             threads_follower_count, is_social_verified, avg_rating, review_count, avatar_url,
@@ -340,7 +348,7 @@ export const listingRouter = router({
         .from('listings')
         .select(`
           *, 
-          product:products(id, name, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
+          product:products(id, name, is_removed, brand:brands(name), model_number, catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key), product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key)),
           listing_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
         `)
         .eq('seller_id', ctx.seller.id)
@@ -402,8 +410,7 @@ export const listingRouter = router({
 async function sendNewListingNotifications(
   db: SupabaseClient<any>,
   listingId: string,
-  productId: string,
-  sellerId: string
+  productId: string
 ) {
   // Notify wish users
   const { data: wishUsers } = await db
@@ -412,26 +419,17 @@ async function sendNewListingNotifications(
     .eq('product_id', productId)
 
   if (wishUsers?.length) {
+    const { data: product } = await db
+      .from('products')
+      .select('name')
+      .eq('id', productId)
+      .maybeSingle()
+
     const wishNotifications = wishUsers.map((w: { user_id: string }) => ({
       recipient_id: w.user_id,
       type: 'new_listing_for_wish',
-      payload: { listing_id: listingId, product_id: productId },
+      payload: { listing_id: listingId, product_id: productId, product_name: product?.name ?? null },
     }))
     await db.from('notifications').insert(wishNotifications)
-  }
-
-  // Notify followers
-  const { data: followers } = await db
-    .from('follows')
-    .select('follower_id')
-    .eq('seller_id', sellerId)
-
-  if (followers?.length) {
-    const followerNotifications = followers.map((f: { follower_id: string }) => ({
-      recipient_id: f.follower_id,
-      type: 'followed_seller_new_listing',
-      payload: { listing_id: listingId, seller_id: sellerId },
-    }))
-    await db.from('notifications').insert(followerNotifications)
   }
 }

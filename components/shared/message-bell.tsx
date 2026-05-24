@@ -45,9 +45,9 @@ export function MessageBell() {
         'relative'
       )}
     >
-      <MessageSquare className="h-5 w-5" />
+      <MessageSquare className="h-7 w-7" />
       {count > 0 && (
-        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+        <span className="absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ring-2 ring-background bg-brand-500 text-cta-foreground">
           {count > 9 ? '9+' : count}
         </span>
       )}

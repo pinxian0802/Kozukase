@@ -37,7 +37,9 @@ type ListingItem = {
   title: string | null
   product_id: string
   product?: {
+    id?: string
     name?: string | null
+    is_removed?: boolean
     catalog_image?: { url?: string | null; thumbnail_url?: string | null } | null
   } | null
   listing_images?: Array<{ url: string; thumbnail_url?: string | null; sort_order: number }> | null
@@ -78,7 +80,10 @@ export default function SellerListingsPage() {
     onError: (err) => toast.error(err.message),
   })
   const reactivate = trpc.listing.reactivate.useMutation({
-    onSuccess: () => { toast.success('已重新上架'); invalidate() },
+    onSuccess: (data) => {
+      toast.success(data.status === 'pending_approval' ? '已重新送出，等待審核' : '已重新上架')
+      invalidate()
+    },
     onError: (err) => toast.error(err.message),
   })
   const deleteListing = trpc.listing.delete.useMutation({
@@ -168,6 +173,9 @@ export default function SellerListingsPage() {
                     ) : (
                       <span className="text-muted-foreground">--</span>
                     )}
+                    {listing.product?.is_removed === true && (
+                      <Badge variant="outline" className="ml-1 border-destructive/40 text-destructive">商品已被移除</Badge>
+                    )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-semibold">
                     {formatPrice(listing.price, listing.is_price_on_request)}
@@ -201,6 +209,7 @@ export default function SellerListingsPage() {
                     <ListingActions
                       listingId={listing.id}
                       listingStatus={listing.status}
+                      productRemoved={listing.product?.is_removed === true}
                       pending={actionPending}
                       {...handlers}
                     />
@@ -249,6 +258,9 @@ export default function SellerListingsPage() {
                       {listing.product.name}
                     </Link>
                   ) : '--'}
+                  {listing.product?.is_removed === true && (
+                    <Badge variant="outline" className="ml-1 border-destructive/40 text-destructive">商品已被移除</Badge>
+                  )}
                 </span>
                 <span className="text-xs text-muted-foreground">售價</span>
                 <span className="text-right font-semibold">{formatPrice(listing.price, listing.is_price_on_request)}</span>
@@ -274,6 +286,7 @@ export default function SellerListingsPage() {
                 <ListingActions
                   listingId={listing.id}
                   listingStatus={listing.status}
+                  productRemoved={listing.product?.is_removed === true}
                   pending={actionPending}
                   {...handlers}
                 />
@@ -289,6 +302,7 @@ export default function SellerListingsPage() {
 type ListingActionsProps = {
   listingId: string
   listingStatus: string
+  productRemoved: boolean
   pending: boolean
   onPublish: () => void
   onDeactivate: () => void
@@ -299,6 +313,7 @@ type ListingActionsProps = {
 function ListingActions({
   listingId,
   listingStatus,
+  productRemoved,
   pending,
   onPublish,
   onDeactivate,
@@ -334,7 +349,9 @@ function ListingActions({
             )}
             {listingStatus === 'inactive' && (
               <>
-                <DropdownMenuItem onClick={onReactivate}>重新上架</DropdownMenuItem>
+                {!productRemoved && (
+                  <DropdownMenuItem onClick={onReactivate}>重新上架</DropdownMenuItem>
+                )}
                 <DropdownMenuItem variant="destructive" onClick={onDelete}>刪除</DropdownMenuItem>
               </>
             )}

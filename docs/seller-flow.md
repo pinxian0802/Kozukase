@@ -112,7 +112,8 @@ Tab 篩選：全部 / 上架中 / 草稿 / 下架 / 待審核
 | `pending_approval` | 編輯 |
 | `active` | 編輯、下架 |
 | `inactive`（自己下架） | 編輯、重新上架（→ `active`） |
-| `inactive`（管理員移除） | 編輯、重新申請（→ `pending_approval`） |
+| `inactive`（管理員移除代購） | 編輯、重新申請（→ `pending_approval`） |
+| `inactive`（商品被移除） | 編輯頁重選商品 → 重新送出（→ `pending_approval`） |
 
 ---
 

@@ -28,18 +28,13 @@ export type ReportStatus = 'pending' | 'resolved' | 'dismissed'
 
 export type NotificationType =
   | 'review_received'
-  | 'review_liked'
   | 'listing_removed_by_admin'
   | 'listing_republish_approved'
   | 'connection_removed_by_admin'
   | 'connection_republish_approved'
   | 'product_removed'
-  | 'product_removed_creator'
   | 'account_action_taken'
   | 'new_listing_for_wish'
-  | 'followed_seller_new_listing'
-  | 'wish_product_removed'
-  | 'bookmarked_product_removed'
 
 export type ConnectionStatus = 'active' | 'ended' | 'pending_approval'
 
