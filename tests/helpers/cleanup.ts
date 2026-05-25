@@ -23,6 +23,22 @@ export async function purgeE2EData(): Promise<void> {
     }
   }
 
+  // reports.listing_id / connection_id are FK with NO ON DELETE (RESTRICT),
+  // so any report on an [E2E] listing/connection blocks its deletion below.
+  // Remove those report rows first.
+  const { data: e2eListings } = await db.from('listings').select('id').like('title', LIKE)
+  const listingIds = (e2eListings ?? []).map((l) => l.id as string)
+  const { data: e2eConns } = await db.from('connections').select('id').like('title', LIKE)
+  const connectionIds = (e2eConns ?? []).map((c) => c.id as string)
+  if (listingIds.length > 0) {
+    const { error } = await db.from('reports').delete().in('listing_id', listingIds)
+    if (error) throw new Error(`purge reports(listing): ${error.message}`)
+  }
+  if (connectionIds.length > 0) {
+    const { error } = await db.from('reports').delete().in('connection_id', connectionIds)
+    if (error) throw new Error(`purge reports(connection): ${error.message}`)
+  }
+
   // Listings/connections first (FKs to products), then products.
   for (const { table, col } of [
     { table: 'listings', col: 'title' },

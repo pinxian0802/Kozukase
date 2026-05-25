@@ -6,7 +6,7 @@ setup('authenticate buyer', async ({ page }) => {
   await page.goto('/login')
   await page.locator('#email').fill(email)
   await page.locator('#password').fill(password)
-  await page.getByRole('button', { name: '使用密碼登入' }).click()
+  await page.getByRole('button', { name: '登入', exact: true }).click()
   await page.waitForURL(
     (url) => !url.pathname.includes('/login') && !url.pathname.includes('/onboarding'),
     { timeout: 30000 },

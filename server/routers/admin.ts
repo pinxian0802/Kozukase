@@ -259,24 +259,124 @@ export const adminRouter = router({
   resolveReport: adminProcedure
     .input(z.object({
       id: z.string().uuid(),
-      status: z.enum(['resolved', 'dismissed']),
-      admin_note: z.string().optional(),
+      // takedown = act on the reported target AND close the report;
+      // dismiss  = no action, just close the report (clears the queue).
+      action: z.enum(['takedown', 'dismiss']),
+      admin_note: z.string().max(500).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { data, error } = await ctx.db
+      const { data: report } = await ctx.db
+        .from('reports')
+        .select('id, listing_id, connection_id, review_id, seller_id')
+        .eq('id', input.id)
+        .single()
+
+      if (!report) throw new TRPCError({ code: 'NOT_FOUND' })
+
+      const note = input.admin_note?.trim() || null
+
+      if (input.action === 'dismiss') {
+        await ctx.db
+          .from('reports')
+          .update({
+            status: 'dismissed',
+            admin_note: note,
+            resolved_at: new Date().toISOString(),
+            resolved_by: ctx.user.id,
+          })
+          .eq('id', input.id)
+        return { success: true }
+      }
+
+      // takedown: the note becomes the reason shown to the affected party.
+      if (!note) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '請填寫處理原因（將作為下架理由通知對方）' })
+      }
+
+      let targetCol: 'listing_id' | 'connection_id' | 'review_id' | 'seller_id'
+      let targetId: string
+
+      if (report.listing_id) {
+        targetCol = 'listing_id'
+        targetId = report.listing_id
+        const { data: listing } = await ctx.db
+          .from('listings')
+          .select('seller_id, product:products(name)')
+          .eq('id', targetId)
+          .single()
+        if (!listing) throw new TRPCError({ code: 'NOT_FOUND', message: '代購不存在' })
+        await ctx.db
+          .from('listings')
+          .update({ status: 'inactive', inactive_reason: 'admin', admin_note: note })
+          .eq('id', targetId)
+        const product = Array.isArray(listing.product) ? listing.product[0] : listing.product
+        await ctx.db.from('notifications').insert({
+          recipient_id: listing.seller_id,
+          type: 'listing_removed_by_admin',
+          payload: { listing_id: targetId, admin_note: note, product_name: product?.name ?? null },
+        })
+      } else if (report.connection_id) {
+        targetCol = 'connection_id'
+        targetId = report.connection_id
+        const { data: connection } = await ctx.db
+          .from('connections')
+          .select('seller_id, title')
+          .eq('id', targetId)
+          .single()
+        if (!connection) throw new TRPCError({ code: 'NOT_FOUND', message: '連線不存在' })
+        await ctx.db
+          .from('connections')
+          .update({ status: 'ended', ended_reason: 'admin', admin_note: note })
+          .eq('id', targetId)
+        await ctx.db.from('notifications').insert({
+          recipient_id: connection.seller_id,
+          type: 'connection_removed_by_admin',
+          payload: { connection_id: targetId, admin_note: note, connection_title: connection.title ?? null },
+        })
+      } else if (report.review_id) {
+        targetCol = 'review_id'
+        targetId = report.review_id
+        // Hide the review (no dedicated notification type for hidden reviews).
+        await ctx.db.from('reviews').update({ status: 'hidden' }).eq('id', targetId)
+      } else if (report.seller_id) {
+        targetCol = 'seller_id'
+        targetId = report.seller_id
+        await ctx.db
+          .from('sellers')
+          .update({ is_suspended: true, suspended_at: new Date().toISOString() })
+          .eq('id', targetId)
+        await ctx.db
+          .from('listings')
+          .update({ status: 'inactive', inactive_reason: 'admin' })
+          .eq('seller_id', targetId)
+          .in('status', ['active', 'pending_approval'])
+        await ctx.db
+          .from('connections')
+          .update({ status: 'ended', ended_reason: 'admin' })
+          .eq('seller_id', targetId)
+          .in('status', ['active', 'pending_approval'])
+        await ctx.db.from('notifications').insert({
+          recipient_id: targetId,
+          type: 'account_action_taken',
+          payload: { reason: note },
+        })
+      } else {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '檢舉對象不存在' })
+      }
+
+      // Close every pending report pointing at the same target (incl. this one).
+      await ctx.db
         .from('reports')
         .update({
-          status: input.status,
-          admin_note: input.admin_note ?? null,
+          status: 'resolved',
+          admin_note: note,
           resolved_at: new Date().toISOString(),
           resolved_by: ctx.user.id,
         })
-        .eq('id', input.id)
-        .select()
-        .single()
+        .eq(targetCol, targetId)
+        .eq('status', 'pending')
 
-      if (error) throw error
-      return data
+      return { success: true }
     }),
 
   // Seller suspension

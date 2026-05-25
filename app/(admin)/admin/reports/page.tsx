@@ -42,6 +42,15 @@ export default function AdminReportsPage() {
     return '未知'
   }
 
+  // The enforce action depends on what was reported.
+  const getEnforceLabel = (report: any) => {
+    if (report.listing_id) return '下架並結案'
+    if (report.connection_id) return '結束並結案'
+    if (report.review_id) return '隱藏並結案'
+    if (report.seller_id) return '停權並結案'
+    return '處理並結案'
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold font-heading">檢舉處理</h1>
@@ -82,15 +91,30 @@ export default function AdminReportsPage() {
                         <DialogHeader><DialogTitle>處理檢舉</DialogTitle></DialogHeader>
                         <div className="space-y-3">
                           <div>
-                            <Label>管理員備註（選填）</Label>
-                            <Textarea value={adminNote} onChange={(e) => setAdminNote(e.target.value)} placeholder="備註..." className="mt-1" />
+                            <Label>處理原因</Label>
+                            <Textarea
+                              value={adminNote}
+                              onChange={(e) => setAdminNote(e.target.value)}
+                              placeholder="請填寫處理原因（將作為下架／停權理由通知對方；選擇忽略時可留空）"
+                              className="mt-1"
+                            />
                           </div>
                           <div className="flex gap-2">
-                            <Button className="flex-1" onClick={() => resolve.mutate({ id: report.id, status: 'resolved', admin_note: adminNote || undefined })} disabled={resolve.isPending}>
-                              <CheckCircle className="mr-1 h-3 w-3" />解決
+                            <Button
+                              variant="destructive"
+                              className="flex-1"
+                              onClick={() => resolve.mutate({ id: report.id, action: 'takedown', admin_note: adminNote })}
+                              disabled={resolve.isPending || !adminNote.trim()}
+                            >
+                              <CheckCircle className="mr-1 h-3 w-3" />{getEnforceLabel(report)}
                             </Button>
-                            <Button variant="outline" className="flex-1" onClick={() => resolve.mutate({ id: report.id, status: 'dismissed', admin_note: adminNote || undefined })} disabled={resolve.isPending}>
-                              <XCircle className="mr-1 h-3 w-3" />駁回
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => resolve.mutate({ id: report.id, action: 'dismiss', admin_note: adminNote || undefined })}
+                              disabled={resolve.isPending}
+                            >
+                              <XCircle className="mr-1 h-3 w-3" />忽略
                             </Button>
                           </div>
                         </div>
