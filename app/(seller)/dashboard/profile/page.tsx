@@ -55,6 +55,21 @@ export default function SellerProfilePage() {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const adminHandle = process.env.NEXT_PUBLIC_INSTAGRAM_ADMIN_HANDLE ?? ''
 
+  // Threads 人工審核驗證狀態機
+  type ThreadsVerifyState =
+    | { step: 'idle' }
+    | { step: 'entering_username' }
+    | { step: 'loading_code' }
+    | { step: 'waiting_send'; id: string; code: string }
+    | { step: 'reviewing'; id: string }
+    | { step: 'rejected'; reason: string | null }
+
+  const [thVerify, setThVerify] = useState<ThreadsVerifyState>({ step: 'idle' })
+  const [thUsernameInput, setThUsernameInput] = useState('')
+  const [thInputError, setThInputError] = useState('')
+  const threadsAdminHandle =
+    process.env.NEXT_PUBLIC_THREADS_ADMIN_HANDLE ?? process.env.NEXT_PUBLIC_INSTAGRAM_ADMIN_HANDLE ?? ''
+
   const { data: seller, isLoading: isSellerLoading, refetch: refetchSeller } = trpc.seller.getSelf.useQuery(undefined, {
     refetchOnWindowFocus: false,
   })
@@ -196,6 +211,45 @@ export default function SellerProfilePage() {
     setIgInputError('')
   }
 
+  const handleThVerifyStart = async () => {
+    const username = thUsernameInput.trim().toLowerCase()
+    if (!username) {
+      setThInputError('請輸入Threads帳號')
+      return
+    }
+    setThInputError('')
+    setThVerify({ step: 'loading_code' })
+    try {
+      const res = await fetch('/api/threads/verify/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ threads_username: username }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setThVerify({ step: 'waiting_send', id: data.id, code: data.code })
+    } catch {
+      toast.error('產生驗證碼失敗，請重試')
+      setThVerify({ step: 'entering_username' })
+    }
+  }
+
+  const cancelThVerify = () => {
+    if (thVerify.step === 'waiting_send' || thVerify.step === 'reviewing') {
+      const id = 'id' in thVerify ? thVerify.id : undefined
+      if (id) {
+        void fetch('/api/threads/verify/cancel', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        })
+      }
+    }
+    setThVerify({ step: 'idle' })
+    setThUsernameInput('')
+    setThInputError('')
+  }
+
   // 回到頁面時從 DB 恢復進行中的驗證
   useEffect(() => {
     fetch('/api/instagram/verify/pending')
@@ -205,6 +259,18 @@ export default function SellerProfilePage() {
       })
       .catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 回到頁面時從 DB 恢復進行中/被退回的 Threads 申請
+  useEffect(() => {
+    fetch('/api/threads/verify/pending')
+      .then(r => r.json())
+      .then((data: { id: string; status: string; reject_reason: string | null } | null) => {
+        if (!data) return
+        if (data.status === 'pending') setThVerify({ step: 'reviewing', id: data.id })
+        else if (data.status === 'rejected') setThVerify({ step: 'rejected', reason: data.reject_reason })
+      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -257,6 +323,7 @@ export default function SellerProfilePage() {
       const label = variables.platform === 'instagram' ? 'Instagram' : 'Threads'
       toast.success(`${label} 已取消驗證`)
       if (variables.platform === 'instagram') setIgVerify({ step: 'idle' })
+      if (variables.platform === 'threads') setThVerify({ step: 'idle' })
       refetchSeller()
     },
     onError: (err) => toast.error(err.message),
@@ -458,7 +525,134 @@ export default function SellerProfilePage() {
               <CardTitle>社群帳號</CardTitle>
             </CardHeader>
 
-            {igVerify.step !== 'idle' ? (
+            {thVerify.step !== 'idle' ? (
+
+              /* ── Threads 驗證流程 ── */
+              <CardContent className="p-0">
+                <div className="flex items-center justify-center" style={{ height: 360 }}>
+                  <div className="w-full max-w-[300px] px-5">
+
+                    {thVerify.step === 'entering_username' && (
+                      <div className="flex flex-col gap-7">
+                        <div className="flex flex-col items-center gap-3.5 text-center">
+                          <div className="w-14 h-14 rounded-2xl overflow-hidden">
+                            <Image src="/images/threads.png" alt="Threads" width={56} height={56} />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-[15px] text-text-strong">驗證 Threads</p>
+                            <p className="text-[13px] text-text-muted mt-1 leading-relaxed">輸入你的帳號名稱</p>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <input
+                            className="w-full h-11 px-3.5 rounded-xl border border-border-soft bg-white text-[14px] text-text-strong placeholder:text-text-faint focus:outline-none focus:border-text-strong focus:shadow-[0_0_0_3px_rgba(17,17,17,0.06)] transition-[border-color,box-shadow]"
+                            placeholder="帳號名稱"
+                            value={thUsernameInput}
+                            onChange={e => { setThUsernameInput(e.target.value); setThInputError('') }}
+                            onKeyDown={e => { if (e.key === 'Enter') void handleThVerifyStart() }}
+                            autoFocus
+                          />
+                          <FormFieldError message={thInputError} />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => void handleThVerifyStart()}
+                            className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
+                          >
+                            取得驗證碼
+                          </button>
+                          <button onClick={cancelThVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+                            取消
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {thVerify.step === 'loading_code' && (
+                      <div className="flex flex-col items-center gap-5 py-10 text-center">
+                        <div className="flex items-center gap-2 text-text-muted">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-[13px]">正在產生驗證碼⋯</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {thVerify.step === 'waiting_send' && (
+                      <div className="flex flex-col gap-6">
+                        <div className="text-center space-y-1">
+                          <p className="font-semibold text-[15px] text-text-strong">傳送驗證碼</p>
+                          <p className="text-[13px] text-text-muted leading-relaxed">
+                            用 Threads 私訊以下數字給{' '}
+                            <a href={`https://www.threads.net/@${threadsAdminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-text-strong hover:underline">
+                              @{threadsAdminHandle}
+                            </a>
+                          </p>
+                          <p className="text-[13px] text-text-muted leading-relaxed">傳送後請點擊『<span className="text-text-strong">我已傳送</span>』按鈕</p>
+                        </div>
+                        <div className="flex justify-center gap-2">
+                          {thVerify.code.toString().split('').map((digit, i) => (
+                            <div key={i} className="flex items-center justify-center rounded-xl border-2 border-border-soft bg-surface-muted text-[22px] font-mono font-bold text-text-strong shadow-sm" style={{ width: 40, height: 52 }}>
+                              {digit}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => setThVerify({ step: 'reviewing', id: thVerify.id })}
+                            className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
+                          >
+                            我已傳送
+                          </button>
+                          <button onClick={cancelThVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+                            取消
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {thVerify.step === 'reviewing' && (
+                      <div className="flex flex-col items-center gap-6 py-6 text-center">
+                        <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden">
+                          <Image src="/images/threads.png" alt="Threads" width={72} height={72} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="font-semibold text-[16px] text-text-strong">審核中</p>
+                          <p className="text-[13px] text-text-muted leading-relaxed">我們已收到你的驗證,管理員審核通過後會以通知告知你。你可以先離開這個頁面。</p>
+                        </div>
+                        <button onClick={cancelThVerify} className="h-10 px-10 rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+                          取消申請
+                        </button>
+                      </div>
+                    )}
+
+                    {thVerify.step === 'rejected' && (
+                      <div className="flex flex-col items-center gap-6 py-6 text-center">
+                        <div className="relative">
+                          <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden">
+                            <Image src="/images/threads.png" alt="Threads" width={72} height={72} />
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-[22px] h-[22px] rounded-full bg-red-500 border-2 border-white flex items-center justify-center">
+                            <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={3.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="font-semibold text-[16px] text-text-strong">驗證未通過</p>
+                          <p className="text-[13px] text-text-muted">{thVerify.reason || '管理員未通過這次驗證,請確認已把驗證碼私訊給正確帳號後重試'}</p>
+                        </div>
+                        <button
+                          onClick={() => { setThVerify({ step: 'entering_username' }); setThUsernameInput('') }}
+                          className="h-11 px-10 rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
+                        >
+                          重新驗證
+                        </button>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              </CardContent>
+
+            ) : igVerify.step !== 'idle' ? (
 
               /* ── IG 驗證流程 ── */
               <CardContent className="p-0">
@@ -727,7 +921,7 @@ export default function SellerProfilePage() {
                         variant="ghost"
                         size="sm"
                         className="h-8 px-2.5 text-[12px] text-muted-foreground"
-                        render={<a href="/api/auth/threads/connect" />}
+                        onClick={() => setThVerify({ step: 'entering_username' })}
                       >
                         重新驗證
                       </Button>
@@ -749,7 +943,7 @@ export default function SellerProfilePage() {
                     <Button
                       size="sm"
                       className="h-8 px-3.5 text-[13px] flex-shrink-0"
-                      render={<a href="/api/auth/threads/connect" />}
+                      onClick={() => setThVerify({ step: 'entering_username' })}
                     >
                       驗證
                     </Button>

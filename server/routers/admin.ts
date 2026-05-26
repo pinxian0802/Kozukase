@@ -867,4 +867,149 @@ export const adminRouter = router({
 
       return { success: true }
     }),
+
+  // ── Threads 人工驗證審核 ──
+  listThreadsVerifications: adminProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.db
+      .from('threads_verification_requests')
+      .select('id, seller_id, threads_username, code, created_at, sellers(name)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+
+    return (data ?? []).map((r: {
+      id: string
+      seller_id: string
+      threads_username: string
+      code: string
+      created_at: string
+      sellers: { name: string } | { name: string }[] | null
+    }) => ({
+      id: r.id,
+      seller_id: r.seller_id,
+      threads_username: r.threads_username,
+      code: r.code,
+      created_at: r.created_at,
+      seller_name: Array.isArray(r.sellers) ? r.sellers[0]?.name ?? '' : r.sellers?.name ?? '',
+    }))
+  }),
+
+  // 審核紀錄：已通過 / 已退回，可依審核時間（UTC+8 當日）範圍篩選
+  listThreadsVerificationHistory: adminProcedure
+    .input(z.object({
+      from: z.string().optional(), // yyyy-MM-dd
+      to: z.string().optional(),   // yyyy-MM-dd
+    }))
+    .query(async ({ ctx, input }) => {
+      let q = ctx.db
+        .from('threads_verification_requests')
+        .select('id, seller_id, threads_username, status, reject_reason, reviewed_at, created_at, sellers(name)')
+        .in('status', ['approved', 'rejected'])
+
+      if (input.from) {
+        q = q.gte('reviewed_at', new Date(`${input.from}T00:00:00+08:00`).toISOString())
+      }
+      if (input.to) {
+        q = q.lte('reviewed_at', new Date(`${input.to}T23:59:59.999+08:00`).toISOString())
+      }
+
+      const { data, error } = await q.order('reviewed_at', { ascending: false }).limit(200)
+
+      if (error) throw error
+
+      return (data ?? []).map((r: {
+        id: string
+        seller_id: string
+        threads_username: string
+        status: string
+        reject_reason: string | null
+        reviewed_at: string | null
+        created_at: string
+        sellers: { name: string } | { name: string }[] | null
+      }) => ({
+        id: r.id,
+        seller_id: r.seller_id,
+        threads_username: r.threads_username,
+        status: r.status,
+        reject_reason: r.reject_reason,
+        reviewed_at: r.reviewed_at,
+        created_at: r.created_at,
+        seller_name: Array.isArray(r.sellers) ? r.sellers[0]?.name ?? '' : r.sellers?.name ?? '',
+      }))
+    }),
+
+  approveThreadsVerification: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: req } = await ctx.db
+        .from('threads_verification_requests')
+        .select('id, seller_id, threads_username, status')
+        .eq('id', input.id)
+        .maybeSingle()
+
+      if (!req) throw new TRPCError({ code: 'NOT_FOUND', message: '找不到此申請' })
+      if (req.status !== 'pending') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '此申請已處理過' })
+      }
+
+      await ctx.db
+        .from('sellers')
+        .update({
+          threads_handle: req.threads_username,
+          threads_connected_at: new Date().toISOString(),
+          is_social_verified: true,
+        })
+        .eq('id', req.seller_id)
+
+      await ctx.db
+        .from('threads_verification_requests')
+        .update({
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: ctx.user.id,
+        })
+        .eq('id', req.id)
+
+      await ctx.db.from('notifications').insert({
+        recipient_id: req.seller_id,
+        type: 'threads_verification_approved',
+        payload: { threads_username: req.threads_username },
+      })
+
+      return { success: true }
+    }),
+
+  rejectThreadsVerification: adminProcedure
+    .input(z.object({ id: z.string().uuid(), reason: z.string().max(500).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: req } = await ctx.db
+        .from('threads_verification_requests')
+        .select('id, seller_id, threads_username, status')
+        .eq('id', input.id)
+        .maybeSingle()
+
+      if (!req) throw new TRPCError({ code: 'NOT_FOUND', message: '找不到此申請' })
+      if (req.status !== 'pending') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '此申請已處理過' })
+      }
+
+      await ctx.db
+        .from('threads_verification_requests')
+        .update({
+          status: 'rejected',
+          reject_reason: input.reason ?? null,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: ctx.user.id,
+        })
+        .eq('id', req.id)
+
+      await ctx.db.from('notifications').insert({
+        recipient_id: req.seller_id,
+        type: 'threads_verification_rejected',
+        payload: { threads_username: req.threads_username, reason: input.reason ?? null },
+      })
+
+      return { success: true }
+    }),
 })

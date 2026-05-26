@@ -31,6 +31,7 @@ const adminLinks = [
   { href: '/admin/connections', label: '連線審核', icon: Globe },
   { href: '/admin/reports', label: '檢舉處理', icon: Flag },
   { href: '/admin/sellers', label: '賣家管理', icon: Users },
+  { href: '/admin/threads-verification', label: 'Thread 驗證', icon: UserCog },
   { href: '/admin/categories', label: '分類管理', icon: Tags },
   { href: '/admin/banners', label: '輪播管理', icon: Images },
 ]

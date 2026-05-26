@@ -112,26 +112,18 @@ export const sellerRouter = router({
         clearData.threads_connected_at = null
       }
 
-      // Recalculate is_social_verified based on whether the other platform is still connected
-      let otherConnected = false
-      if (input.platform === 'instagram') {
-        // 取消 IG：看 Threads 有沒有 token
-        const { data: threadsToken } = await ctx.db
-          .from('social_tokens')
-          .select('id')
-          .eq('seller_id', sellerId)
-          .eq('platform', 'threads')
-          .maybeSingle()
-        otherConnected = !!threadsToken
-      } else {
-        // 取消 Threads：看 IG 有沒有透過新流程綁定（ig_connected_at）
-        const { data: seller } = await ctx.db
-          .from('sellers')
-          .select('ig_connected_at')
-          .eq('id', sellerId)
-          .single()
-        otherConnected = !!seller?.ig_connected_at
-      }
+      // Recalculate is_social_verified based on whether the OTHER platform is still
+      // connected. Both platforms are now verified via app flows that stamp a
+      // *_connected_at column (Threads no longer relies on a social_tokens row).
+      const { data: seller } = await ctx.db
+        .from('sellers')
+        .select('ig_connected_at, threads_connected_at')
+        .eq('id', sellerId)
+        .single()
+      const otherConnected =
+        input.platform === 'instagram'
+          ? !!seller?.threads_connected_at
+          : !!seller?.ig_connected_at
 
       clearData.is_social_verified = otherConnected
 
