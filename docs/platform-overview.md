@@ -280,6 +280,7 @@ active ◄──── pending_approval
 
 - 下架／停權類內文附客服信箱 `support@kozukase.com`（可點 mailto）。
 - 改動前發出、`payload` 無名稱的舊通知優雅降級為通用標題（不帶名稱）。
+- 導覽列鈴鐺點擊後以下拉選單顯示最新 5 則通知（僅標題＋時間），底部「查看更多」導向 `/notifications` 完整頁面。共用 `components/shared/notification-content.tsx` 的 `getNotificationContent`。
 
 ---
 
