@@ -17,10 +17,20 @@ interface ReportDialogProps {
   seller_id?: string
   iconOnly?: boolean
   triggerClassName?: string
+  /** 受控開關（不傳則自行管理） */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  /** 隱藏自帶的檢舉觸發按鈕（由外部開啟時使用） */
+  hideTrigger?: boolean
 }
 
-export function ReportDialog({ iconOnly, triggerClassName, ...props }: ReportDialogProps) {
-  const [open, setOpen] = useState(false)
+export function ReportDialog({ iconOnly, triggerClassName, open: openProp, onOpenChange, hideTrigger, ...props }: ReportDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = openProp ?? internalOpen
+  const setOpen = (next: boolean) => {
+    if (onOpenChange) onOpenChange(next)
+    else setInternalOpen(next)
+  }
   const [reason, setReason] = useState('')
   const [reasonError, setReasonError] = useState('')
   const report = trpc.report.create.useMutation({
@@ -47,7 +57,7 @@ export function ReportDialog({ iconOnly, triggerClassName, ...props }: ReportDia
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {iconOnly ? (
+      {hideTrigger ? null : iconOnly ? (
         <DialogTrigger nativeButton render={<Button variant="outline" size="icon" className={cn("h-11 w-11 rounded-[10px] text-text-muted", triggerClassName)} />}>
           <Flag className="h-4 w-4" />
         </DialogTrigger>

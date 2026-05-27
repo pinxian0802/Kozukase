@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users, CalendarDays, Images } from 'lucide-react'
+import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users, CalendarDays, Images, FlaskConical } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +34,7 @@ const adminLinks = [
   { href: '/admin/threads-verification', label: 'Thread 驗證', icon: UserCog },
   { href: '/admin/categories', label: '分類管理', icon: Tags },
   { href: '/admin/banners', label: '輪播管理', icon: Images },
+  { href: '/admin/toast-test', label: 'Toast 測試', icon: FlaskConical },
 ]
 
 export function Sidebar({ mode, sellerProfile }: SidebarProps) {

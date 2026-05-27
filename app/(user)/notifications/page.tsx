@@ -87,6 +87,16 @@ function getNotificationContent(
           ? `有買家給了你 ${rating} 星評價，點擊查看並回覆。`
           : '有買家給了你新評價，點擊查看並回覆。',
       }
+    case 'review_liked':
+      return {
+        title: '你的評價被按讚',
+        body: '有使用者覺得你的評價很有幫助。',
+      }
+    case 'review_replied':
+      return {
+        title: '賣家回覆了你的評價',
+        body: '你評價過的賣家回覆了你，點擊查看。',
+      }
     case 'new_listing_for_wish':
       return {
         title: productName ? `「${productName}」有新代購上架` : '許願商品有新上架',

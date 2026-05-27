@@ -1,6 +1,28 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { router, protectedProcedure } from '../trpc'
+
+// Single source of truth for "is this conversation mine?". Backend uses the
+// service-role key, which bypasses RLS — so every conversation-scoped action
+// must guard membership in code. Route all such checks through here.
+async function getConversationAsMember(
+  db: SupabaseClient,
+  conversationId: string,
+  userId: string,
+) {
+  const { data: conv } = await db
+    .from('conversations')
+    .select('id, buyer_id, seller_id')
+    .eq('id', conversationId)
+    .maybeSingle()
+
+  if (!conv) throw new TRPCError({ code: 'NOT_FOUND', message: '找不到對話' })
+  if (conv.buyer_id !== userId && conv.seller_id !== userId) {
+    throw new TRPCError({ code: 'FORBIDDEN' })
+  }
+  return conv
+}
 
 export const messageRouter = router({
   getOrCreate: protectedProcedure
@@ -90,14 +112,7 @@ export const messageRouter = router({
       before: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const { data: conv } = await ctx.db
-        .from('conversations')
-        .select('id')
-        .eq('id', input.conversation_id)
-        .or(`buyer_id.eq.${ctx.user.id},seller_id.eq.${ctx.user.id}`)
-        .maybeSingle()
-
-      if (!conv) throw new TRPCError({ code: 'FORBIDDEN' })
+      await getConversationAsMember(ctx.db, input.conversation_id, ctx.user.id)
 
       let q = ctx.db
         .from('messages')
@@ -143,14 +158,7 @@ export const messageRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: '圖片必須來自受信任的儲存空間' })
       }
 
-      const { data: conv } = await ctx.db
-        .from('conversations')
-        .select('buyer_id, seller_id')
-        .eq('id', input.conversation_id)
-        .or(`buyer_id.eq.${ctx.user.id},seller_id.eq.${ctx.user.id}`)
-        .maybeSingle()
-
-      if (!conv) throw new TRPCError({ code: 'FORBIDDEN' })
+      const conv = await getConversationAsMember(ctx.db, input.conversation_id, ctx.user.id)
 
       const { data: msg, error: msgErr } = await ctx.db
         .from('messages')
@@ -169,27 +177,29 @@ export const messageRouter = router({
 
       if (msgErr) throw msgErr
 
-      ctx.db
-        .from('profiles')
-        .update({ last_seen_at: new Date().toISOString() })
-        .eq('id', ctx.user.id)
-        .then(() => {})
-
+      const nowIso = new Date().toISOString()
       const preview = input.body?.slice(0, 50) ?? '傳送了一張圖片'
-
-      ctx.db
-        .from('conversations')
-        .update({ last_message_at: msg.created_at, last_message_preview: preview })
-        .eq('id', input.conversation_id)
-        .then(() => {})
-
       const isBuyer = conv.buyer_id === ctx.user.id
       const readField = isBuyer ? 'buyer_last_read_at' : 'seller_last_read_at'
-      ctx.db
+
+      // Message is already saved — these are follow-up updates. Await them so they
+      // actually run (fire-and-forget can be killed when a serverless response returns),
+      // but never fail the send: log and still return the saved message.
+      const { error: convErr } = await ctx.db
         .from('conversations')
-        .update({ [readField]: new Date().toISOString() })
+        .update({
+          last_message_at: msg.created_at,
+          last_message_preview: preview,
+          [readField]: nowIso,
+        })
         .eq('id', input.conversation_id)
-        .then(() => {})
+      if (convErr) console.error('更新對話摘要失敗', convErr)
+
+      const { error: seenErr } = await ctx.db
+        .from('profiles')
+        .update({ last_seen_at: nowIso })
+        .eq('id', ctx.user.id)
+      if (seenErr) console.error('更新上線時間失敗', seenErr)
 
       return msg
     }),
@@ -197,19 +207,9 @@ export const messageRouter = router({
   markRead: protectedProcedure
     .input(z.object({ conversation_id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { data: conv } = await ctx.db
-        .from('conversations')
-        .select('buyer_id, seller_id')
-        .eq('id', input.conversation_id)
-        .maybeSingle()
-
-      if (!conv) throw new TRPCError({ code: 'NOT_FOUND' })
+      const conv = await getConversationAsMember(ctx.db, input.conversation_id, ctx.user.id)
 
       const isBuyer = conv.buyer_id === ctx.user.id
-      if (!isBuyer && conv.seller_id !== ctx.user.id) {
-        throw new TRPCError({ code: 'FORBIDDEN' })
-      }
-
       const field = isBuyer ? 'buyer_last_read_at' : 'seller_last_read_at'
 
       await ctx.db

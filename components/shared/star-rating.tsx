@@ -33,13 +33,13 @@ export function StarRating({ value, onChange, readonly = false, size = 'md' }: S
           onClick={() => onChange?.(star)}
           onMouseEnter={() => !readonly && setHovered(star)}
           onMouseLeave={() => setHovered(0)}
-          className={cn('p-0 transition-colors', readonly ? 'cursor-default' : 'cursor-pointer')}
+          className={cn('p-0 transition-colors', readonly ? 'cursor-default disabled:opacity-100' : 'cursor-pointer')}
         >
           <Star
             className={cn(
               sizes[size],
               (hovered || value) >= star
-                ? 'fill-primary text-primary'
+                ? 'fill-amber-400 text-amber-400'
                 : 'fill-transparent text-muted-foreground/30'
             )}
           />

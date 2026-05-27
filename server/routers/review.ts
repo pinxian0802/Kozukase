@@ -1,19 +1,24 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, publicProcedure, protectedProcedure, sellerProcedure } from '../trpc'
-import { createReviewInput, replyReviewInput } from '@/lib/validators/review'
+import { createReviewInput, updateReviewInput, replyReviewInput } from '@/lib/validators/review'
 import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
 
 export const reviewRouter = router({
   create: protectedProcedure
     .input(createReviewInput)
     .mutation(async ({ ctx, input }) => {
+      // 不能評價自己
+      if (input.seller_id === ctx.user.id) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '無法評價自己' })
+      }
+
       // Check if seller exists and not suspended
       const { data: seller } = await ctx.db
         .from('sellers')
         .select('id, is_suspended')
         .eq('id', input.seller_id)
-        .single()
+        .maybeSingle()
 
       if (!seller || seller.is_suspended) {
         throw new TRPCError({ code: 'NOT_FOUND', message: '賣家不存在' })
@@ -25,7 +30,7 @@ export const reviewRouter = router({
         .select('id')
         .eq('seller_id', input.seller_id)
         .eq('reviewer_id', ctx.user.id)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: '您已經對此賣家留過評價' })
@@ -59,7 +64,13 @@ export const reviewRouter = router({
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        // 兩個請求同時通過上面的重複檢查時，靠資料庫唯一鍵擋下，回友善訊息
+        if ((error as { code?: string }).code === '23505') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: '您已經對此賣家留過評價' })
+        }
+        throw error
+      }
 
       // Notify seller
       await ctx.db.from('notifications').insert({
@@ -69,6 +80,42 @@ export const reviewRouter = router({
       })
 
       return data
+    }),
+
+  // 編輯自己留的評價
+  update: protectedProcedure
+    .input(updateReviewInput)
+    .mutation(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db
+        .from('reviews')
+        .update({
+          rating: input.rating,
+          comment: input.comment ?? null,
+        })
+        .eq('id', input.review_id)
+        .eq('reviewer_id', ctx.user.id)
+        .select()
+        .single()
+
+      if (error || !data) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: '評價不存在' })
+      }
+
+      return data
+    }),
+
+  // 刪除自己留的評價
+  remove: protectedProcedure
+    .input(z.object({ review_id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.db
+        .from('reviews')
+        .delete()
+        .eq('id', input.review_id)
+        .eq('reviewer_id', ctx.user.id)
+
+      if (error) throw error
+      return { success: true }
     }),
 
   reply: sellerProcedure
@@ -89,6 +136,15 @@ export const reviewRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: '評價不存在' })
       }
 
+      // 通知留評價的買家：賣家已回覆
+      if (data.reviewer_id !== ctx.seller.id) {
+        await ctx.db.from('notifications').insert({
+          recipient_id: data.reviewer_id,
+          type: 'review_replied',
+          payload: { review_id: data.id, seller_id: ctx.seller.id },
+        })
+      }
+
       return data
     }),
 
@@ -101,7 +157,7 @@ export const reviewRouter = router({
         .select('id')
         .eq('review_id', input.review_id)
         .eq('user_id', ctx.user.id)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         // Unlike
@@ -114,6 +170,21 @@ export const reviewRouter = router({
         review_id: input.review_id,
         user_id: ctx.user.id,
       })
+
+      // 通知評價作者：評價被按讚（不通知自己按自己）
+      const { data: review } = await ctx.db
+        .from('reviews')
+        .select('id, reviewer_id')
+        .eq('id', input.review_id)
+        .maybeSingle()
+
+      if (review && review.reviewer_id !== ctx.user.id) {
+        await ctx.db.from('notifications').insert({
+          recipient_id: review.reviewer_id,
+          type: 'review_liked',
+          payload: { review_id: review.id, liker_id: ctx.user.id },
+        })
+      }
 
       return { liked: true }
     }),
@@ -164,6 +235,39 @@ export const reviewRouter = router({
       }))
 
       return paginateResults(enriched, input.limit, (item) => item.created_at)
+    }),
+
+  // 某賣家所有「顯示中」評價的星等分佈（用於評價分頁左側長條圖，需涵蓋全部而非單頁）
+  getDistribution: publicProcedure
+    .input(z.object({ seller_id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const stars = [1, 2, 3, 4, 5] as const
+      const counts = await Promise.all(
+        stars.map(async (rating) => {
+          const { count } = await ctx.db
+            .from('reviews')
+            .select('id', { count: 'exact', head: true })
+            .eq('seller_id', input.seller_id)
+            .eq('status', 'visible')
+            .eq('rating', rating)
+          return { stars: rating, count: count ?? 0 }
+        })
+      )
+      return counts
+    }),
+
+  // 目前登入者對某賣家留的評價（沒有則回 null），用於決定顯示「撰寫」或「你的評價」
+  getMyReviewForSeller: protectedProcedure
+    .input(z.object({ seller_id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data } = await ctx.db
+        .from('reviews')
+        .select('*')
+        .eq('seller_id', input.seller_id)
+        .eq('reviewer_id', ctx.user.id)
+        .maybeSingle()
+
+      return data ?? null
     }),
 
   // My reviews (for profile page)

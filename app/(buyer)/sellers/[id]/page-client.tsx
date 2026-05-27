@@ -8,6 +8,7 @@ import {
   Star, Package, Globe, CheckCircle2, MessageCircle, ChevronLeft
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -15,7 +16,7 @@ import { StarRating } from '@/components/shared/star-rating'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { ReportDialog } from '@/components/shared/report-dialog'
 import { SharePopover } from '@/components/shared/share-popover'
-import { ReviewForm } from '@/components/review/review-form'
+import { ReviewComposer } from '@/components/review/review-composer'
 import { ReviewList } from '@/components/review/review-list'
 import { ListingCard } from '@/components/listing/listing-card'
 import { ConnectionCard } from '@/components/connection/connection-card'
@@ -42,7 +43,7 @@ function StarRow({ value, size = 14 }: { value: number; size?: number }) {
         <Star
           key={i}
           style={{ width: size, height: size }}
-          className={i <= Math.round(value) ? 'fill-text-strong stroke-text-strong' : 'fill-none stroke-text-strong'}
+          className={i <= Math.round(value) ? 'fill-amber-400 stroke-amber-400' : 'fill-none stroke-neutral-300'}
           strokeWidth={1.5}
         />
       ))}
@@ -59,10 +60,27 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
   const [listingCat, setListingCat] = useState('all')
   const [listingSort, setListingSort] = useState('latest')
 
+  const currentUserId = session?.user?.id
+
   const { data: seller, isLoading } = trpc.seller.getById.useQuery({ id })
   const { data: listings } = trpc.seller.getListings.useQuery({ sellerId: id })
   const { data: connections } = trpc.connection.getBySeller.useQuery({ sellerId: id })
-  const { data: reviews } = trpc.review.getBySeller.useQuery({ seller_id: id })
+
+  const {
+    data: reviewPages,
+    isLoading: isLoadingReviews,
+    fetchNextPage: fetchMoreReviews,
+    hasNextPage: hasMoreReviews,
+    isFetchingNextPage: isFetchingMoreReviews,
+  } = trpc.review.getBySeller.useInfiniteQuery(
+    { seller_id: id, limit: 20 },
+    { getNextPageParam: (lastPage) => lastPage.nextCursor }
+  )
+  const { data: ratingDistribution } = trpc.review.getDistribution.useQuery({ seller_id: id })
+  const { data: myReview } = trpc.review.getMyReviewForSeller.useQuery(
+    { seller_id: id },
+    { enabled: !!currentUserId && !isOwnProfile }
+  )
 
   const followToggle = trpc.follow.toggle.useMutation({
     onMutate: async () => {
@@ -110,11 +128,14 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
   if (!seller) return null
 
-  // Rating distribution computed from loaded reviews
-  const reviewItems = reviews?.items ?? []
+  // 列表顯示用：攤平所有已載入分頁，並濾掉自己的評價（自己的顯示在上方撰寫區）
+  const reviewItems = (reviewPages?.pages.flatMap((p) => p.items) ?? [])
+    .filter((r) => r.id !== myReview?.id)
+
+  // 星等分佈：用全站統計（涵蓋所有評價，而非目前載入的單頁）
   const ratingDist = [5, 4, 3, 2, 1].map(stars => ({
     stars,
-    count: reviewItems.filter((r: any) => Math.round(r.rating) === stars).length,
+    count: ratingDistribution?.find((d) => d.stars === stars)?.count ?? 0,
   }))
   const ratingTotal = ratingDist.reduce((a, b) => a + b.count, 0)
 
@@ -152,7 +173,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
         </button>
 
         {/* ── Hero ── */}
-        <div className="mt-6 grid grid-cols-[1.4fr_1fr] gap-8 items-start">
+        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1.4fr_1fr] md:gap-8 items-start">
           {/* Left: avatar + info */}
           <div className="flex gap-6">
             <Avatar className="h-[104px] w-[104px] shrink-0">
@@ -210,7 +231,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Right: actions + social card */}
-          <div className="flex flex-col gap-2 w-fit ml-auto">
+          <div className="flex flex-col gap-2 w-full md:w-fit md:ml-auto">
             {/* Button row: 追蹤(148px) + 訊息+分享+檢舉(148px) */}
             {!isOwnProfile && (
               <div className="flex gap-2">
@@ -296,14 +317,14 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
             <div
               key={s.label}
               className={cn(
-                'px-5 py-[18px] flex flex-col gap-1 items-center text-center justify-center',
+                'px-2 py-3.5 sm:px-5 sm:py-[18px] flex flex-col gap-1 items-center text-center justify-center',
                 i < stats.length - 1 && 'border-r border-border-soft'
               )}
             >
               <div className="text-[11px] font-medium text-text-muted uppercase tracking-[.04em]">{s.label}</div>
               <div className="flex items-baseline gap-1.5" style={{ fontFamily: 'Rubik, sans-serif', fontSize: 24, fontWeight: 700, color: 'var(--text-strong)', letterSpacing: '-0.01em' }}>
                 {s.value}
-                {s.star && s.value !== '-' && <Star className="h-3.5 w-3.5 fill-text-strong stroke-text-strong mb-0.5" strokeWidth={1.5} />}
+                {s.star && s.value !== '-' && <Star className="h-3.5 w-3.5 fill-amber-400 stroke-amber-400 mb-0.5" strokeWidth={1.5} />}
               </div>
               {s.sub && <div className="text-[11.5px] text-text-faint">{s.sub}</div>}
             </div>
@@ -378,7 +399,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
           {/* ── Reviews tab ── */}
           <TabsContent value="reviews" className="mt-5">
-            <div className="grid grid-cols-[300px_1fr] gap-9">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-[300px_1fr] md:gap-9">
               {/* Rating sidebar */}
               <aside className="bg-surface-muted border border-border-soft rounded-[14px] p-[22px] h-fit">
                 <div className="flex items-baseline gap-1.5 mb-1">
@@ -395,7 +416,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     return (
                       <div key={r.stars} className="grid items-center gap-2.5 text-[12px]" style={{ gridTemplateColumns: '36px 1fr 28px' }}>
                         <span className="inline-flex items-center gap-1 text-text-muted">
-                          {r.stars} <Star className="h-2.5 w-2.5 fill-text-muted stroke-text-muted" strokeWidth={1.5} />
+                          {r.stars} <Star className="h-2.5 w-2.5 fill-amber-400 stroke-amber-400" strokeWidth={1.5} />
                         </span>
                         <div className="h-1.5 bg-border-soft rounded-full overflow-hidden">
                           <div
@@ -412,11 +433,36 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
               {/* Review list */}
               <div className="flex flex-col gap-4">
-                <ReviewForm sellerId={id} />
-                {reviewItems.length > 0 ? (
-                  <ReviewList reviews={reviewItems} sellerId={id} />
+                <ReviewComposer
+                  sellerId={id}
+                  isOwnProfile={isOwnProfile}
+                  isLoggedIn={!!currentUserId}
+                  myReview={myReview ?? null}
+                />
+                {isLoadingReviews ? (
+                  <div className="flex flex-col gap-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-28 w-full rounded-[14px]" />
+                    ))}
+                  </div>
+                ) : reviewItems.length > 0 ? (
+                  <>
+                    <ReviewList reviews={reviewItems} sellerId={id} canReply={isOwnProfile} />
+                    {hasMoreReviews && (
+                      <div className="pt-1 text-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchMoreReviews()}
+                          disabled={isFetchingMoreReviews}
+                        >
+                          {isFetchingMoreReviews ? '載入中...' : '載入更多評價'}
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <EmptyState icon={Star} title="尚無評價" description="成為第一個留評價的人" />
+                  !myReview && <EmptyState icon={Star} title="尚無評價" description="成為第一個留評價的人" />
                 )}
               </div>
             </div>
