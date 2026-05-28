@@ -177,7 +177,9 @@ active ◄──── pending_approval
 - 品牌（選填，多選，外鍵至 `brands`）
 
 **瀏覽與搜尋：**
-- 買家瀏覽頁可依地區、地點關鍵字（`locations` 欄位模糊比對）、品牌、連線日期區間、可許願、提供付款方式、社群驗證篩選
+- 買家瀏覽頁可依地區、地點關鍵字、品牌、連線日期區間、可許願、提供付款方式、社群驗證篩選
+- 地點關鍵字輸入後按 Enter（或離開輸入框）才提交，比對 `connections.locations_text` 鏡像欄位（由 trigger 攤平 `locations text[]` 維護，技術細節見 `docs/notes/postgrest-column-cast-pitfall.md`）
+- 全站搜尋（header `q`）會同時比對 `title`、`description`、`locations_text`
 - 社群驗證篩選只顯示已連結社群帳號（`sellers.is_social_verified`）的賣家連線
 
 **數量上限：** 每位賣家最多 5 個，由資料庫觸發器強制執行

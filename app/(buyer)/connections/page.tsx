@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useQueryState, useQueryStates, parseAsString, parseAsInteger, parseAsBoolean } from 'nuqs'
 import { format, isValid, parseISO } from 'date-fns'
 import { Globe, Info, Search, SlidersHorizontal, X } from 'lucide-react'
@@ -26,10 +26,10 @@ export default function ConnectionsPage() {
   // q 由全站搜尋框帶入，本頁唯讀
   const [q] = useQueryState('q', parseAsString.withDefault(''))
 
-  // 地點關鍵字：逐字輸入即時篩選，但 replace + throttle 不灌爆瀏覽器歷史
+  // 地點關鍵字：本地輸入,使用者按 Enter（或點 chip X 清除）時才推進 URL/觸發查詢
   const [locationQuery, setLocationQuery] = useQueryState(
     'location',
-    parseAsString.withDefault('').withOptions({ history: 'replace', shallow: true, throttleMs: 500 }),
+    parseAsString.withDefault('').withOptions({ history: 'push', shallow: true }),
   )
 
   // 一組會一起變動的離散篩選；history:'push' 讓上一頁可逐步回退（與 /search 一致）。
@@ -86,9 +86,16 @@ export default function ConnectionsPage() {
     setParams({ ...patch, page: 1 })
   }
 
-  // location 屬獨立 replace hook；變更時一併把 page 設回 1（僅在非第 1 頁時）
-  const onLocationChange = (value: string) => {
-    setLocationQuery(value)
+  // 地點輸入用本地 state 控制,按 Enter 才提交;URL 端有變動（如 chip X 清除）時同步回 input
+  const [locationInput, setLocationInput] = useState(locationQuery)
+  useEffect(() => {
+    setLocationInput(locationQuery)
+  }, [locationQuery])
+
+  const commitLocation = (value: string) => {
+    const next = value.trim()
+    if (next === locationQuery) return
+    setLocationQuery(next || null)
     if (safePage !== 1) setParams({ page: 1 })
   }
   const { data: regionsData } = trpc.seller.getRegions.useQuery()
@@ -219,9 +226,15 @@ export default function ConnectionsPage() {
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={locationQuery}
-              onChange={(event) => onLocationChange(event.target.value)}
-              placeholder="例如：稻荷神社"
+              value={locationInput}
+              onChange={(event) => setLocationInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  commitLocation(locationInput)
+                }
+              }}
+              placeholder="例如：稻荷神社（按 Enter 搜尋）"
               className="pl-9"
             />
           </div>
@@ -371,7 +384,7 @@ export default function ConnectionsPage() {
                       <button
                         type="button"
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-soft bg-surface-card px-2.5 py-1 text-xs font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
-                        onClick={() => onLocationChange('')}
+                        onClick={() => commitLocation('')}
                       >
                         地點：{locationText}
                         <X className="h-3 w-3" />

@@ -235,7 +235,7 @@ export const connectionRouter = router({
         .select(`
           *,
           region:regions(id, name),
-          seller:sellers(
+          seller:sellers!inner(
             id, name, ig_handle, threads_handle, is_social_verified, avatar_url,
             profile:profiles(display_name, avatar_url)
           ),
@@ -252,8 +252,15 @@ export const connectionRouter = router({
         .eq('seller.is_suspended', false)
 
       if (input.title_query) {
-        query = query.ilike('title', `%${input.title_query}%`)
-        countQuery = countQuery.ilike('title', `%${input.title_query}%`)
+        // PostgREST `.or()` 用逗號分隔條件、括號包子查詢；q 內若含這些字元會破壞 filter 語法。
+        // 先把它們替換成空白，避免噴錯;空字串則略過搜尋。
+        const safeQ = input.title_query.replace(/[(),]/g, ' ').trim()
+        if (safeQ) {
+          const pattern = `%${safeQ}%`
+          const orClause = `title.ilike.${pattern},description.ilike.${pattern},locations_text.ilike.${pattern}`
+          query = query.or(orClause)
+          countQuery = countQuery.or(orClause)
+        }
       }
 
       if (input.region_id) {
@@ -262,8 +269,8 @@ export const connectionRouter = router({
       }
 
       if (input.location_query) {
-        query = query.filter('locations::text', 'ilike', `%${input.location_query}%`)
-        countQuery = countQuery.filter('locations::text', 'ilike', `%${input.location_query}%`)
+        query = query.ilike('locations_text', `%${input.location_query}%`)
+        countQuery = countQuery.ilike('locations_text', `%${input.location_query}%`)
       }
 
       if (input.active_during?.end) {
