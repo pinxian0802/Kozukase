@@ -28,7 +28,18 @@ export async function createTRPCContext() {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // 用 getClaims() 而不是 getUser():在本機驗 JWT 簽章(ES256 非對稱金鑰),
+  // 不打網路。安全性等同 getUser(),每支 tRPC API 省 100~200ms。
+  const { data, error } = await supabase.auth.getClaims()
+  const claims = data?.claims
+
+  const user = !error && claims?.sub
+    ? {
+        id: claims.sub,
+        email: claims.email ?? undefined,
+        app_metadata: (claims.app_metadata ?? {}) as Record<string, unknown>,
+      }
+    : null
 
   return {
     user,

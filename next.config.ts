@@ -148,18 +148,22 @@ const nextConfig: NextConfig = {
 	},
 };
 
-export default withSentryConfig(nextConfig, {
-	// Sentry 組織 / 專案（source map 上傳目標）
-	org: "pinxian-chiang",
-	project: "kozukase",
+// Sentry 只在 production build 時包進來。
+// dev 模式下跳過,避免 Sentry 的 webpack/turbopack instrumentation 拖慢編譯。
+export default process.env.NODE_ENV === 'production'
+	? withSentryConfig(nextConfig, {
+		// Sentry 組織 / 專案（source map 上傳目標）
+		org: "pinxian-chiang",
+		project: "kozukase",
 
-	// SENTRY_AUTH_TOKEN 由環境變數自動讀取（.env.local / Vercel）
-	// 非 CI 時靜音 wizard log
-	silent: !process.env.CI,
+		// SENTRY_AUTH_TOKEN 由環境變數自動讀取（.env.local / Vercel）
+		// 非 CI 時靜音 wizard log
+		silent: !process.env.CI,
 
-	// 涵蓋更廣的 client 檔案以利 source map 還原
-	widenClientFileUpload: true,
+		// 涵蓋更廣的 client 檔案以利 source map 還原
+		widenClientFileUpload: true,
 
-	// 移除 Sentry SDK debug log，縮小 bundle
-	disableLogger: true,
-});
+		// 移除 Sentry SDK debug log，縮小 bundle
+		disableLogger: true,
+	})
+	: nextConfig;

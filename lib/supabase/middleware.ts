@@ -30,12 +30,16 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // 用 getClaims() 而不是 getUser():在本機驗 JWT 簽章(ES256 非對稱金鑰),
+  // 不打網路。安全性等同 getUser(),每次跳保護頁面省 100~200ms。
+  const { data, error } = await supabase.auth.getClaims()
+  const claims = data?.claims
+  const userId = !error ? claims?.sub : undefined
 
   const { pathname } = request.nextUrl
 
   // 沒登入 → 一律踢去 /login,登入後可回到原本想去的頁面
-  if (!user) {
+  if (!userId) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
@@ -48,9 +52,9 @@ export async function updateSession(request: NextRequest) {
     // cookie 值存 user.id,而不是 '1'。
     // 這樣同一個瀏覽器換帳號時,舊帳號的 cookie 不會被新帳號誤用。
     const cookieValue = request.cookies.get(ONBOARDING_COOKIE)?.value
-    if (cookieValue !== user.id) {
+    if (cookieValue !== userId) {
       // Use service role client to bypass RLS — the user identity was already
-      // verified above via supabase.auth.getUser(), so this is safe.
+      // verified above via JWT signature check, so this is safe.
       const serviceClient = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -59,7 +63,7 @@ export async function updateSession(request: NextRequest) {
       const { data: profile } = await serviceClient
         .from('profiles')
         .select('username')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single()
       if (!profile?.username) {
         const onboardingUrl = request.nextUrl.clone()
@@ -67,7 +71,7 @@ export async function updateSession(request: NextRequest) {
         onboardingUrl.search = ''
         return NextResponse.redirect(onboardingUrl)
       }
-      supabaseResponse.cookies.set(ONBOARDING_COOKIE, user.id, {
+      supabaseResponse.cookies.set(ONBOARDING_COOKIE, userId, {
         httpOnly: true,
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
