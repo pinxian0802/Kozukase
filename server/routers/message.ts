@@ -87,9 +87,9 @@ export const messageRouter = router({
         buyer_last_read_at, seller_last_read_at,
         last_message_at, last_message_preview,
         buyer_profile:profiles!conversations_buyer_id_fkey(id, display_name, avatar_url, last_seen_at),
-        seller_profile:profiles!conversations_seller_id_fkey(id, display_name, avatar_url, last_seen_at)
+        seller_profile:profiles!conversations_seller_id_fkey(id, display_name, avatar_url, last_seen_at, seller_identity:sellers(name, avatar_url))
       `)
-      .or(`buyer_id.eq.${ctx.user.id},seller_id.eq.${ctx.user.id}`)
+      .or(`buyer_id.eq.${ctx.user.id},and(seller_id.eq.${ctx.user.id},last_message_at.not.is.null)`)
       .order('last_message_at', { ascending: false, nullsFirst: false })
 
     if (error) throw error
@@ -200,6 +200,47 @@ export const messageRouter = router({
         .update({ last_seen_at: nowIso })
         .eq('id', ctx.user.id)
       if (seenErr) console.error('更新上線時間失敗', seenErr)
+
+      // ────────────────────────────────────────────────────────
+      // Realtime broadcast (best-effort)
+      // 訊息已存進 DB,以下廣播只是「即時推播」;失敗不影響送出結果,
+      // 對方下次切頁或 staleTime 過期會看到訊息。
+      // ────────────────────────────────────────────────────────
+      const recipientId = isBuyer ? conv.seller_id : conv.buyer_id
+
+      try {
+        const convChannel = ctx.db.channel(
+          `conversation:${input.conversation_id}`,
+          { config: { private: true } }
+        )
+        const result = await convChannel.send({
+          type: 'broadcast',
+          event: 'new_message',
+          payload: msg,
+        })
+        if (result !== 'ok') {
+          console.error('廣播到對話頻道未成功', { result, conversation_id: input.conversation_id })
+        }
+      } catch (err) {
+        console.error('廣播到對話頻道拋錯', err)
+      }
+
+      try {
+        const userChannel = ctx.db.channel(
+          `user:${recipientId}`,
+          { config: { private: true } }
+        )
+        const result = await userChannel.send({
+          type: 'broadcast',
+          event: 'messages_changed',
+          payload: { conversation_id: input.conversation_id },
+        })
+        if (result !== 'ok') {
+          console.error('廣播到使用者頻道未成功', { result, recipient_id: recipientId })
+        }
+      } catch (err) {
+        console.error('廣播到使用者頻道拋錯', err)
+      }
 
       return msg
     }),

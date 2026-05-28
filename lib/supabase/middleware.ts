@@ -2,29 +2,6 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Routes that require a logged-in session.
-// Seller / admin role checks are handled in the respective layouts.
-const AUTH_REQUIRED_PREFIXES = [
-  '/favorites',
-  '/settings',
-  '/notifications',
-  '/messages',
-  '/dashboard',
-  '/admin',
-  '/onboarding',
-]
-
-// Routes where incomplete onboarding users are allowed through.
-const ONBOARDING_BYPASS_PREFIXES = [
-  '/onboarding',
-  '/login',
-  '/register',
-  '/callback',
-  '/forgot-password',
-  '/reset-password',
-  '/api',
-]
-
 const ONBOARDING_COOKIE = 'onboarding_done'
 
 export async function updateSession(request: NextRequest) {
@@ -56,23 +33,22 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const requiresAuth = AUTH_REQUIRED_PREFIXES.some((p) => pathname.startsWith(p))
 
+  // 沒登入 → 一律踢去 /login,登入後可回到原本想去的頁面
   if (!user) {
-    // 沒有登入者（含登出後）時清掉 onboarding 記號，
-    // 避免同一瀏覽器換帳號時沿用前一個人的「已完成設定」狀態而跳過 onboarding。
-    supabaseResponse.cookies.delete({ name: ONBOARDING_COOKIE, path: '/' })
-  }
-
-  if (requiresAuth && !user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  if (user && !ONBOARDING_BYPASS_PREFIXES.some((p) => pathname.startsWith(p))) {
-    if (!request.cookies.get(ONBOARDING_COOKIE)) {
+  // 已登入,但還沒完成 onboarding → 強制導去 /onboarding
+  // (本身就在 /onboarding 的話不要再導,免得無限重定向)
+  if (!pathname.startsWith('/onboarding')) {
+    // cookie 值存 user.id,而不是 '1'。
+    // 這樣同一個瀏覽器換帳號時,舊帳號的 cookie 不會被新帳號誤用。
+    const cookieValue = request.cookies.get(ONBOARDING_COOKIE)?.value
+    if (cookieValue !== user.id) {
       // Use service role client to bypass RLS — the user identity was already
       // verified above via supabase.auth.getUser(), so this is safe.
       const serviceClient = createClient(
@@ -91,7 +67,7 @@ export async function updateSession(request: NextRequest) {
         onboardingUrl.search = ''
         return NextResponse.redirect(onboardingUrl)
       }
-      supabaseResponse.cookies.set(ONBOARDING_COOKIE, '1', {
+      supabaseResponse.cookies.set(ONBOARDING_COOKIE, user.id, {
         httpOnly: true,
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',

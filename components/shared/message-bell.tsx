@@ -1,40 +1,20 @@
 'use client'
 
-import { useEffect } from 'react'
 import Link from 'next/link'
 import { MessageSquare } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
-import { useSession } from '@/lib/context/session-context'
-import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
+/**
+ * 訊息鈴鐺(未讀數)。
+ *
+ * 此元件只負責顯示 `message.unreadCount` 的查詢結果。
+ * 真正的「有新訊息要刷新」訊號由 Header 內的 <UserChannelListener />
+ * 訂閱 user:<myId> 廣播頻道收到後,統一 invalidate。
+ */
 export function MessageBell() {
-  const session = useSession()
-  const utils = trpc.useUtils()
   const { data } = trpc.message.unreadCount.useQuery()
-
-  // Real-time: update bell count instantly when a new message arrives
-  useEffect(() => {
-    if (!session?.user?.id) return
-    const supabase = createSupabaseBrowserClient()
-    const channel = supabase
-      .channel('bell-sync')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          const msg = payload.new as { sender_id: string }
-          if (msg.sender_id !== session.user!.id) {
-            utils.message.unreadCount.invalidate()
-          }
-        }
-      )
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.id])
-
   const count = data?.count ?? 0
 
   return (

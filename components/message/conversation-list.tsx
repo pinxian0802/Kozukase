@@ -1,18 +1,17 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { MessageSquare, Search } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
-import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 type Props = {
   selectedId: string | null
-  onSelect: (id: string, otherName: string | null, otherAvatar: string | null, otherLastSeenAt: string | null) => void
+  onSelect: (id: string, otherName: string | null, otherAvatar: string | null, otherLastSeenAt: string | null, otherSellerId: string | null) => void
 }
 
 type OtherProfile = {
@@ -22,6 +21,10 @@ type OtherProfile = {
   last_seen_at: string | null
 }
 
+type SellerProfile = OtherProfile & {
+  seller_identity: { name: string | null; avatar_url: string | null } | null
+}
+
 type TabKey = 'all' | 'unread'
 
 export function ConversationList({ selectedId, onSelect }: Props) {
@@ -29,37 +32,31 @@ export function ConversationList({ selectedId, onSelect }: Props) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState<TabKey>('all')
 
-  const utils = trpc.useUtils()
   const { data: conversations, isLoading } = trpc.message.list.useQuery(undefined, { staleTime: 0 })
 
-  // Real-time: when anyone sends a message to our conversations, refresh the list
-  useEffect(() => {
-    if (!session?.user?.id) return
-    const supabase = createSupabaseBrowserClient()
-    const channel = supabase
-      .channel('conv-list-sync')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          const msg = payload.new as { sender_id: string }
-          // Skip our own sends — send mutation already invalidates
-          if (msg.sender_id !== session.user!.id) {
-            utils.message.list.invalidate()
-          }
-        }
-      )
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.id])
+  // 即時刷新由 Header 內的 <UserChannelListener /> 統一處理:
+  // 收到 user:<myId> 頻道的 messages_changed 廣播後,會 invalidate
+  // message.list 與 message.unreadCount,本元件會自動 refetch。
 
   const processedConvs = useMemo(() => {
     if (!conversations) return []
     return conversations.map(conv => {
       const isBuyer = conv.buyer_id === session?.user?.id
-      const other = (isBuyer ? conv.seller_profile : conv.buyer_profile) as unknown as OtherProfile | null
       const unreadCount = (conv as any).unread_count as number ?? 0
+      let other: OtherProfile | null
+      if (isBuyer) {
+        // 對方是賣家:優先用賣家身份的名稱 / 頭貼
+        const sp = conv.seller_profile as unknown as SellerProfile | null
+        other = sp ? {
+          id: sp.id,
+          display_name: sp.seller_identity?.name ?? sp.display_name,
+          avatar_url: sp.seller_identity?.avatar_url ?? sp.avatar_url,
+          last_seen_at: sp.last_seen_at,
+        } : null
+      } else {
+        // 對方是買家:用一般個人檔案
+        other = conv.buyer_profile as unknown as OtherProfile | null
+      }
       return { ...conv, other, unreadCount }
     })
   }, [conversations, session?.user?.id])
@@ -151,7 +148,10 @@ export function ConversationList({ selectedId, onSelect }: Props) {
               preview={conv.last_message_preview ?? null}
               unreadCount={conv.unreadCount}
               isActive={selectedId === conv.id}
-              onClick={() => onSelect(conv.id, conv.other?.display_name ?? null, conv.other?.avatar_url ?? null, conv.other?.last_seen_at ?? null)}
+              onClick={() => {
+                const isConvBuyer = conv.buyer_id === session?.user?.id
+                onSelect(conv.id, conv.other?.display_name ?? null, conv.other?.avatar_url ?? null, conv.other?.last_seen_at ?? null, isConvBuyer ? conv.seller_id : null)
+              }}
             />
           ))
         )}

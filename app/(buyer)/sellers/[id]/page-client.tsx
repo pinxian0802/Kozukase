@@ -250,7 +250,15 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
                 </button>
                 <button
-                  onClick={() => router.push(`/messages?seller_id=${id}`)}
+                  onClick={() => {
+                    const name = seller.name ?? ''
+                    const avatar = seller.avatar_url ?? (seller as any).profile?.avatar_url ?? ''
+                    router.push(
+                      `/messages?seller_id=${id}` +
+                      `&seller_name=${encodeURIComponent(name)}` +
+                      `&seller_avatar=${encodeURIComponent(avatar)}`
+                    )
+                  }}
                   className="h-11 w-11 rounded-[10px] bg-white text-text-muted border border-border-soft inline-flex items-center justify-center hover:bg-surface-muted transition-colors shrink-0"
                 >
                   <MessageCircle className="h-4 w-4" />

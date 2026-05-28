@@ -14,11 +14,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { trpc } from '@/lib/trpc/client'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { useSession } from '@/lib/context/session-context'
 import { formatRelativeTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
 import { getNotificationContent } from '@/components/shared/notification-content'
 
 export function NotificationBell() {
+  const session = useSession()
+  const userId = session?.user?.id
   const utils = trpc.useUtils()
   const { data: countData } = trpc.notification.unreadCount.useQuery()
   const unreadCount = countData?.count ?? 0
@@ -27,13 +30,24 @@ export function NotificationBell() {
   const notifications = listData?.items ?? []
 
   useEffect(() => {
+    if (!userId) return
+
+    // 訂閱「只屬於我」的通知。比起聽整張 notifications 表、再靠 RLS 把別人的擋掉,
+    // 加上 filter 後 Realtime 在 server 端就會把不相關的列短路掉,
+    // 大幅減少每筆 INSERT 對每個訂閱者跑的權限比對。
+    // 通道名也帶 userId,避免不同使用者共用同一個通道名造成奇怪行為。
     const supabase = createSupabaseBrowserClient()
 
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications:${userId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `recipient_id=eq.${userId}`,
+        },
         () => {
           utils.notification.unreadCount.invalidate()
           utils.notification.list.invalidate()
@@ -44,7 +58,7 @@ export function NotificationBell() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [utils])
+  }, [userId, utils])
 
   const markRead = trpc.notification.markRead.useMutation({
     onSuccess: () => {

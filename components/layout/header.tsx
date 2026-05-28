@@ -13,6 +13,7 @@ import { useSession } from '@/lib/context/session-context'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/shared/notification-bell'
 import { MessageBell } from '@/components/shared/message-bell'
+import { UserChannelListener } from '@/components/layout/user-channel-listener'
 
 export function Header() {
   const router = useRouter()
@@ -99,6 +100,7 @@ export function Header() {
 
           {session?.profile ? (
             <>
+              <UserChannelListener />
               <NotificationBell />
               <MessageBell />
               <DropdownMenu>

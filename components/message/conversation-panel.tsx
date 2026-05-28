@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Info, MoreHorizontal } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatLastSeen } from '@/lib/utils/format'
 import { format } from 'date-fns'
@@ -24,6 +24,7 @@ type Props = {
   otherName: string | null
   otherAvatar: string | null
   otherLastSeenAt: string | null
+  otherPageUrl: string | null
   pendingContext?: {
     contextType?: 'listing' | 'connection'
     contextId?: string
@@ -72,7 +73,8 @@ function uploadWithProgress(
   })
 }
 
-export function ConversationPanel({ conversationId, otherName, otherAvatar, otherLastSeenAt, pendingContext, pendingContextImage }: Props) {
+export function ConversationPanel({ conversationId, otherName, otherAvatar, otherLastSeenAt, otherPageUrl, pendingContext, pendingContextImage }: Props) {
+  const router = useRouter()
   const session = useSession()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const isAtBottom = useRef(true)
@@ -120,29 +122,24 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
 
     markRead.mutate({ conversation_id: conversationId })
 
+    // 訂閱對話私人廣播頻道。後端 message.send 寫入 DB 後會廣播 new_message。
+    // 與舊的 postgres_changes 相比,訊息路由改由「頻道名稱」決定,
+    // 不再對每筆 INSERT 跑全表的 RLS 比對。
+    // 注意:private: true 是必要的,否則 realtime.messages 的權限規則不會套用。
     const supabase = createSupabaseBrowserClient()
     const channel = supabase
-      .channel(`conversation:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const newMsg = payload.new as Message
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev
-            return [...prev, newMsg]
-          })
-          if (isAtBottom.current) scrollToBottom()
-          if (newMsg.sender_id !== session?.user?.id) {
-            markRead.mutate({ conversation_id: conversationId })
-          }
+      .channel(`conversation:${conversationId}`, { config: { private: true } })
+      .on('broadcast', { event: 'new_message' }, (payload) => {
+        const newMsg = payload.payload as Message
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === newMsg.id)) return prev
+          return [...prev, newMsg]
+        })
+        if (isAtBottom.current) scrollToBottom()
+        if (newMsg.sender_id !== session?.user?.id) {
+          markRead.mutate({ conversation_id: conversationId })
         }
-      )
+      })
       .subscribe()
 
     return () => {
@@ -208,11 +205,15 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
         context_image_url: payload.contextImage,
       })
 
-      // Replace optimistic immediately (no await gap → Realtime duplicate-key race is gone)
-      // Preserve localImageUrl so the blob keeps showing while R2 URL loads in background
-      setMessages(prev => prev.map(m =>
-        m.id === tempId ? { ...realMsg, isOptimistic: false, localImageUrl: m.localImageUrl } : m
-      ))
+      // Replace the optimistic placeholder with the real message.
+      // Also filter out any copy already added by the Realtime broadcast (which can
+      // arrive before sendMutation resolves), preventing a duplicate-key render error.
+      setMessages(prev => {
+        const localImageUrl = prev.find(m => m.id === tempId)?.localImageUrl
+        return prev
+          .filter(m => m.id !== realMsg.id)
+          .map(m => m.id === tempId ? { ...realMsg, isOptimistic: false, localImageUrl } : m)
+      })
 
       // Non-blocking: once R2 image is in browser cache, swap to it and free the blob
       if (realMsg.image_url && payload.localPreviewUrl) {
@@ -265,28 +266,36 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
         height: 68, borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-card)',
         padding: '0 20px', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0,
       }}>
-        <Avatar style={{ width: 40, height: 40, flexShrink: 0 }}>
-          <AvatarImage src={otherAvatar ?? undefined} />
-          <AvatarFallback style={{ background: 'linear-gradient(135deg, #2d3a5e, #0f1a36)', color: 'var(--surface-card)', fontFamily: 'Rubik, sans-serif', fontWeight: 700 }}>
-            {otherName?.[0] ?? '?'}
-          </AvatarFallback>
-        </Avatar>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {otherName ?? '對話'}
+        <div
+          onClick={() => otherPageUrl && router.push(otherPageUrl)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0,
+            cursor: otherPageUrl ? 'pointer' : 'default',
+            borderRadius: 8, padding: '4px 6px', margin: '-4px -6px',
+            transition: 'background .12s',
+          }}
+          onMouseEnter={e => { if (otherPageUrl) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-muted)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+        >
+          <Avatar style={{ width: 40, height: 40, flexShrink: 0 }}>
+            <AvatarImage src={otherAvatar ?? undefined} />
+            <AvatarFallback style={{ background: 'linear-gradient(135deg, #2d3a5e, #0f1a36)', color: 'var(--surface-card)', fontFamily: 'Rubik, sans-serif', fontWeight: 700 }}>
+              {otherName?.[0] ?? '?'}
+            </AvatarFallback>
+          </Avatar>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {otherName ?? '對話'}
+            </div>
+            {(() => {
+              const lastSeenText = formatLastSeen(otherLastSeenAt)
+              return lastSeenText ? (
+                <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 1 }}>
+                  {lastSeenText}
+                </div>
+              ) : null
+            })()}
           </div>
-          {(() => {
-            const lastSeenText = formatLastSeen(otherLastSeenAt)
-            return lastSeenText ? (
-              <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 1 }}>
-                {lastSeenText}
-              </div>
-            ) : null
-          })()}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <IconBtn title="詳情"><Info style={{ width: 15, height: 15 }} /></IconBtn>
-          <IconBtn title="更多"><MoreHorizontal style={{ width: 15, height: 15 }} /></IconBtn>
         </div>
       </div>
 
@@ -345,13 +354,3 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
   )
 }
 
-function IconBtn({ children, title }: { children: React.ReactNode; title?: string }) {
-  return (
-    <button title={title} style={{
-      width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border-soft)', background: 'var(--surface-card)',
-      cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      {children}
-    </button>
-  )
-}
