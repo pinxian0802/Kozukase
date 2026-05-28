@@ -1,8 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-// 結構需與 components/dashboard/list-shell.tsx 的真實版面（標題列 + tabs + 列表）對齊。
-// 外層不再加 max-w-6xl/px-4/py-6，因 (seller) layout 已套用 p-6。
-export default function ListingsLoading() {
+// 結構需與 components/dashboard/list-shell.tsx 的真實版面對齊。
+export default function ConnectionsLoading() {
   return (
     <div className="space-y-6">
       {/* 標題列：title + usage hint + 新增按鈕 */}
@@ -14,14 +13,14 @@ export default function ListingsLoading() {
         <Skeleton className="h-9 w-28" />
       </div>
 
-      {/* Tabs：全部 / 上架中 / 草稿 / 已下架 / 待審核 */}
+      {/* Tabs：全部 / 進行中 / 已結束 / 待審核 */}
       <div className="flex gap-2 border-b border-border pb-2">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-8 w-20 rounded-md" />
         ))}
       </div>
 
-      {/* 列表列（與 list-shell 內建 isLoading 的骨架一致，避免雙層跳動） */}
+      {/* 列表列（與 list-shell 內建 isLoading 的骨架一致） */}
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-16 rounded-lg" />

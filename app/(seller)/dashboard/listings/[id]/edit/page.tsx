@@ -5,11 +5,11 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Label } from '@/components/ui/label'
 import { ProductCard } from '@/components/product/product-card'
 import { ProductPicker, type SelectedProduct } from '@/components/product/product-picker'
 import { ListingForm } from '@/components/listing/listing-form'
+import { ListingFormSkeleton } from '@/components/dashboard/listing-form-skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { useDeferredProductCreate } from '@/lib/hooks/use-deferred-product-create'
 import type { ProductSearchResult } from '@/components/product/product-search'
@@ -26,12 +26,7 @@ export default function EditListingPage() {
   const [replacement, setReplacement] = useState<SelectedProduct | null>(null)
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-96 w-full rounded-xl" />
-      </div>
-    )
+    return <ListingFormSkeleton />
   }
 
   if (!listing) return null

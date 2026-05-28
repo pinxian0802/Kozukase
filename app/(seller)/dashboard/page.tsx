@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { Package, Globe, Plus, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { AnalyticsStats } from '@/components/seller/analytics-stats'
+import { DashboardHomeSkeleton } from '@/components/dashboard/home-skeleton'
 
 const MAX_LISTINGS = 25
 
@@ -52,16 +52,7 @@ export default function SellerDashboardPage() {
   })
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-16 rounded-xl" />
-        <Skeleton className="h-28 rounded-xl" />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Skeleton className="h-72 rounded-xl" />
-          <Skeleton className="h-72 rounded-xl" />
-        </div>
-      </div>
-    )
+    return <DashboardHomeSkeleton />
   }
 
   return (

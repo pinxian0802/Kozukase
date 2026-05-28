@@ -11,7 +11,7 @@ import { ReportDialog } from '@/components/shared/report-dialog'
 import { SharePopover } from '@/components/shared/share-popover'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ListingDetailSkeleton } from '@/components/buyer/skeletons/listing-detail-skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 import { formatPrice, formatDate, formatLastSeen } from '@/lib/utils/format'
@@ -65,12 +65,7 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
   }
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-5xl px-6 py-6 space-y-6">
-        <Skeleton className="h-96 w-full rounded-xl" />
-        <Skeleton className="h-8 w-64" />
-      </div>
-    )
+    return <ListingDetailSkeleton />
   }
 
   if (!listing) return null

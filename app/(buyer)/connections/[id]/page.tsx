@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SocialBadge } from '@/components/seller/social-badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
+import { ConnectionDetailSkeleton } from '@/components/buyer/skeletons/connection-detail-skeleton'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate, formatLastSeen } from '@/lib/utils/format'
@@ -94,12 +94,7 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
   }
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-5xl px-6 py-6 space-y-6">
-        <Skeleton className="h-96 w-full rounded-xl" />
-        <Skeleton className="h-8 w-64" />
-      </div>
-    )
+    return <ConnectionDetailSkeleton />
   }
 
   if (!connection) return null

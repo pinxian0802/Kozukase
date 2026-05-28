@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SellerProfileSkeleton } from '@/components/buyer/skeletons/seller-profile-skeleton'
 import { StarRating } from '@/components/shared/star-rating'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { ReportDialog } from '@/components/shared/report-dialog'
@@ -117,13 +118,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
   }, [seller])
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
-        <Skeleton className="h-5 w-48 rounded" />
-        <Skeleton className="h-40 w-full rounded-xl" />
-        <Skeleton className="h-20 w-full rounded-xl" />
-      </div>
-    )
+    return <SellerProfileSkeleton />
   }
 
   if (!seller) return null

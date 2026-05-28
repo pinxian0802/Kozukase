@@ -12,7 +12,7 @@ import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ProductDetailSkeleton } from '@/components/buyer/skeletons/product-detail-skeleton'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -166,14 +166,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
   )
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-surface-page">
-        <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-64 w-full rounded-lg" />
-        </div>
-      </div>
-    )
+    return <ProductDetailSkeleton />
   }
 
   if (!product) {

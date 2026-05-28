@@ -4,8 +4,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { ConnectionForm } from '@/components/connection/connection-form'
+import { ConnectionFormSkeleton } from '@/components/dashboard/connection-form-skeleton'
 import { trpc } from '@/lib/trpc/client'
 
 export default function EditConnectionPage() {
@@ -16,12 +16,7 @@ export default function EditConnectionPage() {
   const connection = data?.find((c: any) => c.id === id)
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-4xl space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </div>
-    )
+    return <ConnectionFormSkeleton />
   }
 
   if (!connection) return null
