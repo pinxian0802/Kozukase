@@ -139,15 +139,8 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
 
   const igHandle = seller.ig_handle
-  const igFollowers = seller.ig_follower_count
   const threadsHandle = (seller as any).threads_handle as string | null | undefined
-  const threadsFollowers = (seller as any).threads_follower_count as number | null | undefined
   const hasSocial = !!(igHandle || threadsHandle)
-  const formatBig = (n: number) => {
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M'
-    if (n >= 1_000) return (n / 1_000).toFixed(1).replace('.0', '') + 'K'
-    return n.toString()
-  }
 
   const stats = [
     { label: '代購商品', value: listingItems.length > 0 ? listingItems.length : (seller as any).listing_count ?? '-' },

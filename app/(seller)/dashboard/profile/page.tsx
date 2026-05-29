@@ -385,8 +385,6 @@ export default function SellerProfilePage() {
   const threadsConnectedAt = seller?.threads_connected_at as string | null | undefined
   const igHandle = seller?.ig_handle as string | null | undefined
   const threadsHandle = seller?.threads_handle as string | null | undefined
-  const igFollowers = seller?.ig_follower_count as number | null | undefined
-  const threadsFollowers = seller?.threads_follower_count as number | null | undefined
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -844,12 +842,6 @@ export default function SellerProfilePage() {
                             className="text-[12.5px] text-text-muted font-medium hover:underline"
                           >@{igHandle}</a>
                         )}
-                        {igFollowers != null && (
-                          <>
-                            <span className="text-text-faint text-[11px]">·</span>
-                            <span className="text-[12px] text-muted-foreground">{igFollowers.toLocaleString()} 位粉絲</span>
-                          </>
-                        )}
                       </div>
                     ) : (
                       <p className="text-[12px] text-muted-foreground">尚未連結</p>
@@ -902,12 +894,6 @@ export default function SellerProfilePage() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {threadsHandle && (
                           <span className="text-[12.5px] text-text-muted font-medium">@{threadsHandle}</span>
-                        )}
-                        {threadsFollowers != null && (
-                          <>
-                            <span className="text-text-faint text-[11px]">·</span>
-                            <span className="text-[12px] text-muted-foreground">{threadsFollowers.toLocaleString()} 位粉絲</span>
-                          </>
                         )}
                       </div>
                     ) : (

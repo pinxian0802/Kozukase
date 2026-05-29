@@ -155,8 +155,7 @@ export const productRouter = router({
             id, title, price, is_price_on_request, is_in_stock, specs, note, post_url,
             shipping_date, expires_at, status, created_at,
             seller:sellers(
-              id, name, ig_handle, threads_handle, ig_follower_count,
-              threads_follower_count, is_social_verified, avg_rating, review_count, avatar_url
+              id, name, ig_handle, threads_handle, is_social_verified, avg_rating, review_count, avatar_url
             ),
             listing_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
           )

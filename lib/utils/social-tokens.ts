@@ -93,24 +93,6 @@ export async function refreshSocialTokens(sellerId: string): Promise<void> {
         expires_at: newExpiresAt.toISOString(),
         last_refreshed: new Date().toISOString(),
       }).eq('seller_id', sellerId).eq('platform', platform)
-
-      // 嘗試更新粉絲數（可能因 rate limit 或 scope 不足而失敗，不中斷流程）
-      try {
-        if (platform === 'instagram') {
-          const profileResp = await fetch(
-            `https://graph.instagram.com/me?fields=followers_count&access_token=${newToken}`
-          )
-          if (profileResp.ok) {
-            const profile = await profileResp.json()
-            if (profile.followers_count !== undefined) {
-              await db.from('sellers').update({ ig_follower_count: profile.followers_count }).eq('id', sellerId)
-            }
-          }
-        }
-        // Threads API 不一定提供 followers_count，略過
-      } catch {
-        // 靜默失敗，保留舊粉絲數
-      }
     } catch (err) {
       // Token 無效或已撤銷：清除 token 與賣家社群欄位
       console.error(`[refreshSocialTokens] Failed to refresh ${platform} token for seller ${sellerId}:`, err)
