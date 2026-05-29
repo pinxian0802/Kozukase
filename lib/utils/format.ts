@@ -49,13 +49,14 @@ export function formatLastSeen(dateString: string | null | undefined): string | 
 
 export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   fashion: '時尚穿搭',
+  luxury: '精品/名牌',
   beauty: '美妝保養',
   health: '保健品',
   food: '食品零食',
   electronics: '3C 電器',
   lifestyle: '生活雜貨',
   sports: '運動戶外',
-  toys: '公仔玩具',
+  toys: '公仔玩具/遊戲',
   books: '書籍文具',
   pets: '寵物用品',
   culture: '文化紀念品',

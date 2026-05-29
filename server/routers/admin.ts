@@ -70,7 +70,7 @@ export const adminRouter = router({
   setProductCategory: adminProcedure
     .input(z.object({
       id: z.string().uuid(),
-      category: z.enum(['fashion', 'beauty', 'health', 'food', 'electronics', 'lifestyle', 'sports', 'toys', 'books', 'pets', 'culture', 'automotive', 'baby', 'jewelry', 'idol', 'other']),
+      category: productCategoryEnum,
     }))
     .mutation(async ({ ctx, input }) => {
       const { data, error } = await ctx.db
