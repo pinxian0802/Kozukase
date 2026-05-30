@@ -36,12 +36,19 @@ const SPEC_PLACEHOLDER: Record<string, string> = Object.fromEntries(
 )
 
 interface SpecEntry {
+  id: string
   type: string
   is_custom: boolean
   options: string[]
   is_all: boolean
   _optionInput: string
 }
+
+// 給每筆規格一個穩定 id 當 React key，刪除中間項時才不會錯位 / 焦點亂跳。
+const newSpecId = () =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `spec-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 function SpecTagInput({
   specType,
@@ -128,7 +135,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
   const [isPriceOnRequest, setIsPriceOnRequest] = useState(initialData?.is_price_on_request ?? false)
   const [isInStock, setIsInStock] = useState(initialData?.is_in_stock ?? false)
   const [specs, setSpecs] = useState<SpecEntry[]>(
-    initialData?.specs?.map((s: any) => ({ ...s, _optionInput: '' })) ?? []
+    initialData?.specs?.map((s: any) => ({ id: newSpecId(), ...s, _optionInput: '' })) ?? []
   )
   const [note, setNote] = useState(initialData?.note ?? '')
   const [postUrl, setPostUrl] = useState(initialData?.post_url ?? '')
@@ -206,11 +213,11 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
   }
 
   const addSpec = () => {
-    setSpecs([...specs, { type: '顏色', is_custom: false, options: [], is_all: false, _optionInput: '' }])
+    setSpecs([...specs, { id: newSpecId(), type: '顏色', is_custom: false, options: [], is_all: false, _optionInput: '' }])
   }
 
-  const removeSpec = (index: number) => {
-    setSpecs(specs.filter((_, i) => i !== index))
+  const removeSpec = (id: string) => {
+    setSpecs(specs.filter((s) => s.id !== id))
   }
 
   const updateSpec = (index: number, updates: Partial<SpecEntry>) => {
@@ -234,7 +241,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
   }
 
   const buildInput = (status: 'draft' | 'active', resolvedProductId: string) => {
-    const specsClean = specs.map(({ _optionInput, options, ...rest }) => ({
+    const specsClean = specs.map(({ id: _id, _optionInput, options, ...rest }) => ({
       ...rest,
       options,
       is_all: options.length === 0,
@@ -575,7 +582,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
                 specs.filter((_, i) => i !== index && !specs[i].is_custom).map((s) => s.type)
               )
               return (
-              <div key={index} className="grid gap-1.5 mb-2 items-start" style={{ gridTemplateColumns: '100px 1fr 32px' }}>
+              <div key={spec.id} className="grid gap-1.5 mb-2 items-start" style={{ gridTemplateColumns: '100px 1fr 32px' }}>
                 {spec.is_custom && spec.type !== '自訂' ? (
                   <Input
                     value={spec.type}
@@ -619,7 +626,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => removeSpec(index)}
+                  onClick={() => removeSpec(spec.id)}
                   className="h-9 w-8 text-muted-foreground hover:text-destructive"
                 >
                   <X className="h-4 w-4" />

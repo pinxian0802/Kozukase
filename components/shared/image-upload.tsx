@@ -137,34 +137,49 @@ export function ImageUpload({
   const { mutateAsync: getPresignedUrl } = trpc.upload.getPresignedUrl.useMutation()
   const [uploading, setUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
-  const [pendingPreviews, setPendingPreviews] = useState<string[]>([])
+  const [pendingPreviews, setPendingPreviews] = useState<{ file: File; url: string }[]>([])
   const [viewerOpen, setViewerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  // 每個 File 對應的 blob URL：只在檔案新增/移除時建立或釋放，
+  // 不會因為刪掉某張就重建其他張的 URL（避免預覽閃爍 / 錯位）。
+  const urlMapRef = useRef(new Map<File, string>())
 
   useEffect(() => {
     onUploadingChange?.(uploading)
   }, [onUploadingChange, uploading])
 
   useEffect(() => {
-    if (!pendingFiles || pendingFiles.length === 0) {
-      setPendingPreviews([])
-      return
+    const files = pendingFiles ?? []
+    const map = urlMapRef.current
+
+    for (const file of files) {
+      if (!map.has(file)) map.set(file, URL.createObjectURL(file))
+    }
+    for (const [file, url] of map) {
+      if (!files.includes(file)) {
+        URL.revokeObjectURL(url)
+        map.delete(file)
+      }
     }
 
-    const urls = pendingFiles.map((file) => URL.createObjectURL(file))
-    setPendingPreviews(urls)
-
-    return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url))
-    }
+    setPendingPreviews(files.map((file) => ({ file, url: map.get(file)! })))
   }, [pendingFiles])
+
+  // 卸載時釋放所有尚未清掉的 blob URL。
+  useEffect(() => {
+    const map = urlMapRef.current
+    return () => {
+      for (const url of map.values()) URL.revokeObjectURL(url)
+      map.clear()
+    }
+  }, [])
 
   const totalCount = images.length + (pendingFiles?.length ?? 0)
   const remainingSlots = Math.max(maxImages - totalCount, 0)
   const previewItems = [
     ...images.map((image) => ({ url: image.url, removeKind: 'image' as const })),
-    ...pendingPreviews.map((url) => ({ url, removeKind: 'pending' as const })),
+    ...pendingPreviews.map((item) => ({ url: item.url, removeKind: 'pending' as const })),
   ]
   const lightboxImages = previewItems.map((item) => ({ url: item.url, alt: '' }))
 
@@ -314,17 +329,17 @@ export function ImageUpload({
             </Card>
           ))}
 
-          {pendingPreviews.map((preview, index) => {
+          {pendingPreviews.map((item, index) => {
             const previewIndex = images.length + index
             return (
-              <Card key={`pending-${index}`} className="relative aspect-square overflow-hidden rounded-xl border-dashed border-primary/40 bg-primary/5 shadow-sm ring-0 py-0 gap-0">
+              <Card key={`pending-${item.url}`} className="relative aspect-square overflow-hidden rounded-xl border-dashed border-primary/40 bg-primary/5 shadow-sm ring-0 py-0 gap-0">
                 <CardContent className="relative h-full w-full p-0">
                   <button
                     type="button"
                     onClick={() => openViewer(previewIndex)}
                     className="block h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
-                    <img src={preview} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" draggable={false} />
+                    <img src={item.url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" draggable={false} />
                   </button>
                   <Button
                     type="button"

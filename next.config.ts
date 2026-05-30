@@ -12,8 +12,8 @@ const nextConfig: NextConfig = {
 		const csp = [
 			"default-src 'self'",
 			"script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-			// heic-to(HEIC→webp 轉換)用 new Worker(URL.createObjectURL(blob)) 建 worker,
-			// 需允許 blob: worker,否則 iPhone .heic 上傳會出現空的「Worker error: {}」
+			// 保留 blob: worker:部分函式庫(含影像/WASM 相關)會用
+			// new Worker(URL.createObjectURL(blob)) 建 worker;移除會出現空的「Worker error: {}」
 			"worker-src 'self' blob:",
 			"style-src 'self' 'unsafe-inline'",
 			"img-src 'self' data: blob: https:",
