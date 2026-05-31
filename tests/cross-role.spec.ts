@@ -78,9 +78,10 @@ test('管理員下架 listing -> 賣家重新上架 -> pending_approval', async 
 
   await sellerPage.goto('/dashboard/listings')
   await sellerPage.getByRole('tab', { name: /已下架/ }).click()
-  await expect(sellerPage.getByText(seed.title)).toBeVisible({ timeout: 20000 })
-
-  await listingCard(sellerPage, seed.title).getByRole('button', { name: '重新上架' }).click()
+  const row = sellerPage.getByRole('row').filter({ hasText: seed.title })
+  await expect(row).toBeVisible({ timeout: 20000 })
+  await row.locator('[aria-label="更多操作"]').click()
+  await sellerPage.getByRole('menuitem', { name: '重新上架' }).click()
 
   await expect
     .poll(async () => {

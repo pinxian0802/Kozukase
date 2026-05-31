@@ -54,47 +54,63 @@ export default function AdminSellersPage() {
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 rounded-lg" />)}</div>
       ) : data?.items && data.items.length > 0 ? (
-        <div className="space-y-2">
-          {data.items.map((seller: any) => (
-            <div key={seller.id} className="flex items-center justify-between rounded-lg border p-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium">{seller.name}</p>
-                  {seller.is_suspended && <Badge variant="destructive">已停權</Badge>}
-                  {seller.is_social_verified && <Badge variant="secondary">社群認證</Badge>}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  加入於 {formatDate(seller.created_at)} · 評價 {seller.avg_rating?.toFixed(1) ?? 'N/A'} ({seller.review_count ?? 0})
-                </p>
-              </div>
-              <div className="flex gap-2">
-                {seller.is_suspended ? (
-                  <Button size="sm" onClick={() => unsuspend.mutate({ seller_id: seller.id })} disabled={unsuspend.isPending}>
-                    <CheckCircle className="mr-1 h-3 w-3" />解除停權
-                  </Button>
-                ) : (
-                  <Dialog open={suspendId === seller.id} onOpenChange={(open) => { if (!open) setSuspendId(null) }}>
-                    <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setSuspendId(seller.id)} />}>
-                        <Ban className="mr-1 h-3 w-3" />停權
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader><DialogTitle>停權賣家</DialogTitle></DialogHeader>
-                      <div className="space-y-3">
-                        <p className="text-sm">確定要停權「{seller.name}」？此操作會下架所有商品上架和結束所有連線。</p>
-                        <div>
-                          <Label>停權原因</Label>
-                          <Textarea value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />
-                        </div>
-                        <Button variant="destructive" className="w-full" onClick={() => suspend.mutate({ seller_id: seller.id, reason: suspendReason })} disabled={suspend.isPending || !suspendReason.trim()}>
-                          確認停權
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <table className="w-full text-sm">
+            <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">賣家</th>
+                <th className="px-4 py-3 font-medium">加入時間</th>
+                <th className="px-4 py-3 font-medium">評價</th>
+                <th className="px-4 py-3 font-medium">狀態</th>
+                <th className="px-4 py-3 font-medium text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.map((seller: any) => (
+                <tr key={seller.id} className="border-b last:border-b-0">
+                  <td className="px-4 py-3 font-medium">{seller.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{formatDate(seller.created_at)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {seller.avg_rating?.toFixed(1) ?? 'N/A'} ({seller.review_count ?? 0})
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {seller.is_suspended
+                        ? <Badge variant="destructive">已停權</Badge>
+                        : <Badge variant="outline">正常</Badge>}
+                      {seller.is_social_verified && <Badge variant="secondary">社群認證</Badge>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {seller.is_suspended ? (
+                      <Button size="sm" onClick={() => unsuspend.mutate({ seller_id: seller.id })} disabled={unsuspend.isPending}>
+                        <CheckCircle className="mr-1 h-3 w-3" />解除停權
+                      </Button>
+                    ) : (
+                      <Dialog open={suspendId === seller.id} onOpenChange={(open) => { if (!open) setSuspendId(null) }}>
+                        <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setSuspendId(seller.id)} />}>
+                          <Ban className="mr-1 h-3 w-3" />停權
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader><DialogTitle>停權賣家</DialogTitle></DialogHeader>
+                          <div className="space-y-3">
+                            <p className="text-sm">確定要停權「{seller.name}」？此操作會下架所有商品上架和結束所有連線。</p>
+                            <div>
+                              <Label>停權原因</Label>
+                              <Textarea value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />
+                            </div>
+                            <Button variant="destructive" className="w-full" onClick={() => suspend.mutate({ seller_id: seller.id, reason: suspendReason })} disabled={suspend.isPending || !suspendReason.trim()}>
+                              確認停權
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <EmptyState icon={Users} title="沒有找到賣家" />

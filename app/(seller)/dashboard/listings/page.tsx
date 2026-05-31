@@ -205,7 +205,7 @@ export default function SellerListingsPage() {
                       <span className="text-muted-foreground">--</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-left" onClick={(e) => e.stopPropagation()}>
                     <ListingActions
                       listingId={listing.id}
                       listingStatus={listing.status}
@@ -321,11 +321,9 @@ function ListingActions({
   onDelete,
 }: ListingActionsProps) {
   return (
-    <div className="inline-flex items-center justify-end gap-2">
+    <div className="inline-flex items-center justify-start gap-2">
       <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listingId}/edit`} />}>編輯</Button>
-      {listingStatus === 'pending_approval' ? (
-        <Badge variant="outline" className="h-8 px-3">等待審核結果</Badge>
-      ) : (
+      {listingStatus === 'pending_approval' ? null : (
         <DropdownMenu>
           <DropdownMenuTrigger
             nativeButton={false}

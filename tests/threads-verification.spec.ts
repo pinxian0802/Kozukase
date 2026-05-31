@@ -3,9 +3,9 @@ import type { Page } from '@playwright/test'
 import { dbAdmin, getSellerIdByEmail, getNotificationCount } from './helpers/db'
 import { trpcMutate } from './helpers/trpc'
 
-// Admin review cards on /admin/threads-verification: `rounded-lg border p-4`.
+// Admin table rows on /admin/threads-verification (now table layout).
 function reqCard(page: Page, text: string) {
-  return page.locator('div.rounded-lg.border').filter({ hasText: text })
+  return page.locator('tbody tr').filter({ hasText: text })
 }
 
 // The Threads row inside the seller profile 社群帳號 tab (the divider row that

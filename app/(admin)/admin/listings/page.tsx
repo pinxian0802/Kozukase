@@ -41,56 +41,53 @@ export default function AdminListingsPage() {
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
       ) : data?.items && data.items.length > 0 ? (
-        <div className="space-y-4">
-          {data.items.map((listing) => (
-            <div key={listing.id} className="rounded-2xl border bg-white p-4">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,260px)_1fr]">
-                <ProductCard
-                  product={{
-                    id: listing.product?.id ?? listing.id,
-                    name: listing.product?.name ?? '未知商品',
-                    brand: listing.product?.brand ?? null,
-                    model_number: listing.product?.model_number ?? null,
-                    catalog_image: listing.product?.catalog_image ?? null,
-                    product_images: listing.product?.product_images ?? [],
-                  }}
-                  linkToProduct={false}
-                />
-
-                <div className="flex min-w-0 flex-1 flex-col justify-between gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      賣家：{listing.seller?.name ?? '未知'} · {formatDate(listing.created_at)}
-                    </p>
-                    {listing.note && <p className="text-sm">{listing.note}</p>}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => approve.mutate({ id: listing.id })} disabled={approve.isPending}>
-                      <Check className="mr-1 h-3 w-3" />通過
-                    </Button>
-                    <Dialog open={removeId === listing.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
-                      <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(listing.id)} />}>
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <table className="w-full text-sm">
+            <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">商品</th>
+                <th className="px-4 py-3 font-medium">賣家</th>
+                <th className="px-4 py-3 font-medium">申請時間</th>
+                <th className="px-4 py-3 font-medium text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.map((listing) => (
+                <tr key={listing.id} className="border-b last:border-b-0">
+                  <td className="px-4 py-3">
+                    <p className="font-medium">{listing.product?.name ?? '未知商品'}</p>
+                    {listing.note && <p className="text-xs text-muted-foreground mt-0.5">{listing.note}</p>}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{listing.seller?.name ?? '未知'}</td>
+                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(listing.created_at)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" onClick={() => approve.mutate({ id: listing.id })} disabled={approve.isPending}>
+                        <Check className="mr-1 h-3 w-3" />通過
+                      </Button>
+                      <Dialog open={removeId === listing.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
+                        <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(listing.id)} />}>
                           <X className="mr-1 h-3 w-3" />駁回
-                      </DialogTrigger>
+                        </DialogTrigger>
                         <DialogContent>
-                        <DialogHeader><DialogTitle>駁回代購</DialogTitle></DialogHeader>
-                        <div className="space-y-3">
-                          <div>
-                            <Label>駁回原因</Label>
-                            <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />
+                          <DialogHeader><DialogTitle>駁回代購</DialogTitle></DialogHeader>
+                          <div className="space-y-3">
+                            <div>
+                              <Label>駁回原因</Label>
+                              <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />
+                            </div>
+                            <Button variant="destructive" className="w-full" onClick={() => remove.mutate({ id: listing.id, admin_note: removeReason })} disabled={remove.isPending || !removeReason.trim()}>
+                              確認駁回
+                            </Button>
                           </div>
-                          <Button variant="destructive" className="w-full" onClick={() => remove.mutate({ id: listing.id, admin_note: removeReason })} disabled={remove.isPending || !removeReason.trim()}>
-                            確認駁回
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <EmptyState icon={Package} title="沒有待審核的商品" description="目前沒有需要審核的上架申請" />

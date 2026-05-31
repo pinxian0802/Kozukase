@@ -39,6 +39,14 @@ export async function purgeE2EData(): Promise<void> {
     if (error) throw new Error(`purge reports(connection): ${error.message}`)
   }
 
+  // [E2E] reviews — delete their reports first, then the reviews themselves.
+  const { data: e2eReviews } = await db.from('reviews').select('id').like('comment', LIKE)
+  const reviewIds = (e2eReviews ?? []).map((r) => r.id as string)
+  if (reviewIds.length > 0) {
+    await db.from('reports').delete().in('review_id', reviewIds)
+    await db.from('reviews').delete().in('id', reviewIds)
+  }
+
   // Listings/connections first (FKs to products), then products.
   for (const { table, col } of [
     { table: 'listings', col: 'title' },

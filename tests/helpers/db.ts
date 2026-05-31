@@ -70,7 +70,7 @@ export type SeededListingFull = SeededListing & { title: string }
 // app-layer image validation (DB has no image-required trigger on active).
 export async function seedListing(
   sellerEmail: string,
-  status: 'active' | 'draft' = 'active',
+  status: 'active' | 'draft' | 'pending_approval' = 'active',
 ): Promise<SeededListingFull> {
   const sellerId = await getSellerIdByEmail(sellerEmail)
   const productName = e2eName('商品')
@@ -103,6 +103,10 @@ export async function seedListing(
 
 export async function seedActiveListing(sellerEmail: string): Promise<SeededListingFull> {
   return seedListing(sellerEmail, 'active')
+}
+
+export async function seedPendingListing(sellerEmail: string): Promise<SeededListingFull> {
+  return seedListing(sellerEmail, 'pending_approval')
 }
 
 export type SeededConnection = {
@@ -144,6 +148,41 @@ export async function seedActiveConnection(sellerEmail: string): Promise<SeededC
       shipping_date: fmt(new Date(today.getTime() + 40 * 864e5)),
       billing_method: '[E2E] 現金',
       status: 'active',
+    })
+    .select('id')
+    .single()
+  if (error) throw error
+
+  return { connectionId: data.id, sellerId, title, description }
+}
+
+export async function seedPendingConnection(sellerEmail: string): Promise<SeededConnection> {
+  const sellerId = await getSellerIdByEmail(sellerEmail)
+
+  const { data: region, error: re } = await dbAdmin()
+    .from('regions')
+    .select('id')
+    .limit(1)
+    .single()
+  if (re || !region) throw new Error(`seedPendingConnection: no regions row (${re?.message ?? 'empty'})`)
+
+  const title = e2eName('連線')
+  const description = e2eName('連線說明')
+  const today = new Date()
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
+
+  const { data, error } = await dbAdmin()
+    .from('connections')
+    .insert({
+      seller_id: sellerId,
+      region_id: region.id,
+      title,
+      description,
+      locations: [],
+      start_date: fmt(today),
+      end_date: fmt(new Date(today.getTime() + 30 * 864e5)),
+      shipping_date: fmt(new Date(today.getTime() + 40 * 864e5)),
+      status: 'pending_approval',
     })
     .select('id')
     .single()

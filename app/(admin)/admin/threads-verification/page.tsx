@@ -65,50 +65,60 @@ export default function AdminThreadsVerificationPage() {
             {pendingLoading ? (
               <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
             ) : pending && pending.length > 0 ? (
-              <div className="space-y-2">
-                {pending.map((req) => (
-                  <div key={req.id} className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="flex-1">
-                      <p className="font-medium">{req.seller_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Threads 帳號{' '}
-                        <a
-                          href={`https://www.threads.net/@${req.threads_username}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-foreground hover:underline"
-                        >@{req.threads_username}</a>
-                        {' · '}送出於 {formatDate(req.created_at)}
-                      </p>
-                      <p className="mt-1 text-sm">
-                        驗證碼 <span className="font-mono font-bold tracking-widest">{req.code}</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => approve.mutate({ id: req.id })} disabled={approve.isPending}>
-                        <Check className="mr-1 h-3 w-3" />通過
-                      </Button>
-                      <Dialog open={rejectId === req.id} onOpenChange={(open) => { if (!open) { setRejectId(null); setRejectReason('') } }}>
-                        <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRejectId(req.id)} />}>
-                          <X className="mr-1 h-3 w-3" />退回
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader><DialogTitle>退回驗證申請</DialogTitle></DialogHeader>
-                          <div className="space-y-3">
-                            <p className="text-sm">確定要退回「{req.seller_name}」的 Threads 驗證?賣家會收到通知並可重新申請。</p>
-                            <div>
-                              <Label>退回原因（選填）</Label>
-                              <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="例如:收件匣找不到這組驗證碼…" className="mt-1" />
-                            </div>
-                            <Button variant="destructive" className="w-full" onClick={() => reject.mutate({ id: req.id, reason: rejectReason.trim() || undefined })} disabled={reject.isPending}>
-                              確認退回
+              <div className="overflow-hidden rounded-xl border bg-card">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">賣家</th>
+                      <th className="px-4 py-3 font-medium">Threads 帳號</th>
+                      <th className="px-4 py-3 font-medium">驗證碼</th>
+                      <th className="px-4 py-3 font-medium">送出時間</th>
+                      <th className="px-4 py-3 font-medium text-right">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pending.map((req) => (
+                      <tr key={req.id} className="border-b last:border-b-0">
+                        <td className="px-4 py-3 font-medium">{req.seller_name}</td>
+                        <td className="px-4 py-3">
+                          <a
+                            href={`https://www.threads.net/@${req.threads_username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-foreground hover:underline"
+                          >@{req.threads_username}</a>
+                        </td>
+                        <td className="px-4 py-3 font-mono font-bold tracking-widest">{req.code}</td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(req.created_at)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" onClick={() => approve.mutate({ id: req.id })} disabled={approve.isPending}>
+                              <Check className="mr-1 h-3 w-3" />通過
                             </Button>
+                            <Dialog open={rejectId === req.id} onOpenChange={(open) => { if (!open) { setRejectId(null); setRejectReason('') } }}>
+                              <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRejectId(req.id)} />}>
+                                <X className="mr-1 h-3 w-3" />退回
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader><DialogTitle>退回驗證申請</DialogTitle></DialogHeader>
+                                <div className="space-y-3">
+                                  <p className="text-sm">確定要退回「{req.seller_name}」的 Threads 驗證?賣家會收到通知並可重新申請。</p>
+                                  <div>
+                                    <Label>退回原因（選填）</Label>
+                                    <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="例如:收件匣找不到這組驗證碼…" className="mt-1" />
+                                  </div>
+                                  <Button variant="destructive" className="w-full" onClick={() => reject.mutate({ id: req.id, reason: rejectReason.trim() || undefined })} disabled={reject.isPending}>
+                                    確認退回
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <EmptyState icon={BadgeCheck} title="目前沒有待審核的 Threads 驗證" />
@@ -136,34 +146,43 @@ export default function AdminThreadsVerificationPage() {
             {historyLoading ? (
               <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
             ) : history && history.length > 0 ? (
-              <div className="space-y-2">
-                {history.map((req) => (
-                  <div key={req.id} className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{req.seller_name}</p>
-                        {req.status === 'approved' ? (
-                          <Badge variant="secondary">已通過</Badge>
-                        ) : (
-                          <Badge variant="destructive">已退回</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Threads 帳號{' '}
-                        <a
-                          href={`https://www.threads.net/@${req.threads_username}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-foreground hover:underline"
-                        >@{req.threads_username}</a>
-                        {req.reviewed_at && <>{' · '}審核於 {formatDate(req.reviewed_at)}</>}
-                      </p>
-                      {req.status === 'rejected' && req.reject_reason && (
-                        <p className="mt-1 text-sm text-muted-foreground">退回原因:{req.reject_reason}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-hidden rounded-xl border bg-card">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">賣家</th>
+                      <th className="px-4 py-3 font-medium">Threads 帳號</th>
+                      <th className="px-4 py-3 font-medium">結果</th>
+                      <th className="px-4 py-3 font-medium">審核時間</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((req) => (
+                      <tr key={req.id} className="border-b last:border-b-0">
+                        <td className="px-4 py-3 font-medium">{req.seller_name}</td>
+                        <td className="px-4 py-3">
+                          <a
+                            href={`https://www.threads.net/@${req.threads_username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-foreground hover:underline"
+                          >@{req.threads_username}</a>
+                        </td>
+                        <td className="px-4 py-3">
+                          {req.status === 'approved'
+                            ? <Badge variant="secondary">已通過</Badge>
+                            : <Badge variant="destructive">已退回</Badge>}
+                          {req.status === 'rejected' && req.reject_reason && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{req.reject_reason}</p>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                          {req.reviewed_at ? formatDate(req.reviewed_at) : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <EmptyState icon={BadgeCheck} title={(from || to) ? '這段期間沒有審核紀錄' : '還沒有審核紀錄'} />

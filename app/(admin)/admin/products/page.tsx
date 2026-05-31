@@ -76,116 +76,95 @@ export default function AdminProductsPage() {
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-[28px]" />)}</div>
       ) : data?.items && data.items.length > 0 ? (
-        <div className="space-y-4">
-          <div className={`hidden items-center gap-4 px-4 text-xs font-medium tracking-[0.18em] text-muted-foreground/80 lg:${rowGridClass}`}>
-            <span>商品</span>
-            <span>分類</span>
-            <span>狀態</span>
-            <span className="text-right">操作</span>
-          </div>
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <table className="w-full text-sm">
+            <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">商品</th>
+                <th className="px-4 py-3 font-medium">分類</th>
+                <th className="px-4 py-3 font-medium">狀態</th>
+                <th className="px-4 py-3 font-medium text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.map((product) => {
+                const imageUrl = getCardImageUrl(product)
+                const isLocalPreviewUrl = imageUrl?.startsWith('blob:') || imageUrl?.startsWith('data:')
+                const brandLabel = typeof product.brand === 'string' ? product.brand : (product.brand as { name: string } | null)?.name ?? null
 
-          {data.items.map((product) => {
-            const imageUrl = getCardImageUrl(product)
-            const isLocalPreviewUrl = imageUrl?.startsWith('blob:') || imageUrl?.startsWith('data:')
-            const brandLabel = typeof product.brand === 'string' ? product.brand : (product.brand as { name: string } | null)?.name ?? null
-
-            return (
-              <div
-                key={product.id}
-                className={`overflow-hidden rounded-[28px] border bg-white p-4 shadow-[0_12px_40px_rgba(15,23,42,0.05)] ${product.is_removed ? 'opacity-50' : ''}`}
-              >
-                <div className={`${rowGridClass} lg:items-center`}>
-
-                  {/* 商品 */}
-                  <div className="flex min-w-0 items-center gap-4">
-                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-muted/40">
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl}
-                          alt={product.name}
-                          fill
-                          sizes="96px"
-                          className="object-cover"
-                          unoptimized={isLocalPreviewUrl}
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-muted-foreground/30">
-                          <Package className="h-7 w-7" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 space-y-1">
-                      <p className="truncate font-semibold text-foreground">{product.name}</p>
-                      {brandLabel && <p className="truncate text-sm text-muted-foreground">{brandLabel}</p>}
-                      {product.model_number && <p className="truncate text-xs text-muted-foreground">{product.model_number}</p>}
-                    </div>
-                  </div>
-
-                  {/* 分類 */}
-                  <div className="space-y-1.5 rounded-2xl bg-background/70 p-3 lg:bg-transparent lg:p-0">
-                    <p className="text-xs font-medium tracking-[0.16em] text-muted-foreground">分類</p>
-                    <Select
-                      value={product.category ?? ''}
-                      onValueChange={(val) => setCategory.mutate({ id: product.id, category: val as ProductCategory })}
-                    >
-                      <SelectTrigger className="h-9 w-full text-xs">
-                        <SelectValue placeholder="未分類">
-                          {(value: string) => value ? (PRODUCT_CATEGORY_LABELS[value] ?? value) : undefined}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(([value, label]) => (
-                          <SelectItem key={value} value={value}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* 狀態 */}
-                  <div className="rounded-2xl bg-background/70 p-3 lg:bg-transparent lg:p-0">
-                    <p className="mb-1.5 text-xs font-medium tracking-[0.16em] text-muted-foreground">狀態</p>
-                    {product.is_removed
-                      ? <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground"><span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />已移除</span>
-                      : <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground"><span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />正常</span>
-                    }
-                  </div>
-
-                  {/* 操作 */}
-                  <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
-                    <Button size="sm" variant="outline" className="min-w-20" onClick={() => setEditingProduct(product)}>
-                      編輯
-                    </Button>
-                    {!product.is_removed && (
-                      <Dialog open={removeId === product.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
-                        <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" className="min-w-20" onClick={() => setRemoveId(product.id)} />}>
-                          <Trash2 className="mr-1 h-3 w-3" />移除
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader><DialogTitle>移除商品</DialogTitle></DialogHeader>
-                          <div className="space-y-3">
-                            <p className="text-sm">確定要移除「{product.name}」？此操作會影響所有相關商品上架、許願和收藏。</p>
-                            <div>
-                              <Label>移除原因</Label>
-                              <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />
+                return (
+                  <tr key={product.id} className={`border-b last:border-b-0 ${product.is_removed ? 'opacity-50' : ''}`}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border bg-muted/40">
+                          {imageUrl ? (
+                            <Image src={imageUrl} alt={product.name} fill sizes="48px" className="object-cover" unoptimized={isLocalPreviewUrl} />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-muted-foreground/30">
+                              <Package className="h-5 w-5" />
                             </div>
-                            <Button
-                              variant="destructive"
-                              className="w-full"
-                              onClick={() => removeProduct.mutate({ id: product.id })}
-                              disabled={removeProduct.isPending || !removeReason.trim()}
-                            >
-                              確認移除
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
-
-                </div>
-              </div>
-            )
-          })}
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{product.name}</p>
+                          {brandLabel && <p className="truncate text-xs text-muted-foreground">{brandLabel}</p>}
+                          {product.model_number && <p className="truncate text-xs text-muted-foreground">{product.model_number}</p>}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Select
+                        value={product.category ?? ''}
+                        onValueChange={(val) => setCategory.mutate({ id: product.id, category: val as ProductCategory })}
+                      >
+                        <SelectTrigger className="h-8 w-36 text-xs">
+                          <SelectValue placeholder="未分類">
+                            {(value: string) => value ? (PRODUCT_CATEGORY_LABELS[value] ?? value) : undefined}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map(([value, label]) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="px-4 py-3">
+                      {product.is_removed
+                        ? <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-red-500" />已移除</span>
+                        : <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-green-500" />正常</span>
+                      }
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setEditingProduct(product)}>編輯</Button>
+                        {!product.is_removed && (
+                          <Dialog open={removeId === product.id} onOpenChange={(open) => { if (!open) setRemoveId(null) }}>
+                            <DialogTrigger nativeButton render={<Button size="sm" variant="destructive" onClick={() => setRemoveId(product.id)} />}>
+                              <Trash2 className="mr-1 h-3 w-3" />移除
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader><DialogTitle>移除商品</DialogTitle></DialogHeader>
+                              <div className="space-y-3">
+                                <p className="text-sm">確定要移除「{product.name}」？此操作會影響所有相關商品上架、許願和收藏。</p>
+                                <div>
+                                  <Label>移除原因</Label>
+                                  <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="請填寫原因..." className="mt-1" />
+                                </div>
+                                <Button variant="destructive" className="w-full" onClick={() => removeProduct.mutate({ id: product.id })} disabled={removeProduct.isPending || !removeReason.trim()}>
+                                  確認移除
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       ) : (
         <EmptyState icon={Tags} title="沒有找到商品" />

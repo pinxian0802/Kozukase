@@ -243,9 +243,9 @@ export const adminRouter = router({
         .select(`
           *,
           reporter:profiles!reporter_id(display_name),
-          listing:listings(id, product:products(name)),
+          listing:listings(id, product:products(name), seller:sellers(name)),
           review:reviews(id, comment),
-          connection:connections(id, description),
+          connection:connections(id, title, seller:sellers(name)),
           reported_seller:sellers!seller_id(id, name)
         `, { count: 'exact' })
         .eq('status', input.status)
