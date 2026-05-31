@@ -48,7 +48,7 @@ export const listingRouter = router({
         .select(
           `id, title, price, is_price_on_request, is_in_stock, shipping_date, created_at, specs,
           listing_images(url, thumbnail_url, sort_order),
-          seller:sellers(id, name, avg_rating, review_count, is_social_verified, avatar_url, ig_handle, threads_handle)`,
+          seller:sellers(id, name, avg_rating, review_count, is_social_verified, can_provide_proof, avatar_url, ig_handle, threads_handle)`,
           { count: 'exact' }
         )
         .eq('status', 'active')
@@ -70,6 +70,16 @@ export const listingRouter = router({
 
       if (input.inStockOnly) {
         query = query.eq('is_in_stock', true)
+      }
+
+      if (input.proofOnly) {
+        const { data: proofSellers } = await ctx.db
+          .from('sellers')
+          .select('id')
+          .eq('can_provide_proof', true)
+        const ids = (proofSellers ?? []).map((r) => r.id)
+        const safeIds = ids.length ? ids : ['00000000-0000-0000-0000-000000000000']
+        query = query.in('seller_id', safeIds)
       }
 
       const offset = (input.page - 1) * input.limit

@@ -7,6 +7,7 @@ export const becomeSellerInput = z.object({
   region_ids: z.array(z.string().uuid()).min(1, '請至少選擇一個代購地區'),
   bio: z.string().max(300).optional(),
   avatar_url: httpUrl.optional(),
+  can_provide_proof: z.boolean().optional(),
 })
 
 export const updateSellerInput = z.object({
@@ -14,4 +15,5 @@ export const updateSellerInput = z.object({
   region_ids: z.array(z.string().uuid()).min(1).optional(),
   bio: z.string().max(300).optional(),
   avatar_url: httpUrl.nullable().optional(),
+  can_provide_proof: z.boolean().optional(),
 })

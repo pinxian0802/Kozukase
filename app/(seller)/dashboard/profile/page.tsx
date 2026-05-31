@@ -15,6 +15,7 @@ import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { MultiSelect } from '@/components/ui/multi-select'
+import { Switch } from '@/components/ui/switch'
 import { AvatarUpload } from '@/components/shared/avatar-upload'
 import { uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
@@ -31,6 +32,7 @@ export default function SellerProfilePage() {
   const [name, setName] = useState('')
   const [nameError, setNameError] = useState('')
   const [bio, setBio] = useState('')
+  const [canProvideProof, setCanProvideProof] = useState(false)
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [regionError, setRegionError] = useState('')
   const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
@@ -90,6 +92,7 @@ export default function SellerProfilePage() {
     if (initialized) return
     if (seller) {
       setBio((seller.bio as string | null) ?? '')
+      setCanProvideProof(Boolean((seller as Record<string, unknown>).can_provide_proof))
       const existingAvatarUrl = (seller as Record<string, unknown>).avatar_url as string | null
       if (existingAvatarUrl) {
         setAvatarImage({ url: existingAvatarUrl, r2Key: '' })
@@ -369,6 +372,7 @@ export default function SellerProfilePage() {
           bio: bio.trim() || undefined,
           region_ids: selectedRegions,
           avatar_url: finalAvatarUrl,
+          can_provide_proof: canProvideProof,
         },
       )
     } catch (err) {
@@ -501,6 +505,14 @@ export default function SellerProfilePage() {
                       className="resize-none"
                     />
                     <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/300</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                  <Label className="pt-2">購買證明</Label>
+                  <div className="flex items-center gap-3 pt-1">
+                    <Switch checked={canProvideProof} onCheckedChange={setCanProvideProof} />
+                    <span className="text-sm text-muted-foreground">可提供購買證明 / 明細（協助買家辨別正品）</span>
                   </div>
                 </div>
 

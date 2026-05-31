@@ -77,6 +77,7 @@ export type Seller = {
   avg_rating: number | null
   review_count: number
   follow_count: number
+  can_provide_proof: boolean
   created_at: string
   updated_at: string
 }
@@ -297,7 +298,7 @@ export type Database = {
       >
       sellers: TableDefinition<
         Seller,
-        Omit<Seller, 'id' | 'created_at' | 'updated_at' | 'avg_rating' | 'review_count' | 'is_suspended' | 'is_social_verified' | 'phone_verified'> & {
+        Omit<Seller, 'id' | 'created_at' | 'updated_at' | 'avg_rating' | 'review_count' | 'is_suspended' | 'is_social_verified' | 'phone_verified' | 'can_provide_proof'> & {
           id?: string
           created_at?: string
           updated_at?: string
@@ -306,6 +307,7 @@ export type Database = {
           is_suspended?: boolean
           is_social_verified?: boolean
           phone_verified?: boolean
+          can_provide_proof?: boolean
         },
         Partial<Seller>
       >

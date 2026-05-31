@@ -29,6 +29,7 @@ export const sellerRouter = router({
           phone_verified: false,
           bio: input.bio ?? null,
           avatar_url: input.avatar_url ?? null,
+          can_provide_proof: input.can_provide_proof ?? false,
         })
         .select()
         .single()

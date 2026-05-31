@@ -58,6 +58,7 @@ export const browseListingsInput = z.object({
   brandId: z.string().uuid().optional(),
   socialVerifiedOnly: z.boolean().optional(),
   inStockOnly: z.boolean().optional(),
+  proofOnly: z.boolean().optional(),
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(20),
 })

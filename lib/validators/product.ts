@@ -28,6 +28,7 @@ export const browseProductsInput = z.object({
   priceMax: z.number().min(0).optional(),
   shippingDaysMax: z.number().min(1).optional(),
   socialVerifiedOnly: z.boolean().optional(),
+  proofOnly: z.boolean().optional(),
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(20),
 })

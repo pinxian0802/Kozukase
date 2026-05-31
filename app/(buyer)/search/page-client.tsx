@@ -37,6 +37,7 @@ const filterParsers = {
   social: parseAsBoolean.withDefault(false),
   // 僅作用於「代購」分頁（is_in_stock）；商品分頁無現貨概念
   stock: parseAsBoolean.withDefault(false),
+  proof: parseAsBoolean.withDefault(false),
   tab: parseAsStringEnum(['listings', 'products'] as const).withDefault('listings'),
   page: parseAsInteger.withDefault(1),
 }
@@ -61,7 +62,7 @@ function SearchContent() {
   // 刻意不傳 startTransition：篩選參數同步更新，避免被 React transition 延遲
   // 而與 react-query（useSyncExternalStore）脫節造成計數抖動；loading 全由
   // react-query 的 isFetching 提供。
-  const [{ category, brand: brandId, social: socialVerifiedOnly, stock: inStockOnly, tab, page }, setParams] = useQueryStates(
+  const [{ category, brand: brandId, social: socialVerifiedOnly, stock: inStockOnly, proof: proofOnly, tab, page }, setParams] = useQueryStates(
     filterParsers,
     { history: 'push', scroll: false, shallow: true }
   )
@@ -89,6 +90,7 @@ function SearchContent() {
       category: categoryArg,
       brandId: brandArg,
       socialVerifiedOnly: socialVerifiedOnly || undefined,
+      proofOnly: proofOnly || undefined,
       page: safePage,
       limit: PRODUCT_PAGE_SIZE,
     },
@@ -112,6 +114,7 @@ function SearchContent() {
       brandId: brandArg,
       socialVerifiedOnly: socialVerifiedOnly || undefined,
       inStockOnly: inStockOnly || undefined,
+      proofOnly: proofOnly || undefined,
       page: safePage,
       limit: LISTING_PAGE_SIZE,
     },
@@ -170,6 +173,14 @@ function SearchContent() {
       onRemove: () => setParams({ social: false, page: 1 }),
     })
   }
+  if (proofOnly) {
+    activeFilters.push({
+      key: 'proof',
+      label: '可提供購買證明',
+      color: KZ.teal,
+      onRemove: () => setParams({ proof: false, page: 1 }),
+    })
+  }
   // 有現貨僅作用於代購分頁
   if (tab === 'listings' && inStockOnly) {
     activeFilters.push({
@@ -199,6 +210,27 @@ function SearchContent() {
           <Switch
             checked={socialVerifiedOnly}
             onCheckedChange={(v) => setParams({ social: v, page: 1 })}
+          />
+        }
+      />
+
+      {/* 可提供購買證明 toggle */}
+      <FilterSection
+        title="可提供購買證明"
+        titleExtra={
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger render={<span className="flex cursor-default items-center" />}>
+                <Info className="size-3.5 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent side="right">只顯示願意提供購買證明 / 明細的賣家</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        }
+        rightSlot={
+          <Switch
+            checked={proofOnly}
+            onCheckedChange={(v) => setParams({ proof: v, page: 1 })}
           />
         }
       />
@@ -382,7 +414,7 @@ function SearchContent() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      href={`/products/${product.id}?from=${encodeURIComponent(`/search${serializeSearch({ q, category, brand: brandId, social: socialVerifiedOnly, stock: inStockOnly, tab, page: safePage })}`)}`}
+                      href={`/products/${product.id}?from=${encodeURIComponent(`/search${serializeSearch({ q, category, brand: brandId, social: socialVerifiedOnly, stock: inStockOnly, proof: proofOnly, tab, page: safePage })}`)}`}
                     />
                   ))}
                 </div>

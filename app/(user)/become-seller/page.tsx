@@ -112,6 +112,7 @@ export default function BecomeSellerPage() {
   const [threads, setThreads] = useState('')
   const [insta, setInsta] = useState('')
   const [agree, setAgree] = useState(false)
+  const [canProvideProof, setCanProvideProof] = useState(false)
   const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<{ sellerName?: string; phone?: string; regions?: string }>({})
@@ -215,6 +216,7 @@ export default function BecomeSellerPage() {
         region_ids: selectedRegions,
         bio: bio.trim() || undefined,
         avatar_url: finalAvatarUrl,
+        can_provide_proof: canProvideProof,
       })
 
       toast.success('成功成為賣家！')
@@ -450,6 +452,18 @@ export default function BecomeSellerPage() {
                   <span className="absolute right-3.5 bottom-3 text-[11.5px] text-text-faint tabular-nums pointer-events-none">{bio.length}/{BIO_MAX}</span>
                 </div>
               </FormSection>
+
+              <label className="flex items-start gap-2.5 cursor-pointer mt-2">
+                <button type="button" onClick={() => setCanProvideProof(v => !v)}
+                  className="w-[18px] h-[18px] rounded-[5px] border flex items-center justify-center flex-shrink-0 mt-0.5 transition-[background,border-color]"
+                  style={{ background: canProvideProof ? 'var(--text-strong)' : 'var(--surface-card)', borderColor: canProvideProof ? 'var(--text-strong)' : 'var(--border-strong)', color: canProvideProof ? 'var(--text-inverse)' : 'transparent' }}
+                >
+                  {canProvideProof && <Check size={11} strokeWidth={2.5} />}
+                </button>
+                <span className="text-[13px] text-text-muted leading-[1.55] pt-0.5">
+                  我可提供購買證明 / 明細（如收據、購買紀錄，協助買家辨別正品）
+                </span>
+              </label>
 
               {/* Agreement + submit */}
               <div className="flex flex-col gap-[18px]">

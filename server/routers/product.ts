@@ -54,7 +54,7 @@ export const productRouter = router({
           id, name, brand:brands(name), model_number, category, wish_count, created_at,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
           product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
-          listings!inner(price, shipping_date, status, seller_id, seller:sellers!inner(is_social_verified))
+          listings!inner(price, shipping_date, status, seller_id, seller:sellers!inner(is_social_verified, can_provide_proof))
         `, { count: 'exact' })
         .eq('is_removed', false)
         // 只計入有「上架中」刊登的商品；同時讓下方對 listings 的篩選真正生效
@@ -90,6 +90,9 @@ export const productRouter = router({
       }
       if (input.socialVerifiedOnly) {
         query = query.eq('listings.seller.is_social_verified', true)
+      }
+      if (input.proofOnly) {
+        query = query.eq('listings.seller.can_provide_proof', true)
       }
       if (input.region) {
         const { data: regionSellers } = await ctx.db
