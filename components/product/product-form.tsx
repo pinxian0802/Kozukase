@@ -89,6 +89,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
       <div className="space-y-5">
         <div>
           <Label>商品圖片 <span className="text-foreground">*</span></Label>
+          <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
           <div className="mt-1.5">
             <SingleImageUpload
               purpose="product"

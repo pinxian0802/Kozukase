@@ -493,6 +493,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
           商品圖片 *
           <span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span>
         </Label>
+        <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
         <ImageUpload
           purpose="listing"
           maxImages={5}

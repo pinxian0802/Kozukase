@@ -199,8 +199,8 @@ export function AvatarUpload({
       {!hasImage && (
         <div className="flex flex-col gap-0.5">
           <span className="text-xs font-medium text-foreground/70">新增頭貼</span>
-          <span className="text-[11px] text-muted-foreground">JPG、PNG、HEIC</span>
-          <span className="text-[11px] text-muted-foreground">最大 10 MB</span>
+          <span className="text-[11px] text-muted-foreground">建議 300×300 px 以上，正方形</span>
+          <span className="text-[11px] text-muted-foreground">JPG、PNG、HEIC，最大 10 MB</span>
         </div>
       )}
 
