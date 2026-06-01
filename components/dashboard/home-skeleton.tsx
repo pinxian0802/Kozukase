@@ -18,7 +18,7 @@ export function DashboardHomeSkeleton() {
         </div>
       </div>
 
-      {/* 數據總覽：標題列 + 期間切換 + 10 張 stat card */}
+      {/* 數據總覽：標題列 + 期間切換 + 8 張 stat card */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Skeleton className="h-5 w-20" />
@@ -29,8 +29,8 @@ export function DashboardHomeSkeleton() {
           </div>
         </div>
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
         </div>
       </div>
