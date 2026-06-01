@@ -78,7 +78,7 @@ export default function EditListingPage() {
     : listing.product?.brand?.name ?? null
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
@@ -86,7 +86,7 @@ export default function EditListingPage() {
         <h1 className="text-2xl font-bold font-heading">編輯代購</h1>
       </div>
 
-      <Card className="ring-0 shadow-sm">
+      <Card className="ring-0 shadow-sm py-0">
         <CardContent className="p-6 sm:p-8 space-y-4">
           {productRemoved && (
             <div className="space-y-3">
@@ -131,7 +131,13 @@ export default function EditListingPage() {
                   )}
                 </div>
               </div>
-              <Button type="button" variant="outline" size="sm" onClick={() => setReselecting(true)} className="w-full">
+              <Button
+                type="button"
+                variant="cta-outline"
+                size="sm"
+                onClick={() => setReselecting(true)}
+                className="w-full"
+              >
                 {replacement ? '重新選擇' : '重新選擇商品'}
               </Button>
             </div>

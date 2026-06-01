@@ -60,14 +60,14 @@ export default function NewListingPage() {
   // ── Step: fill in listing details ──
   const isDraftProduct = !product.id
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl">
       <div className="flex items-center gap-3">
         <Button type="button" variant="ghost" size="icon" onClick={() => setProduct(null)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold font-heading">新增代購</h1>
       </div>
-      <Card className="ring-0 shadow-sm">
+      <Card className="ring-0 shadow-sm py-0">
         <CardContent className="p-6 sm:p-8 space-y-4">
           <div>
             <Label>商品</Label>

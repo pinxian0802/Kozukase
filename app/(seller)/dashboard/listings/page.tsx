@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Package, ExternalLink, MoreHorizontal } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DashboardListShell } from '@/components/dashboard/list-shell'
@@ -162,7 +161,9 @@ export default function SellerListingsPage() {
                     </span>
                   </TableCell>
                   <TableCell className="max-w-[24ch] truncate">
-                    {listing.product?.name ? (
+                    {listing.product?.is_removed === true ? (
+                      <span className="text-destructive font-medium">此商品已被移除</span>
+                    ) : listing.product?.name ? (
                       <Link
                         href={`/products/${listing.product_id}`}
                         onClick={(e) => e.stopPropagation()}
@@ -172,9 +173,6 @@ export default function SellerListingsPage() {
                       </Link>
                     ) : (
                       <span className="text-muted-foreground">--</span>
-                    )}
-                    {listing.product?.is_removed === true && (
-                      <Badge variant="outline" className="ml-1 border-destructive/40 text-destructive">商品已被移除</Badge>
                     )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-semibold">
@@ -249,7 +247,9 @@ export default function SellerListingsPage() {
               <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 py-3 text-sm">
                 <span className="text-xs text-muted-foreground">商品名稱</span>
                 <span className="truncate text-right">
-                  {listing.product?.name ? (
+                  {listing.product?.is_removed === true ? (
+                    <span className="text-destructive font-medium">此商品已被移除</span>
+                  ) : listing.product?.name ? (
                     <Link
                       href={`/products/${listing.product_id}`}
                       onClick={(e) => e.stopPropagation()}
@@ -258,9 +258,6 @@ export default function SellerListingsPage() {
                       {listing.product.name}
                     </Link>
                   ) : '--'}
-                  {listing.product?.is_removed === true && (
-                    <Badge variant="outline" className="ml-1 border-destructive/40 text-destructive">商品已被移除</Badge>
-                  )}
                 </span>
                 <span className="text-xs text-muted-foreground">售價</span>
                 <span className="text-right font-semibold">{formatPrice(listing.price, listing.is_price_on_request)}</span>

@@ -20,7 +20,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         // DS v1 — brand teal 線框（次要 CTA）
         "cta-outline":
-          "border-brand-500 text-brand-700 bg-surface-card hover:bg-brand-500 hover:text-cta-foreground",
+          "border-brand-500 text-brand-700 bg-surface-card hover:bg-brand-500 hover:text-cta-foreground focus-visible:border-brand-500",
         // DS v1 — 中性線框（取代散落的 border-border-soft 自製按鈕）
         "outline-soft":
           "border-border-soft text-text-muted bg-surface-card hover:bg-surface-muted hover:text-text-strong",
