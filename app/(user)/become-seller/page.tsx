@@ -158,7 +158,7 @@ export default function BecomeSellerPage() {
 
   if (!session?.profile) return null
 
-  if (session.isSeller && searchParams.get('preview') !== 'submitted') {
+  if (session.isSeller && searchParams.get('preview') !== 'submitted' && searchParams.get('preview') !== 'form') {
     return (
       <div className="min-h-screen">
         <div className="mx-auto max-w-2xl px-4 py-8">

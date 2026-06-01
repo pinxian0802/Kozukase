@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!tokenResp.ok) {
-      console.error('[Threads OAuth] Short-lived token exchange failed:', await tokenResp.text())
+      console.error('[Threads OAuth] Short-lived token exchange failed:', tokenResp.status)
       return NextResponse.redirect(`${profileUrl}?error=token_exchange`)
     }
 
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
     )
 
     if (!longLivedResp.ok) {
-      console.error('[Threads OAuth] Long-lived token exchange failed:', await longLivedResp.text())
+      console.error('[Threads OAuth] Long-lived token exchange failed:', longLivedResp.status)
       return NextResponse.redirect(`${profileUrl}?error=token_exchange`)
     }
 
