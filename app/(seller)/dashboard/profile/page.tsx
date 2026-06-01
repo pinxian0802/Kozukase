@@ -914,29 +914,19 @@ export default function SellerProfilePage() {
                   </div>
 
                   {threadsConnectedAt ? (
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2.5 text-[12px] text-muted-foreground"
-                        onClick={() => setThVerify({ step: 'entering_username' })}
-                      >
-                        重新驗證
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2.5 text-[12px] text-muted-foreground hover:text-destructive"
-                        disabled={disconnectSocial.isPending}
-                        onClick={() => disconnectSocial.mutate({ platform: 'threads' })}
-                      >
-                        {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'threads'
-                          ? <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                          : <Link2Off className="mr-1 h-3 w-3" />
-                        }
-                        取消
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2.5 text-[12px] text-muted-foreground hover:text-destructive flex-shrink-0"
+                      disabled={disconnectSocial.isPending}
+                      onClick={() => disconnectSocial.mutate({ platform: 'threads' })}
+                    >
+                      {disconnectSocial.isPending && disconnectSocial.variables?.platform === 'threads'
+                        ? <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        : <Link2Off className="mr-1 h-3 w-3" />
+                      }
+                      取消
+                    </Button>
                   ) : (
                     <Button
                       size="sm"
