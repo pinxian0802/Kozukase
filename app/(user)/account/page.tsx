@@ -100,7 +100,7 @@ export default function AccountPage() {
             </div>
 
             <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-              <Label htmlFor="display-name" className="pt-2">顯示名稱 <span className="text-destructive">*</span></Label>
+              <Label htmlFor="display-name" className="pt-2">顯示名稱 <span className="text-foreground">*</span></Label>
               <div>
                 <Input
                   id="display-name"

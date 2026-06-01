@@ -456,7 +456,7 @@ export default function SellerProfilePage() {
                 </div>
 
                 <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-                  <Label htmlFor="name" className="pt-2">賣家名稱 <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="name" className="pt-2">賣家名稱 <span className="text-foreground">*</span></Label>
                   <div>
                     <Input
                       id="name"
@@ -474,7 +474,7 @@ export default function SellerProfilePage() {
                 </div>
 
                 <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-                  <Label className="pt-2">代購地區 <span className="text-destructive">*</span></Label>
+                  <Label className="pt-2">代購地區 <span className="text-foreground">*</span></Label>
                   <div>
                     <MultiSelect
                       value={selectedRegions}

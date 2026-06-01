@@ -269,7 +269,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
       <div className="space-y-1">
-        <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">標題 <span className="text-destructive">*</span></Label>
+        <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">標題 <span className="text-foreground">*</span></Label>
         <Input
           id="connection-title"
           value={title}
@@ -401,7 +401,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="description" className="text-sm font-medium text-foreground">說明 <span className="text-destructive">*</span></Label>
+        <Label htmlFor="description" className="text-sm font-medium text-foreground">說明 <span className="text-foreground">*</span></Label>
         <Textarea
           id="description"
           value={description}
@@ -418,7 +418,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="billingMethod" className="text-sm font-medium text-foreground">計費方法 <span className="text-destructive">*</span></Label>
+        <Label htmlFor="billingMethod" className="text-sm font-medium text-foreground">計費方法 <span className="text-foreground">*</span></Label>
         <Textarea
           id="billingMethod"
           value={billingMethod}

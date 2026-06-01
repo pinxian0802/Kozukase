@@ -60,7 +60,7 @@ function FormSection({ index, accent, title, hint, done, required = true, meta, 
         <div className="flex items-baseline gap-2.5 mb-1">
           <h2 className="font-semibold text-[17px] text-text-strong" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
             {title}
-            {required && <span style={{ color: KZ.pink, fontWeight: 700 }}> *</span>}
+            {required && <span className="text-foreground font-bold"> *</span>}
           </h2>
           {meta && <span className="text-[11.5px] text-text-muted tabular-nums">{meta}</span>}
         </div>

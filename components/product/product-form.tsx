@@ -88,7 +88,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
 
       <div className="space-y-5">
         <div>
-          <Label>商品圖片 <span className="text-destructive">*</span></Label>
+          <Label>商品圖片 <span className="text-foreground">*</span></Label>
           <div className="mt-1.5">
             <SingleImageUpload
               purpose="product"
@@ -106,7 +106,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="product-name">商品名稱 <span className="text-destructive">*</span></Label>
+          <Label htmlFor="product-name">商品名稱 <span className="text-foreground">*</span></Label>
           <Input
             id="product-name"
             value={name}
