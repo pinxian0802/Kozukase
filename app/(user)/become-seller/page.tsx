@@ -112,7 +112,7 @@ export default function BecomeSellerPage() {
   const [threads, setThreads] = useState('')
   const [insta, setInsta] = useState('')
   const [agree, setAgree] = useState(false)
-  const [canProvideProof, setCanProvideProof] = useState(false)
+  const [canProvideProof, setCanProvideProof] = useState<boolean | null>(null)
   const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<{ sellerName?: string; phone?: string; regions?: string }>({})
@@ -158,7 +158,7 @@ export default function BecomeSellerPage() {
 
   if (!session?.profile) return null
 
-  if (session.isSeller && searchParams.get('preview') !== 'submitted') {
+  if (session.isSeller && searchParams.get('preview') !== 'submitted' && searchParams.get('preview') !== 'form') {
     return (
       <div className="min-h-screen">
         <div className="mx-auto max-w-2xl px-4 py-8">
@@ -183,6 +183,7 @@ export default function BecomeSellerPage() {
     sellerName.trim().length >= 2,
     selectedRegions.length > 0,
     bio.trim().length > 0,
+    canProvideProof !== null,
   ]
   const filledCount = filled.filter(Boolean).length
   const pct = (filledCount / filled.length) * 100
@@ -216,7 +217,7 @@ export default function BecomeSellerPage() {
         region_ids: selectedRegions,
         bio: bio.trim() || undefined,
         avatar_url: finalAvatarUrl,
-        can_provide_proof: canProvideProof,
+        can_provide_proof: canProvideProof ?? false,
       })
 
       toast.success('成功成為賣家！')
@@ -453,17 +454,28 @@ export default function BecomeSellerPage() {
                 </div>
               </FormSection>
 
-              <label className="flex items-start gap-2.5 cursor-pointer mt-2">
-                <button type="button" onClick={() => setCanProvideProof(v => !v)}
-                  className="w-[18px] h-[18px] rounded-[5px] border flex items-center justify-center flex-shrink-0 mt-0.5 transition-[background,border-color]"
-                  style={{ background: canProvideProof ? 'var(--text-strong)' : 'var(--surface-card)', borderColor: canProvideProof ? 'var(--text-strong)' : 'var(--border-strong)', color: canProvideProof ? 'var(--text-inverse)' : 'transparent' }}
-                >
-                  {canProvideProof && <Check size={11} strokeWidth={2.5} />}
-                </button>
-                <span className="text-[13px] text-text-muted leading-[1.55] pt-0.5">
-                  我可提供購買證明 / 明細（如收據、購買紀錄，協助買家辨別正品）
-                </span>
-              </label>
+              <FormSection index={5} accent={KZ.green} title="購買證明" hint="是否能提供購買證明？會顯示在你的賣家頁面，增加買家信任度。" done={canProvideProof !== null} required={false}>
+                <div className="flex flex-col gap-2.5">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <button type="button" onClick={() => setCanProvideProof(true)}
+                      className="w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-[border-color]"
+                      style={{ borderColor: canProvideProof === true ? 'var(--text-strong)' : 'var(--border-strong)' }}
+                    >
+                      {canProvideProof === true && <div className="w-[10px] h-[10px] rounded-full" style={{ background: 'var(--text-strong)' }} />}
+                    </button>
+                    <span className="text-[13px] text-text-muted leading-[1.55]">可提供購買證明 / 明細（如收據、購買紀錄，協助買家辨別正品）</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <button type="button" onClick={() => setCanProvideProof(false)}
+                      className="w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-[border-color]"
+                      style={{ borderColor: canProvideProof === false ? 'var(--text-strong)' : 'var(--border-strong)' }}
+                    >
+                      {canProvideProof === false && <div className="w-[10px] h-[10px] rounded-full" style={{ background: 'var(--text-strong)' }} />}
+                    </button>
+                    <span className="text-[13px] text-text-muted leading-[1.55]">暫時無法提供</span>
+                  </label>
+                </div>
+              </FormSection>
 
               {/* Agreement + submit */}
               <div className="flex flex-col gap-[18px]">
@@ -476,9 +488,7 @@ export default function BecomeSellerPage() {
                   </button>
                   <span className="text-[13px] text-text-muted leading-[1.55] pt-0.5">
                     我已閱讀並同意{' '}
-                    <span className="text-text-strong underline underline-offset-2 cursor-pointer">賣家服務條款</span>
-                    {' '}與{' '}
-                    <span className="text-text-strong underline underline-offset-2 cursor-pointer">代購規範</span>
+                    <Link href="/seller-terms" target="_blank" className="text-text-strong underline underline-offset-2">賣家服務條款</Link>
                   </span>
                 </label>
                 <button
@@ -922,10 +932,8 @@ export default function BecomeSellerPage() {
 
             {/* Help */}
             <div className="text-[11.5px] text-text-muted leading-relaxed px-1">
-              有問題？查看{' '}
-              <span className="text-text-strong underline underline-offset-2 cursor-pointer">賣家申請指南</span>
-              {' '}或{' '}
-              <a href="mailto:contact@kozukase.com" className="text-text-strong underline underline-offset-2">聯絡客服</a>。
+              有問題？{' '}
+              <a href="mailto:contact@kozukase.com" className="text-text-strong underline underline-offset-2">聯絡客服</a>
             </div>
           </aside>}
         </div>
