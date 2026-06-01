@@ -89,7 +89,8 @@ GET /callback?code=...&next=...
 
 ```
 /favorites
-/settings
+/become-seller
+/messages
 /notifications
 /dashboard
 /admin
