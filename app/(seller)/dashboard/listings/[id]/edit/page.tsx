@@ -101,7 +101,7 @@ export default function EditListingPage() {
             <div className="space-y-3">
               <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>此商品已被管理員移除，請重新選擇商品後重新送出（將重新送審）。</p>
+                <p>此商品已被管理員移除，請重新選擇商品後重新送出。</p>
               </div>
               <div>
                 <Label>商品</Label>

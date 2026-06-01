@@ -128,7 +128,7 @@ export default function SellerListingsPage() {
               <TableHead>售價</TableHead>
               <TableHead>截止日</TableHead>
               <TableHead>狀態</TableHead>
-              <TableHead className="w-[120px] text-center">貼文/群組</TableHead>
+              <TableHead className="w-[120px] text-center">貼文/頁面</TableHead>
               <TableHead className="w-[120px] text-left">操作</TableHead>
             </TableRow>
           </TableHeader>
