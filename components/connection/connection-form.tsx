@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Loader2, X, Info } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
-import { addDays, isAfter, parseISO, startOfDay } from 'date-fns'
+import { isAfter, parseISO, startOfDay } from 'date-fns'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { TagInput } from '@/components/ui/tag-input'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { DatePicker } from '@/components/ui/date-picker'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -63,7 +64,6 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const today = startOfDay(new Date())
   const parsedStartDate = startDate ? parseISO(startDate) : null
   const parsedEndDate = endDate ? parseISO(endDate) : null
-  const endDateMin = parsedStartDate ? addDays(parsedStartDate, 1) : today
 
   // 已結束的連線在編輯頁可重新上架：填回日期後存檔並切回上架中
   // （管理員中止的連線會走重新送出審核 → pending_approval）。
@@ -336,64 +336,24 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor="startDate" className="text-sm font-medium text-foreground">開始日期 *</Label>
-          <DatePicker
-            value={startDate}
-            onValueChange={(value) => {
-              setStartDate(value)
-              if (errors.startDate) clearError('startDate')
-
-              if (value && endDate) {
-                const nextStartDate = parseISO(value)
-                const currentEndDate = parseISO(endDate)
-
-                if (isAfter(nextStartDate, currentEndDate) || nextStartDate.getTime() === currentEndDate.getTime()) {
-                  setEndDate('')
-                  setErrors((current) => ({
-                    ...current,
-                    endDate: '結束日期必須晚於開始日期',
-                  }))
-                }
-              }
-            }}
-            placeholder="選擇開始日期"
-            className="w-full"
-            name="start_date"
-            invalid={!!errors.startDate}
-            minDate={today}
-          />
-          <FormFieldError message={errors.startDate} />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="endDate" className="text-sm font-medium text-foreground">結束日期 *</Label>
-          <DatePicker
-            value={endDate}
-            onValueChange={(value) => {
-              setEndDate(value)
-              if (errors.endDate) clearError('endDate')
-
-              if (value && startDate) {
-                const nextEndDate = parseISO(value)
-                const currentStartDate = parseISO(startDate)
-
-                if (!isAfter(nextEndDate, currentStartDate)) {
-                  setErrors((current) => ({
-                    ...current,
-                    endDate: '結束日期必須晚於開始日期',
-                  }))
-                }
-              }
-            }}
-            placeholder="選擇結束日期"
-            className="w-full"
-            name="end_date"
-            invalid={!!errors.endDate}
-            minDate={endDateMin}
-          />
-          <FormFieldError message={errors.endDate} />
-        </div>
+      <div className="space-y-1">
+        <Label className="text-sm font-medium text-foreground">連線日期 *</Label>
+        <DateRangePicker
+          startDate={startDate}
+          endDate={endDate}
+          onRangeChange={({ startDate: newStart, endDate: newEnd }) => {
+            setStartDate(newStart)
+            setEndDate(newEnd)
+            if (errors.startDate) clearError('startDate')
+            if (errors.endDate) clearError('endDate')
+          }}
+          startPlaceholder="選擇開始日期"
+          endPlaceholder="選擇結束日期"
+          className="w-full"
+          invalid={!!(errors.startDate || errors.endDate)}
+          minDate={today}
+        />
+        <FormFieldError message={errors.startDate || errors.endDate} />
       </div>
 
       <div className="space-y-1">

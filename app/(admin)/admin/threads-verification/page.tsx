@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { FilterTabsList } from '@/components/shared/filter-tabs-list'
-import { DatePicker } from '@/components/ui/date-picker'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { EmptyState } from '@/components/shared/empty-state'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate } from '@/lib/utils/format'
@@ -128,13 +128,17 @@ export default function AdminThreadsVerificationPage() {
           {/* ── 審核紀錄 ── */}
           <TabsContent value="history">
             <div className="mb-4 flex flex-wrap items-end gap-3">
-              <div className="w-40">
-                <Label className="text-xs text-muted-foreground">從(審核日期)</Label>
-                <DatePicker value={from} onValueChange={setFrom} placeholder="開始日期" className="mt-1" />
-              </div>
-              <div className="w-40">
-                <Label className="text-xs text-muted-foreground">到</Label>
-                <DatePicker value={to} onValueChange={setTo} placeholder="結束日期" className="mt-1" />
+              <div>
+                <Label className="text-xs text-muted-foreground">審核日期</Label>
+                <DateRangePicker
+                  startDate={from}
+                  endDate={to}
+                  onRangeChange={({ startDate, endDate }) => {
+                    setFrom(startDate)
+                    setTo(endDate)
+                  }}
+                  className="mt-1"
+                />
               </div>
               {(from || to) && (
                 <Button variant="ghost" size="sm" onClick={() => { setFrom(''); setTo('') }}>

@@ -9,9 +9,8 @@ import { Switch } from '@/components/ui/switch'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Pagination } from '@/components/ui/pagination'
-import { DatePicker } from '@/components/ui/date-picker'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -304,28 +303,12 @@ export default function ConnectionsPage() {
         )}
 
         <FilterSectionCard title="連線日期">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-[11px] font-medium text-text-faint">從</Label>
-              <DatePicker
-                value={activeDuringStart}
-                onValueChange={(v) => setFilter({ dateStart: v })}
-                placeholder="選擇開始日期"
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[11px] font-medium text-text-faint">到</Label>
-              <DatePicker
-                value={activeDuringEnd}
-                onValueChange={(v) => setFilter({ dateEnd: v })}
-                placeholder="選擇結束日期"
-                className="w-full"
-              />
-            </div>
-
-          </div>
+          <DateRangePicker
+            startDate={activeDuringStart}
+            endDate={activeDuringEnd}
+            onRangeChange={({ startDate, endDate }) => setFilter({ dateStart: startDate, dateEnd: endDate })}
+            className="w-full"
+          />
         </FilterSectionCard>
 
         <FilterSectionCard
