@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Heart, Bookmark, SlidersHorizontal, X } from 'lucide-react'
+import { Heart, Bookmark, SlidersHorizontal, X, PackageOpen } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +25,10 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
   const session = useSession()
   const backHref = searchParams.get('from') ?? '/search'
   const utils = trpc.useUtils()
-  const { data: product, isLoading } = trpc.product.getById.useQuery({ id })
+  const { data: product, isLoading } = trpc.product.getById.useQuery(
+    { id },
+    { retry: (count, err) => err.data?.code !== 'NOT_FOUND' && count < 3 }
+  )
   const recordView = trpc.analytics.recordProductView.useMutation()
   useEffect(() => {
     if (!product) return
@@ -173,7 +176,19 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
     return (
       <div className="min-h-screen bg-surface-page">
         <div className="mx-auto max-w-6xl px-4 py-6">
-          <EmptyState icon={Heart} title="找不到此商品" />
+          <EmptyState
+            icon={PackageOpen}
+            title="找不到此商品"
+            description="此頁面已失效"
+          >
+            <Link
+              href="/search?tab=products"
+              className="inline-flex h-10 items-center justify-center rounded-lg px-6 text-sm font-semibold text-white hover:opacity-85 active:scale-[0.98] transition-all"
+              style={{ background: 'var(--brand-700)' }}
+            >
+              瀏覽其他商品
+            </Link>
+          </EmptyState>
         </div>
       </div>
     )

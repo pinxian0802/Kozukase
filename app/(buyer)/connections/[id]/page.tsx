@@ -2,11 +2,12 @@
 
 import { use, useEffect } from 'react'
 import Link from 'next/link'
-import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
+import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark, Link2Off } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { ConnectionDetailSkeleton } from '@/components/buyer/skeletons/connection-detail-skeleton'
+import { EmptyState } from '@/components/shared/empty-state'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { trpc } from '@/lib/trpc/client'
 import { formatDate, formatLastSeen } from '@/lib/utils/format'
@@ -99,7 +100,25 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
     return <ConnectionDetailSkeleton />
   }
 
-  if (!connection) return null
+  if (!connection) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-6">
+        <EmptyState
+          icon={Link2Off}
+          title="找不到此連線"
+          description="此頁面已失效"
+        >
+          <Link
+            href="/connections"
+            className="inline-flex h-10 items-center justify-center rounded-lg px-6 text-sm font-semibold text-white hover:opacity-85 active:scale-[0.98] transition-all"
+            style={{ background: 'var(--brand-700)' }}
+          >
+            瀏覽其他連線
+          </Link>
+        </EmptyState>
+      </div>
+    )
+  }
 
   const sortedImages = (connection.connection_images ?? []).slice().sort(
     (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order

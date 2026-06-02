@@ -2,7 +2,7 @@
 
 import { use, useEffect } from 'react'
 import Image from 'next/image'
-import { Bookmark, ExternalLink, ChevronRight, MessageSquare, Truck } from 'lucide-react'
+import { Bookmark, ExternalLink, ChevronRight, MessageSquare, Truck, PackageOpen } from 'lucide-react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SocialBadge } from '@/components/seller/social-badge'
@@ -12,6 +12,7 @@ import { SharePopover } from '@/components/shared/share-popover'
 import { ImageGallery } from '@/components/shared/image-gallery'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
 import { ListingDetailSkeleton } from '@/components/buyer/skeletons/listing-detail-skeleton'
+import { EmptyState } from '@/components/shared/empty-state'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 import { formatPrice, formatDate, formatLastSeen } from '@/lib/utils/format'
@@ -24,7 +25,10 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
   const session = useSession()
   const router = useRouter()
   const utils = trpc.useUtils()
-  const { data: listing, isLoading } = trpc.listing.getById.useQuery({ id })
+  const { data: listing, isLoading } = trpc.listing.getById.useQuery(
+    { id },
+    { retry: (count, err) => err.data?.code !== 'NOT_FOUND' && count < 3 }
+  )
 
   const bookmarkToggle = trpc.bookmark.toggleListingBookmark.useMutation({
     onMutate: async () => {
@@ -68,7 +72,25 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
     return <ListingDetailSkeleton />
   }
 
-  if (!listing) return null
+  if (!listing) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-6">
+        <EmptyState
+          icon={PackageOpen}
+          title="找不到此代購"
+          description="此頁面已失效"
+        >
+          <Link
+            href="/search?tab=listings"
+            className="inline-flex h-10 items-center justify-center rounded-lg px-6 text-sm font-semibold text-white hover:opacity-85 active:scale-[0.98] transition-all"
+            style={{ background: 'var(--brand-700)' }}
+          >
+            瀏覽其他代購
+          </Link>
+        </EmptyState>
+      </div>
+    )
+  }
 
   const images = listing.listing_images?.sort((a: any, b: any) => a.sort_order - b.sort_order) ?? []
   const galleryImages = images.map((image: any) => ({
