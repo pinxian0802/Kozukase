@@ -160,10 +160,10 @@ export function ReviewComposer({ sellerId, isOwnProfile, isLoggedIn, myReview }:
             />
             <DropdownMenuContent align="end" className="w-32">
               <DropdownMenuItem onClick={() => setEditing(true)}>
-                <Pencil className="mr-2 h-4 w-4" />編輯
+                <Pencil className="h-4 w-4" />編輯
               </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={() => setConfirmDelete(true)}>
-                <Trash2 className="mr-2 h-4 w-4" />刪除
+                <Trash2 className="h-4 w-4" />刪除
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -118,27 +118,27 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem render={<Link href="/notifications" />}>
-                    <Bell className="mr-2 h-4 w-4" />通知
+                    <Bell className="h-4 w-4" />通知
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/account" />}>
-                    <Settings className="mr-2 h-4 w-4" />帳號設定
+                    <Settings className="h-4 w-4" />帳號設定
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/favorites" />}>
-                    <Heart className="mr-2 h-4 w-4" />我的收藏
+                    <Heart className="h-4 w-4" />我的收藏
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {session.isSeller ? (
                     <DropdownMenuItem render={<Link href="/dashboard" />}>
-                      <Store className="mr-2 h-4 w-4" />賣家後台
+                      <Store className="h-4 w-4" />賣家後台
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem render={<Link href="/become-seller" />}>
-                      <Store className="mr-2 h-4 w-4" />成為賣家
+                      <Store className="h-4 w-4" />成為賣家
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />登出
+                    <LogOut className="h-4 w-4" />登出
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

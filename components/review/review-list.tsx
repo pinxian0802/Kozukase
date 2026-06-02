@@ -108,7 +108,7 @@ function ReviewCard({
             />
             <DropdownMenuContent align="end" className="w-32">
               <DropdownMenuItem variant="destructive" onClick={() => setReportOpen(true)}>
-                <Flag className="mr-2 h-4 w-4" />檢舉
+                <Flag className="h-4 w-4" />檢舉
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
