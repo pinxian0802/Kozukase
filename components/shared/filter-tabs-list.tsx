@@ -23,14 +23,14 @@ export function FilterTabsList({
 }) {
   return (
     <TabsList
-      variant="line"
-      className={cn('flex-wrap w-full border-b border-border', className)}
+      variant="pill"
+      className={cn('w-full', className)}
     >
       {items.map(({ value, label, count }) => (
         <TabsTrigger key={value} value={value} className="group">
           {label}
           {count !== undefined && (
-            <span className="ml-1 text-[11px] font-semibold px-1.5 py-px rounded-full bg-surface-muted text-text-muted group-data-active:bg-neutral-900 group-data-active:text-text-inverse">
+            <span className="ml-0.5 text-[11px] font-semibold px-1.5 py-px rounded-full bg-background text-muted-foreground group-data-active:bg-white/25 group-data-active:text-white">
               {count}
             </span>
           )}

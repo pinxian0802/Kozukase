@@ -38,12 +38,11 @@ export default function FavoritesPage() {
           <button
             key={key}
             onClick={() => setBookmarkFilter(key)}
-            className="h-8 px-4 rounded-full text-sm font-medium transition-all cursor-pointer"
-            style={
+            className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
               bookmarkFilter === key
-                ? { background: 'var(--text-strong)', color: 'var(--text-inverse)' }
-                : { background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-soft)' }
-            }
+                ? 'bg-brand-500 text-white shadow-sm'
+                : 'bg-muted text-muted-foreground hover:bg-brand-50 hover:text-brand-700'
+            }`}
           >
             {label}
           </button>
