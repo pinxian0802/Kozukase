@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Flag, X } from 'lucide-react'
+import { Flag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
@@ -68,31 +68,16 @@ export function ReportDialog({ iconOnly, triggerClassName, open: openProp, onOpe
         </DialogTrigger>
       )}
 
-      <DialogContent showCloseButton={false} className="gap-0 p-0 overflow-hidden sm:max-w-md rounded-2xl">
-        {/* Header */}
-        <div className="flex items-center gap-3 border-b border-border-soft px-5 py-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50">
-            <Flag className="h-3.5 w-3.5 text-red-500" />
+      <DialogContent showCloseButton className="sm:max-w-md">
+        <div className="flex items-start justify-between">
+          <div>
+            <DialogTitle>檢舉內容</DialogTitle>
+            <p className="mt-1.5 text-sm text-muted-foreground">我們會盡快審核並處理您的回報</p>
           </div>
-          <div className="flex-1 min-w-0">
-            <DialogTitle className="text-[15px] font-semibold leading-none text-foreground">檢舉內容</DialogTitle>
-            <p className="mt-1 text-xs text-muted-foreground">我們會盡快審核並處理您的回報</p>
-          </div>
-          <DialogClose
-            render={
-              <button
-                type="button"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
-              />
-            }
-          >
-            <X className="h-4 w-4" />
-          </DialogClose>
         </div>
 
-        {/* Body */}
         <form
-          className="flex flex-col gap-4 px-5 py-5"
+          className="flex flex-col gap-4"
           onSubmit={(e) => { e.preventDefault(); handleSubmit() }}
           noValidate
         >
@@ -109,7 +94,7 @@ export function ReportDialog({ iconOnly, triggerClassName, open: openProp, onOpe
               rows={4}
               aria-invalid={!!reasonError}
               className={cn(
-                "resize-none rounded-xl text-sm placeholder:text-muted-foreground/50",
+                "resize-none rounded-[14px] text-sm placeholder:text-muted-foreground/50",
                 "border-border-soft bg-surface-muted transition-colors",
                 "focus:border-brand-500 focus:bg-surface-card",
                 reasonError && "border-red-400"
@@ -127,23 +112,18 @@ export function ReportDialog({ iconOnly, triggerClassName, open: openProp, onOpe
           </div>
 
           <div className="flex items-center justify-end gap-2">
-            <DialogClose
-              render={
-                <button
-                  type="button"
-                  className="h-10 px-4 rounded-xl text-sm font-medium text-text-muted border border-border-soft bg-surface-card hover:bg-surface-muted transition-colors cursor-pointer"
-                />
-              }
-            >
+            <DialogClose render={<Button variant="outline-soft" size="lg" className="rounded-[12px]" />}>
               取消
             </DialogClose>
-            <button
+            <Button
               type="submit"
+              variant="destructive"
+              size="lg"
+              className="rounded-[12px]"
               disabled={report.isPending}
-              className="h-10 px-5 rounded-xl text-sm font-semibold bg-red-500 text-white hover:bg-red-600 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               {report.isPending ? '送出中...' : '送出檢舉'}
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>

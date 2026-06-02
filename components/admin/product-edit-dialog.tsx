@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -210,14 +209,14 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
+            <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 取消
               </Button>
-              <button type="submit" disabled={isPending || !name.trim()} className={buttonVariants()}>
+              <Button type="submit" disabled={isPending || !name.trim()}>
                 儲存變更
-              </button>
-            </div>
+              </Button>
+            </DialogFooter>
           </form>
         )}
       </DialogContent>
