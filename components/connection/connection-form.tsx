@@ -65,9 +65,15 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const parsedEndDate = endDate ? parseISO(endDate) : null
   const endDateMin = parsedStartDate ? addDays(parsedStartDate, 1) : today
 
+  // 已結束的連線在編輯頁可重新上架：填回日期後存檔並切回上架中
+  // （管理員中止的連線會走重新送出審核 → pending_approval）。
+  const isEnded = mode === 'edit' && initialData?.status === 'ended'
+  const isAdminEnded = isEnded && initialData?.ended_reason === 'admin'
+
   const createConnection = trpc.connection.create.useMutation()
   const checkPostLink = trpc.connection.checkPostLink.useMutation()
   const updateConnection = trpc.connection.update.useMutation()
+  const reactivateConnection = trpc.connection.reactivate.useMutation()
   const deleteConnection = trpc.connection.delete.useMutation()
   const confirmImages = trpc.upload.confirmConnectionImages.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
@@ -241,8 +247,14 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           })),
         })
 
-        toast.dismiss(toastId)
-        toast.success('已更新連線公告')
+        if (isEnded) {
+          const reactivated = await reactivateConnection.mutateAsync({ id: initialData.id })
+          toast.dismiss(toastId)
+          toast.success(reactivated.status === 'pending_approval' ? '已送出，等待管理員核准' : '已重新上架')
+        } else {
+          toast.dismiss(toastId)
+          toast.success('已更新連線公告')
+        }
         utils.connection.invalidate()
       }
 
@@ -264,7 +276,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     }
   }
 
-  const isPending = isSubmitting || isCheckingPostLink || createConnection.isPending || updateConnection.isPending || confirmImages.isPending
+  const isPending = isSubmitting || isCheckingPostLink || createConnection.isPending || updateConnection.isPending || reactivateConnection.isPending || confirmImages.isPending
 
   return (
     <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
@@ -525,7 +537,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
       <button type="submit" disabled={isPending} className={buttonVariants({ size: 'lg', className: 'w-full' })}>
         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        {mode === 'create' ? '建立連線公告' : '更新連線公告'}
+        {mode === 'create' ? '建立連線公告' : isEnded ? (isAdminEnded ? '重新送出審核' : '重新上架') : '更新連線公告'}
       </button>
     </form>
   )

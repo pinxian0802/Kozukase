@@ -89,7 +89,7 @@ export const connectionRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data, error } = await ctx.db
         .from('connections')
-        .update({ status: 'ended', ended_reason: 'self' })
+        .update({ status: 'ended', ended_reason: 'self', start_date: null, end_date: null })
         .eq('id', input.id)
         .eq('seller_id', ctx.seller.id)
         .eq('status', 'active')

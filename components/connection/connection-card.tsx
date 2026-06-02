@@ -9,8 +9,8 @@ interface ConnectionCardProps {
   connection: {
     id: string
     title?: string | null
-    start_date: string
-    end_date: string
+    start_date: string | null
+    end_date: string | null
     shipping_date?: string | null
     locations?: string[] | null
     description?: string | null

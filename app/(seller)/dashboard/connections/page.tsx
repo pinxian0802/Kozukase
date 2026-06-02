@@ -33,13 +33,15 @@ type ConnectionItem = {
   id: string
   title: string | null
   status: string
-  start_date: string
-  end_date: string
+  start_date: string | null
+  end_date: string | null
   shipping_date?: string | null
   can_wish?: boolean | null
   post_link?: string | null
   region?: { id: string; name: string } | null
   connection_images?: ConnectionImage[] | null
+  ended_reason?: string | null
+  admin_note?: string | null
 }
 
 function buildDisplayImages(conn: ConnectionItem): DashboardThumbnailImage[] {
@@ -73,21 +75,16 @@ export default function SellerConnectionsPage() {
     onSuccess: () => { toast.success('已結束連線'); invalidate() },
     onError: (err) => toast.error(err.message),
   })
-  const reactivate = trpc.connection.reactivate.useMutation({
-    onSuccess: () => { toast.success('已更新連線狀態'); invalidate() },
-    onError: (err) => toast.error(err.message),
-  })
   const deleteConnection = trpc.connection.delete.useMutation({
     onSuccess: () => { toast.success('已刪除連線'); invalidate() },
     onError: (err) => toast.error(err.message),
   })
 
   const isEmpty = !isLoading && filtered.length === 0
-  const actionPending = endConnection.isPending || reactivate.isPending || deleteConnection.isPending
+  const actionPending = endConnection.isPending || deleteConnection.isPending
 
   const actionHandlers = (id: string) => ({
     onEnd: () => endConnection.mutate({ id }),
-    onReactivate: () => reactivate.mutate({ id }),
     onDelete: () => deleteConnection.mutate({ id }),
   })
 
@@ -159,6 +156,7 @@ export default function SellerConnectionsPage() {
                     <DashboardStatusDot
                       label={statusLabels[conn.status] ?? conn.status}
                       dotClassName={statusDotColors[conn.status]}
+                      warning={conn.ended_reason === 'admin' ? (conn.admin_note || '此連線已被管理員中止') : null}
                     />
                   </TableCell>
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -214,6 +212,7 @@ export default function SellerConnectionsPage() {
                   <DashboardStatusDot
                     label={statusLabels[conn.status] ?? conn.status}
                     dotClassName={statusDotColors[conn.status]}
+                    warning={conn.ended_reason === 'admin' ? (conn.admin_note || '此連線已被管理員中止') : null}
                   />
                 </div>
               </div>
@@ -261,7 +260,6 @@ type ConnectionActionsProps = {
   connectionStatus: string
   pending: boolean
   onEnd: () => void
-  onReactivate: () => void
   onDelete: () => void
 }
 
@@ -270,15 +268,12 @@ function ConnectionActions({
   connectionStatus,
   pending,
   onEnd,
-  onReactivate,
   onDelete,
 }: ConnectionActionsProps) {
   return (
     <div className="inline-flex items-center justify-end gap-2">
       <Button size="sm" variant="outline" render={<Link href={`/dashboard/connections/${connectionId}/edit`} />}>編輯</Button>
-      {connectionStatus === 'pending_approval' ? (
-        <Badge variant="outline" className="h-8 px-3">等待審核結果</Badge>
-      ) : (
+      {connectionStatus !== 'pending_approval' && (
         <DropdownMenu>
           <DropdownMenuTrigger
             nativeButton={false}
@@ -295,14 +290,12 @@ function ConnectionActions({
               <DropdownMenuItem variant="destructive" onClick={onEnd}>結束</DropdownMenuItem>
             )}
             {connectionStatus === 'ended' && (
-              <>
-                <DropdownMenuItem onClick={onReactivate}>重新上架</DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" onClick={onDelete}>刪除</DropdownMenuItem>
-              </>
+              <DropdownMenuItem variant="destructive" onClick={onDelete}>刪除</DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
       )}
     </div>
+
   )
 }

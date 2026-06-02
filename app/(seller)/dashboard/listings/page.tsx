@@ -47,6 +47,8 @@ type ListingItem = {
   is_price_on_request: boolean
   expires_at: string | null
   post_url?: string | null
+  inactive_reason?: string | null
+  admin_note?: string | null
 }
 
 function buildDisplayImages(listing: ListingItem): DashboardThumbnailImage[] {
@@ -78,13 +80,6 @@ export default function SellerListingsPage() {
     onSuccess: () => { toast.success('已下架'); invalidate() },
     onError: (err) => toast.error(err.message),
   })
-  const reactivate = trpc.listing.reactivate.useMutation({
-    onSuccess: (data) => {
-      toast.success(data.status === 'pending_approval' ? '已重新送出，等待審核' : '已重新上架')
-      invalidate()
-    },
-    onError: (err) => toast.error(err.message),
-  })
   const deleteListing = trpc.listing.delete.useMutation({
     onSuccess: () => { toast.success('已刪除'); invalidate() },
     onError: (err) => toast.error(err.message),
@@ -97,12 +92,11 @@ export default function SellerListingsPage() {
   const items = (data?.items ?? []) as ListingItem[]
   const isEmpty = !isLoading && items.length === 0
   const actionPending =
-    publish.isPending || deactivate.isPending || reactivate.isPending || deleteListing.isPending
+    publish.isPending || deactivate.isPending || deleteListing.isPending
 
   const actionHandlers = (id: string) => ({
     onPublish: () => publish.mutate({ id }),
     onDeactivate: () => deactivate.mutate({ id }),
-    onReactivate: () => reactivate.mutate({ id }),
     onDelete: () => deleteListing.mutate({ id }),
   })
 
@@ -185,6 +179,7 @@ export default function SellerListingsPage() {
                     <DashboardStatusDot
                       label={statusLabels[listing.status] ?? listing.status}
                       dotClassName={statusDotColors[listing.status]}
+                      warning={listing.inactive_reason === 'admin' ? (listing.admin_note || '此代購已被管理員下架') : null}
                     />
                   </TableCell>
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -241,6 +236,7 @@ export default function SellerListingsPage() {
                   <DashboardStatusDot
                     label={statusLabels[listing.status] ?? listing.status}
                     dotClassName={statusDotColors[listing.status]}
+                    warning={listing.inactive_reason === 'admin' ? (listing.admin_note || '此代購已被管理員下架') : null}
                   />
                 </div>
               </div>
@@ -303,7 +299,6 @@ type ListingActionsProps = {
   pending: boolean
   onPublish: () => void
   onDeactivate: () => void
-  onReactivate: () => void
   onDelete: () => void
 }
 
@@ -314,7 +309,6 @@ function ListingActions({
   pending,
   onPublish,
   onDeactivate,
-  onReactivate,
   onDelete,
 }: ListingActionsProps) {
   return (
@@ -343,12 +337,7 @@ function ListingActions({
               <DropdownMenuItem variant="destructive" onClick={onDeactivate}>下架</DropdownMenuItem>
             )}
             {listingStatus === 'inactive' && (
-              <>
-                {!productRemoved && (
-                  <DropdownMenuItem onClick={onReactivate}>重新上架</DropdownMenuItem>
-                )}
-                <DropdownMenuItem variant="destructive" onClick={onDelete}>刪除</DropdownMenuItem>
-              </>
+              <DropdownMenuItem variant="destructive" onClick={onDelete}>刪除</DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

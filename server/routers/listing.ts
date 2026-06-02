@@ -247,7 +247,7 @@ export const listingRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { data, error } = await ctx.db
         .from('listings')
-        .update({ status: 'inactive', inactive_reason: 'self' })
+        .update({ status: 'inactive', inactive_reason: 'self', expires_at: null })
         .eq('id', input.id)
         .eq('seller_id', ctx.seller.id)
         .eq('status', 'active')

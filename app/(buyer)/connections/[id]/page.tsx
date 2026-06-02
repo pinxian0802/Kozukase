@@ -17,8 +17,10 @@ import { useSession } from '@/lib/context/session-context'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
-const DateTimeline = ({ start, end, startRaw, endRaw }: { start: string; end: string; startRaw: string; endRaw: string }) => {
-  const days = Math.round((new Date(endRaw).getTime() - new Date(startRaw).getTime()) / 86400000)
+const DateTimeline = ({ start, end, startRaw, endRaw }: { start: string; end: string; startRaw: string | null; endRaw: string | null }) => {
+  const days = startRaw && endRaw
+    ? Math.round((new Date(endRaw).getTime() - new Date(startRaw).getTime()) / 86400000)
+    : 0
   return (
     <div className="flex items-center py-1">
       <div className="flex-1 text-left">

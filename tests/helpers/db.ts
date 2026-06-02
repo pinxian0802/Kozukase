@@ -109,6 +109,19 @@ export async function seedPendingListing(sellerEmail: string): Promise<SeededLis
   return seedListing(sellerEmail, 'pending_approval')
 }
 
+// Attaches one valid image to a seeded listing so the edit form passes its
+// "至少需要一張圖片" check, and the republish submit (which re-confirms the
+// existing images) passes the R2 ownership assertions: r2_key must start with
+// images/listing/users/{userId}/ and url must equal R2_PUBLIC_URL/{r2_key}.
+// sellers.id === auth user id, so pass the seed's sellerId here.
+export async function addListingImage(listingId: string, sellerUserId: string): Promise<void> {
+  const key = `images/listing/users/${sellerUserId}/e2e.jpg`
+  const { error } = await dbAdmin()
+    .from('listing_images')
+    .insert({ listing_id: listingId, r2_key: key, url: `${process.env.R2_PUBLIC_URL}/${key}`, sort_order: 0 })
+  if (error) throw error
+}
+
 export type SeededConnection = {
   connectionId: string
   sellerId: string

@@ -133,10 +133,11 @@ draft ──────────────► active ◄──── pendi
 | `product_removed` | 商品被刪除導致；需在編輯頁重選商品後重新送出（→ `pending_approval`） |
 | `expired` | 到期下架（機制保留，尚未實作） |
 
-**重新上架規則：**
+**重新上架規則（改於「編輯頁」操作，列表下拉選單已無此項）：**
+- 下架時會清空「截止日（`expires_at`）」；重新上架在編輯頁按主要按鈕送出
 - 閘門以「目前指向的商品是否仍被移除」為準：商品仍被移除時拋出錯誤，要求先重選商品
-- 原因為 `self` / `expired` → 直接變為 `active`
-- 原因為 `admin` / `product_removed` → 進入 `pending_approval`，需管理員審核後方可上架
+- 原因為 `self` / `expired` → 直接變為 `active`（按鈕顯示「重新上架」）
+- 原因為 `admin` / `product_removed` → 進入 `pending_approval`，需管理員審核（按鈕顯示「重新送出審核」）
 - `product_removed`：賣家於編輯頁重選有效商品（搜��現有或新增）後，按「重新送出審核」即更新商品並重送
 
 **上架必填欄位：**
@@ -394,11 +395,13 @@ active ◄──── pending_approval
 
 | 操作 | 條件 | 結果 |
 |------|------|------|
-| 下架 | 狀態為 `active` | → `inactive`（reason: `self`） |
+| 下架／結束 | 狀態為 `active` | → `inactive`／`ended`（reason: `self`）；清空截止日（代購）或開始/結束日期（連線） |
 | 重新上架 | reason 為 `self` | → `active` |
 | ��新上架 | reason 為 `admin` | → `pending_approval` |
 | 重新上架 | reason 為 `product_removed` | 拋出錯誤 |
 | 刪除 | 狀態為 `draft` | 永久刪除 |
+
+> 重新上架／重新送出審核改於**編輯頁**操作（列表下拉選單不再有此項）。連線結束會清空開始/結束日期，需在編輯頁重填日期後才能重新上架。
 
 ---
 

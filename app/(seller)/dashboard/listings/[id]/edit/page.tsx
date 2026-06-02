@@ -77,8 +77,10 @@ export default function EditListingPage() {
     ? listing.product.brand
     : listing.product?.brand?.name ?? null
 
+  const adminTakenDown = listing.inactive_reason === 'admin' && !!listing.admin_note
+
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-4">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
@@ -86,8 +88,15 @@ export default function EditListingPage() {
         <h1 className="text-2xl font-bold font-heading">編輯代購</h1>
       </div>
 
+      {adminTakenDown && (
+        <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>此代購因「{listing.admin_note}」已被管理員下架，請修改後重新送出審核。</p>
+        </div>
+      )}
+
       <Card className="ring-0 shadow-sm py-0">
-        <CardContent className="p-6 sm:p-8 space-y-4">
+        <CardContent className="px-6 py-4 sm:px-8 sm:py-5 space-y-4">
           {productRemoved && (
             <div className="space-y-3">
               <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">

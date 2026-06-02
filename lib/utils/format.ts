@@ -12,7 +12,8 @@ export function formatShippingDate(dateString: string | null): string {
   })} 出貨`
 }
 
-export function formatDate(dateString: string): string {
+export function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return '--'
   return new Date(dateString).toLocaleDateString('zh-TW', {
     year: 'numeric',
     month: 'short',

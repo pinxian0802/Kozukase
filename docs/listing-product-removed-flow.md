@@ -104,10 +104,12 @@ active（上線，通知賣家「重新上架已通過審核」）
 - 一般（商品正常）編輯：行為不變 —— 商品唯讀、不帶 `product_id`、不改狀態。
 
 **後台列表** `app/(seller)/dashboard/listings/page.tsx`
-- 以 `product.is_removed` 為準：
-  - 商品名稱旁顯示紅色「商品已被移除」標示。
-  - `inactive` + 商品仍被移除 → 下拉**不顯示**「重新上架」（點了必錯），改走「編輯」進去重選。
-  - `inactive` + 商品正常 → 顯示「重新上架」，點擊走 `reactivate`。
+- 以 `product.is_removed` 為準：商品名稱旁顯示紅色「商品已被移除」標示。
+- 重新上架已**從列表下拉移除**，改於編輯頁操作（下拉只剩「刪除」）。
+
+**重新上架（編輯頁）** `components/listing/listing-form.tsx`
+- 已下架（`inactive`）的代購，編輯頁主要按鈕即為重新上架：存檔後呼叫 `reactivate`。
+  - `self` → `active`（按鈕「重新上架」）；`admin` / `product_removed` → `pending_approval`（按鈕「重新送出審核」）。
 - `reactivate` 的成功 toast 依回傳 `status` 顯示：`pending_approval` →「已重新送出，等待審核」；
   其餘 →「已重新上架」。
 
@@ -120,8 +122,8 @@ active（上線，通知賣家「重新上架已通過審核」）
 
 - **草稿替代品中途失敗**：`createProductForListing` 對圖片上傳失敗會清掉孤兒 R2 物件；
   商品記錄本身保留（屬有效目錄項目）。
-- **只儲存不重送**：賣家可用「儲存變更」先存替代品而不送審；之後在列表（此時商品已正常）
-  按「重新上架」一樣會進 `pending_approval`（因 `inactive_reason` 仍為 `product_removed`）。
+- **只儲存不重送**：賣家可用「儲存變更」先存替代品而不送審；之後回編輯頁（此時商品已正常）
+  按主要按鈕重新送出一樣會進 `pending_approval`（因 `inactive_reason` 仍為 `product_removed`）。
 - **重選到的商品又被移除**：`ProductPicker` 只會列出未移除商品；即便發生，`reactivate`
   的閘門仍會擋下並要求重選。
 

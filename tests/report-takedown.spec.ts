@@ -2,6 +2,7 @@ import { test, expect } from './fixtures'
 import type { Page } from '@playwright/test'
 import {
   seedActiveListing,
+  addListingImage,
   seedActiveConnection,
   seedReview,
   getLatestReport,
@@ -97,21 +98,17 @@ test('管理員從「今日新增」下架 active listing → inactive/admin + �
 // ─────────────────────────────────────────────────────────────────────────────
 test('管理員下架後賣家重新上架 → pending_approval → 管理員核准 → active + 通知', async ({ sellerPage, adminPage }) => {
   const seed = await seedActiveListing(process.env.E2E_SELLER_EMAIL!)
+  await addListingImage(seed.listingId, seed.sellerId)
   await dbAdmin()
     .from('listings')
     .update({ status: 'inactive', inactive_reason: 'admin', admin_note: '[E2E] down' })
     .eq('id', seed.listingId)
   const approveNotifBefore = await getNotificationCount(seed.sellerId, 'listing_republish_approved')
 
-  // Seller re-submits from the dashboard. The list is a responsive table
-  // (desktop <table> + hidden mobile cards both in the DOM); scope to a table
-  // row to avoid the duplicate-text match, then use the row's "更多操作" menu.
-  await sellerPage.goto('/dashboard/listings')
-  await sellerPage.getByRole('tab', { name: /已下架/ }).click()
-  const row = sellerPage.getByRole('row').filter({ hasText: seed.title })
-  await expect(row).toBeVisible({ timeout: 20000 })
-  await row.locator('[aria-label="更多操作"]').click()
-  await sellerPage.getByRole('menuitem', { name: '重新上架' }).click()
+  // Seller re-submits from the edit page: the admin-downed listing's primary
+  // submit re-sends for approval (→ pending_approval).
+  await sellerPage.goto(`/dashboard/listings/${seed.listingId}/edit`)
+  await sellerPage.getByRole('button', { name: '重新送出審核' }).click()
 
   await expect
     .poll(

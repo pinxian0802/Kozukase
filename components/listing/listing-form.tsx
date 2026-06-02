@@ -172,6 +172,10 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
   // the primary (relist) submit is allowed.
   const hasReplacement = !!productId || !!onCreateProduct
   const requiresReselect = mode === 'edit' && productRemoved && !hasReplacement
+  // An inactive listing relists via this form's primary submit. admin- or
+  // product_removed-downed listings go back for re-approval; self-downed go live.
+  const isInactive = mode === 'edit' && initialData?.status === 'inactive'
+  const needsReapproval = isInactive && (productRemoved || initialData?.inactive_reason === 'admin' || initialData?.inactive_reason === 'product_removed')
 
   const clearError = (field: keyof typeof errors) => {
     setErrors((current) => {
@@ -411,13 +415,19 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
             sort_order: i,
           })),
         })
-        // Primary submit on a removed-product listing relists for re-approval.
-        if (productRemoved && status === 'active') {
-          await reactivateListing.mutateAsync({ id: initialData.id })
+        // Primary submit on an inactive listing relists it. admin- or
+        // product_removed-downed go back for re-approval; self-downed go live.
+        let reactivated: { status?: string } | null = null
+        if (isInactive && status === 'active') {
+          reactivated = await reactivateListing.mutateAsync({ id: initialData.id })
         }
 
         toast.dismiss(toastId)
-        toast.success(productRemoved && status === 'active' ? '\u5df2\u91cd\u65b0\u9001\u51fa\uff0c\u7b49\u5f85\u5be9\u6838' : '\u5df2\u66f4\u65b0')
+        toast.success(
+          reactivated
+            ? (reactivated.status === 'pending_approval' ? '\u5df2\u91cd\u65b0\u9001\u51fa\uff0c\u7b49\u5f85\u5be9\u6838' : '\u5df2\u91cd\u65b0\u4e0a\u67b6')
+            : '\u5df2\u66f4\u65b0',
+        )
       }
 
       utils.listing.myListings.invalidate()
@@ -726,7 +736,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
           </Button>
           <button type="submit" disabled={isSubmitDisabled || requiresReselect} className={buttonVariants({ className: 'flex-1' })}>
             {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-            {mode === 'create' ? '直接上架' : (productRemoved ? '重新送出審核' : '更新代購')}
+            {mode === 'create' ? '直接上架' : (isInactive ? (needsReapproval ? '重新送出審核' : '重新上架') : '更新代購')}
           </button>
         </div>
         {requiresReselect && (
