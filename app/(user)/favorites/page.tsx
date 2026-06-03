@@ -7,6 +7,8 @@ import { ListingCard } from '@/components/listing/listing-card'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Button } from '@/components/ui/button'
+import { X, Package } from 'lucide-react'
+import Image from 'next/image'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
 import { toast } from 'sonner'
@@ -124,36 +126,43 @@ export default function FavoritesPage() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">許願</h3>
           )}
           {myWishes?.items && myWishes.items.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {myWishes.items.map((wish: any) => {
                 const imageUrl = getCardImageUrl(wish.product as any)
                 return (
-                  <div key={wish.id} className="flex items-start gap-4 rounded-2xl border border-border-soft bg-surface-card p-4">
-                    {/* 縮圖 */}
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+                  <div key={wish.id} className="relative overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-sm">
+                    {/* 叉叉按鈕 */}
+                    <button
+                      type="button"
+                      onClick={() => { if (wish.product?.id) wishDelete.mutate({ product_id: wish.product.id }) }}
+                      disabled={wishDelete.isPending}
+                      className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70 disabled:opacity-50"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+
+                    {/* 商品圖片 */}
+                    <div className="relative aspect-square bg-muted">
                       {imageUrl ? (
-                        <img src={imageUrl} alt={wish.product?.name} className="h-full w-full object-cover" />
+                        <Image
+                          src={imageUrl}
+                          alt={wish.product?.name ?? ''}
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="object-cover"
+                        />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-muted-foreground/30 text-xs">無圖</div>
+                        <div className="flex h-full items-center justify-center text-muted-foreground/30">
+                          <Package className="h-7 w-7" />
+                        </div>
                       )}
                     </div>
 
-                    {/* 資訊 */}
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <p className="font-semibold truncate">{wish.product?.name}</p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{wish.content}</p>
+                    {/* 內容 */}
+                    <div className="p-3 space-y-1">
+                      <p className="font-bold leading-snug line-clamp-2 text-foreground text-sm">{wish.product?.name}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{wish.content}</p>
                     </div>
-
-                    {/* 取消許願 */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="shrink-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => { if (wish.product?.id) wishDelete.mutate({ product_id: wish.product.id }) }}
-                      disabled={wishDelete.isPending}
-                    >
-                      取消
-                    </Button>
                   </div>
                 )
               })}
