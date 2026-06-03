@@ -24,9 +24,6 @@ export function WishCard({ wish }: { wish: WishCardWish }) {
   if (!wish.product) return null
 
   const imageUrl = getCardImageUrl(wish.product as any)
-  const brandLabel = typeof wish.product.brand === 'string'
-    ? wish.product.brand
-    : wish.product.brand?.name ?? null
   const displayName = wish.profile?.display_name ?? '匿名'
 
   return (
@@ -50,9 +47,6 @@ export function WishCard({ wish }: { wish: WishCardWish }) {
 
       {/* 內容 */}
       <div className="p-4 space-y-2">
-        {brandLabel && (
-          <p className="truncate text-xs text-muted-foreground">{brandLabel}</p>
-        )}
         <p className="font-bold leading-snug line-clamp-2 text-foreground">
           {wish.product.name}
         </p>
