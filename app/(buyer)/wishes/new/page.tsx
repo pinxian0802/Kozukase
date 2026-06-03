@@ -2,33 +2,25 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { ProductForm, type ProductFormData } from '@/components/product/product-form'
+import { WishForm, type WishFormData } from '@/components/buyer/wish-form'
 import { uploadImageFiles } from '@/components/shared/image-upload'
 import { trpc } from '@/lib/trpc/client'
 import { toast } from 'sonner'
 
 export default function WishNewPage() {
   const router = useRouter()
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [pendingProduct, setPendingProduct] = useState<{ id: string; name: string } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
   const createdProductIdRef = useRef<string | null>(null)
 
   const createProduct = trpc.product.create.useMutation()
   const createBrand = trpc.brand.create.useMutation()
-  const wishToggle = trpc.wish.toggle.useMutation()
+  const wishCreate = trpc.wish.create.useMutation()
   const getPresignedUrl = trpc.upload.getPresignedUrl.useMutation()
   const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
 
-  const handleFormContinue = async (data: ProductFormData) => {
+  const handleSubmit = async (data: WishFormData) => {
     setIsSubmitting(true)
-
     try {
       let productId = createdProductIdRef.current
 
@@ -43,7 +35,6 @@ export default function WishNewPage() {
           name: data.name,
           brand_id: resolvedBrandId || undefined,
           model_number: data.modelNumber.trim() || undefined,
-          category: data.category || undefined,
           region_id: data.regionId || undefined,
         })
         productId = product.id as string
@@ -70,66 +61,28 @@ export default function WishNewPage() {
         }
       }
 
-      setPendingProduct({ id: productId!, name: data.name })
-      setConfirmOpen(true)
+      await wishCreate.mutateAsync({
+        product_id: productId!,
+        content: data.content,
+      })
+
+      toast.success('許願已送出')
+      router.push('/wishes')
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '新增商品失敗'
+      const message = err instanceof Error ? err.message : '送出失敗，請重試'
       toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleWishConfirm = async () => {
-    if (!pendingProduct) return
-    try {
-      await wishToggle.mutateAsync({ product_id: pendingProduct.id })
-      toast.success('已加入許願清單')
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '加入許願清單失敗'
-      toast.error(message)
-    } finally {
-      setConfirmOpen(false)
-      router.push('/wishes')
-    }
-  }
-
-  const handleWishDecline = () => {
-    toast.success('商品已新增到目錄')
-    setConfirmOpen(false)
-    router.push('/wishes')
-  }
-
   return (
-    <div className="mx-auto max-w-2xl">
-      <ProductForm
-        initialName=""
+    <div className="mx-auto max-w-2xl px-4 py-6">
+      <WishForm
         onBack={() => router.back()}
-        onContinue={handleFormContinue}
+        onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />
-
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent showCloseButton={false} className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>加入許願清單</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            要把「{pendingProduct?.name}」加入你的許願清單嗎？
-          </p>
-          <p className="text-xs text-muted-foreground">
-            許願後，若有人上架代購此商品，系統會通知你。
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleWishDecline}>
-              不要
-            </Button>
-            <Button onClick={handleWishConfirm} disabled={wishToggle.isPending}>
-              {wishToggle.isPending ? '處理中...' : '要'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

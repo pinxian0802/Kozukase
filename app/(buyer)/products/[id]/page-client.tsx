@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Heart, Bookmark, SlidersHorizontal, X, PackageOpen } from 'lucide-react'
+import { Bookmark, SlidersHorizontal, X, PackageOpen } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -51,22 +51,6 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
   const [listPage, setListPage] = useState(1)
 
   useEffect(() => { setListPage(1) }, [inStockOnly, minPrice, maxPrice])
-
-  const wishToggle = trpc.wish.toggle.useMutation({
-    onMutate: async () => {
-      await utils.product.getById.cancel({ id })
-      const prev = utils.product.getById.getData({ id })
-      if (prev) {
-        utils.product.getById.setData({ id }, { ...prev, hasWished: !prev.hasWished })
-      }
-      return { prev }
-    },
-    onError: (err, _vars, context) => {
-      if (context?.prev) utils.product.getById.setData({ id }, context.prev)
-      toast.error(err.message)
-    },
-    onSettled: () => utils.product.getById.invalidate({ id }),
-  })
 
   const bookmarkToggle = trpc.bookmark.toggleProductBookmark.useMutation({
     onMutate: async () => {
@@ -225,19 +209,10 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
                     {brandLabel && <p className="text-xs text-muted-foreground">{brandLabel}</p>}
                     <h1 className="text-lg font-bold font-heading leading-snug">{product.name}</h1>
                   </div>
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      variant={product.hasWished ? 'default' : 'outline'}
-                      className="flex-1 min-w-0"
-                      onClick={() => wishToggle.mutate({ product_id: id })}
-                      disabled={wishToggle.isPending}
-                    >
-                      <Heart className={`mr-2 h-4 w-4 shrink-0 ${product.hasWished ? 'fill-current' : ''}`} />
-                      許願
-                    </Button>
+                  <div className="pt-1">
                     <Button
                       variant={product.hasBookmarked ? 'default' : 'outline'}
-                      className="flex-1 min-w-0"
+                      className="w-full"
                       onClick={() => bookmarkToggle.mutate({ product_id: id })}
                       disabled={bookmarkToggle.isPending}
                     >
