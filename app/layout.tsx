@@ -32,6 +32,14 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://kozukase.com'),
   title: 'Kozukase | 日本代購比價平台',
   description: '比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/logo.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     siteName: 'Kozukase',
     type: 'website',
