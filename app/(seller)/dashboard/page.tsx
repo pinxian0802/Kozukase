@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 import { AnalyticsStats } from '@/components/seller/analytics-stats'
 import { DashboardHomeSkeleton } from '@/components/dashboard/home-skeleton'
+import { DashboardStatusDot } from '@/components/dashboard/status-dot'
 
 const MAX_LISTINGS = 25
 
@@ -181,10 +182,12 @@ export default function SellerDashboardPage() {
                             : ''}
                         </p>
                       </div>
-                      <span className="ml-3 shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />
-                        {sc.label}
-                      </span>
+                      <DashboardStatusDot
+                        label={sc.label}
+                        dotClassName={sc.dot}
+                        className="ml-3 shrink-0"
+                        warning={l.inactive_reason === 'admin' ? (l.admin_note || '此代購已被管理員下架') : null}
+                      />
                     </Link>
                   )
                 })}
@@ -238,10 +241,12 @@ export default function SellerDashboardPage() {
                           {c.region?.name ?? ''}・至 {c.end_date}
                         </p>
                       </div>
-                      <span className="ml-3 shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className={`h-1.5 w-1.5 rounded-full ${cs.dot}`} />
-                        {cs.label}
-                      </span>
+                      <DashboardStatusDot
+                        label={cs.label}
+                        dotClassName={cs.dot}
+                        className="ml-3 shrink-0"
+                        warning={c.ended_reason === 'admin' ? (c.admin_note || '此連線已被管理員中止') : null}
+                      />
                     </Link>
                   )
                 })}

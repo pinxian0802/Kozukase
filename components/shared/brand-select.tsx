@@ -157,33 +157,33 @@ export function BrandMultiSelect({
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
 
-  const utils = trpc.useUtils()
   const { data: brands = [] } = trpc.brand.list.useQuery()
-  const createBrand = trpc.brand.create.useMutation()
 
-  const selectedBrands = brands.filter((b) => value.includes(b.id))
+  const pendingValues = value.filter((v) => v.startsWith('__new__:'))
+  const realIds = value.filter((v) => !v.startsWith('__new__:'))
+  const selectedBrands = brands.filter((b) => realIds.includes(b.id))
 
   const filtered = search
     ? brands.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
     : brands
 
   const exactMatch = brands.some((b) => b.name.toLowerCase() === search.trim().toLowerCase())
-  const showCreate = search.trim().length > 0 && !exactMatch
+  const alreadyPending = pendingValues.some((v) => v.slice(8).toLowerCase() === search.trim().toLowerCase())
+  const showCreate = search.trim().length > 0 && !exactMatch && !alreadyPending
 
   const toggle = (id: string) => {
     onValueChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id])
   }
 
-  const handleCreate = async () => {
-    try {
-      const brand = await createBrand.mutateAsync({ name: search.trim() })
-      await utils.brand.list.invalidate()
-      onValueChange([...value, brand.id])
-      setSearch('')
-    } catch (error: any) {
-      toast.error(error.message ?? '新增品牌失敗')
-    }
+  const handleCreate = () => {
+    onValueChange([...value, '__new__:' + search.trim()])
+    setSearch('')
   }
+
+  const allDisplayItems = [
+    ...selectedBrands.map((b) => ({ key: b.id, name: b.name })),
+    ...pendingValues.map((v) => ({ key: v, name: v.slice(8) })),
+  ]
 
   return (
     <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setSearch('') }}>
@@ -198,22 +198,22 @@ export function BrandMultiSelect({
           className
         )}
       >
-        {selectedBrands.length === 0 ? (
+        {allDisplayItems.length === 0 ? (
           <span className="flex-1 text-left text-muted-foreground">{placeholder}</span>
         ) : (
-          selectedBrands.map((brand) => (
+          allDisplayItems.map(({ key, name }) => (
             <span
-              key={brand.id}
+              key={key}
               className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium"
             >
-              {brand.name}
+              {name}
               <span
                 role="button"
                 tabIndex={-1}
                 onPointerDown={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
-                  onValueChange(value.filter((v) => v !== brand.id))
+                  onValueChange(value.filter((v) => v !== key))
                 }}
                 className="ml-0.5 cursor-pointer rounded-full opacity-60 hover:opacity-100"
               >
@@ -252,7 +252,6 @@ export function BrandMultiSelect({
                 <CommandItem
                   value={`__create__${search}`}
                   onSelect={handleCreate}
-                  disabled={createBrand.isPending}
                   className="text-primary"
                 >
                   <Plus className="mr-2 size-4" />

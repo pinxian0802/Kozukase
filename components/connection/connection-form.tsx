@@ -70,6 +70,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const isEnded = mode === 'edit' && initialData?.status === 'ended'
   const isAdminEnded = isEnded && initialData?.ended_reason === 'admin'
 
+  const createBrand = trpc.brand.create.useMutation()
   const createConnection = trpc.connection.create.useMutation()
   const checkPostLink = trpc.connection.checkPostLink.useMutation()
   const updateConnection = trpc.connection.update.useMutation()
@@ -182,6 +183,16 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
     const uploadedR2Keys: string[] = []
 
     try {
+      const resolvedBrandIds = await Promise.all(
+        brandIds.map(async (id) => {
+          if (id.startsWith('__new__:')) {
+            const brand = await createBrand.mutateAsync({ name: id.slice(8) })
+            return brand.id
+          }
+          return id
+        })
+      )
+
       if (mode === 'create') {
         const result = await createConnection.mutateAsync({
           title: title.trim(),
@@ -193,7 +204,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           description: description || undefined,
           billing_method: billingMethod || undefined,
           post_link: trimmedPostLink || undefined,
-          brand_ids: brandIds.length > 0 ? brandIds : undefined,
+          brand_ids: resolvedBrandIds.length > 0 ? resolvedBrandIds : undefined,
           can_wish: canWish,
         })
         createdConnectionId = result.id
@@ -232,7 +243,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           description: description || undefined,
           billing_method: billingMethod || undefined,
           post_link: trimmedPostLink || null,
-          brand_ids: brandIds,
+          brand_ids: resolvedBrandIds,
           can_wish: canWish,
         })
 
@@ -450,7 +461,6 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             ) : null}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">可貼上連線相關的連結或貼文連結（如 Facebook 群組、Instagram 貼文等）</p>
         {isCheckingPostLink
           ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
           : <FormFieldError message={errors.postLink} />}
