@@ -49,14 +49,14 @@ export function DashboardListShell({
   children,
 }: DashboardListShellProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-heading">{title}</h1>
-          <p className="text-sm text-muted-foreground">{usageHint}</p>
+          <h1 className="text-[15px] font-bold font-heading md:text-2xl">{title}</h1>
+          <p className="text-[11px] text-muted-foreground md:text-sm">{usageHint}</p>
         </div>
-        <Button variant="cta-outline" render={<Link href={newButton.href} />}>
-          <Plus className="mr-1 h-4 w-4" />
+        <Button variant="cta-outline" size="sm" className="h-8 px-3 text-[11px] md:h-9 md:px-4 md:text-sm" render={<Link href={newButton.href} />}>
+          <Plus className="mr-0.5 h-3 w-3 md:mr-1 md:h-4 md:w-4" />
           {newButton.label}
         </Button>
       </div>
@@ -66,9 +66,9 @@ export function DashboardListShell({
       </Tabs>
 
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-1.5 md:space-y-3">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
+            <Skeleton key={i} className="h-[68px] rounded-lg md:h-16" />
           ))}
         </div>
       ) : isEmpty ? (

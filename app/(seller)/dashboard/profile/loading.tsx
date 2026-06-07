@@ -1,55 +1,46 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
 // 結構需與 app/(seller)/dashboard/profile/page.tsx 的真實版面對齊
-// （max-w-2xl 容器 + 2 個 tab + 卡片內表單）。
+// （max-w-2xl 容器 + pill tabs + size=sm 卡片 + 手機 flex-col 表單列）。
 export default function ProfileLoading() {
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {/* Tabs：賣家資料 / 社群帳號 */}
-      <div className="flex gap-2 border-b border-border pb-2">
-        <Skeleton className="h-8 w-20 rounded-md" />
-        <Skeleton className="h-8 w-20 rounded-md" />
+    <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
+      {/* Tabs（pill）：賣家資料 / 社群帳號 */}
+      <div className="flex flex-wrap gap-1.5 md:gap-2">
+        <Skeleton className="h-6 w-16 rounded-full md:h-9 md:w-20" />
+        <Skeleton className="h-6 w-16 rounded-full md:h-9 md:w-20" />
       </div>
 
-      {/* 表單卡片骨架（對齊 page.tsx isSellerLoading 時的骨架結構） */}
-      <div className="rounded-xl border bg-white p-6 shadow-sm space-y-5">
-        <Skeleton className="h-6 w-24" />
+      {/* 表單卡片（size=sm：手機 p-3、電腦 p-5） */}
+      <div className="space-y-3 rounded-xl border bg-white p-3 shadow-sm md:space-y-5 md:p-5">
+        <Skeleton className="h-4 w-20 md:h-5 md:w-24" />
 
-        {/* 頭貼 */}
-        <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-          <Skeleton className="mt-2 h-4 w-10" />
-          <div className="flex items-center gap-4">
+        {/* 頭貼（手機 flex-col、頭像置中） */}
+        <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+          <Skeleton className="h-3 w-10 md:mt-2 md:h-4" />
+          <div className="flex justify-center md:justify-start">
             <Skeleton className="h-24 w-24 rounded-full" />
-            <div className="flex flex-col gap-1.5">
-              <Skeleton className="h-3.5 w-16" />
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-3 w-20" />
-            </div>
           </div>
         </div>
 
-        {/* 賣家名稱 */}
-        <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-          <Skeleton className="mt-2 h-4 w-20" />
-          <Skeleton className="h-10 w-full rounded-md" />
-        </div>
-
-        {/* 代購地區 */}
-        <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-          <Skeleton className="mt-2 h-4 w-20" />
-          <Skeleton className="h-10 w-full rounded-md" />
-        </div>
+        {/* 賣家名稱 / 代購地區 */}
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+            <Skeleton className="h-3 w-16 md:mt-2 md:h-4 md:w-20" />
+            <Skeleton className="h-[30px] w-full rounded-lg md:h-10" />
+          </div>
+        ))}
 
         {/* 簡介 */}
-        <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-          <Skeleton className="mt-2 h-4 w-10" />
-          <Skeleton className="h-44 w-full rounded-md" />
+        <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+          <Skeleton className="h-3 w-10 md:mt-2 md:h-4" />
+          <Skeleton className="h-20 w-full rounded-lg md:h-44" />
         </div>
 
         {/* 儲存按鈕 */}
-        <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-          <div />
-          <Skeleton className="h-9 w-28 justify-self-end rounded-md" />
+        <div className="md:grid md:grid-cols-[140px_1fr] md:gap-x-4">
+          <div className="hidden md:block" />
+          <Skeleton className="ml-auto h-8 w-24 rounded-lg md:h-9 md:w-28" />
         </div>
       </div>
     </div>

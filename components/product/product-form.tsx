@@ -78,15 +78,15 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
       <div className="flex items-center gap-3">
         <Button type="button" variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold font-heading">新增商品</h1>
+        <h1 className="text-[15px] font-bold font-heading md:text-2xl">新增商品</h1>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4 md:space-y-5">
         <div>
           <Label>商品圖片 <span className="text-foreground">*</span></Label>
           <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>

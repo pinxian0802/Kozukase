@@ -30,7 +30,7 @@ export function FilterTabsList({
         <TabsTrigger key={value} value={value} className="group">
           {label}
           {count !== undefined && (
-            <span className="ml-0.5 text-[11px] font-semibold px-1.5 py-px rounded-full bg-background text-muted-foreground group-data-active:bg-white/25 group-data-active:text-white">
+            <span className="ml-0.5 text-[9px] font-semibold px-1 py-px rounded-full bg-background text-muted-foreground group-data-active:bg-white/25 group-data-active:text-white md:text-[11px] md:px-1.5">
               {count}
             </span>
           )}

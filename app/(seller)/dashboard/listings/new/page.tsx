@@ -65,10 +65,10 @@ export default function NewListingPage() {
         <Button type="button" variant="ghost" size="icon" onClick={() => setProduct(null)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold font-heading">新增代購</h1>
+        <h1 className="text-[15px] font-bold font-heading md:text-2xl">新增代購</h1>
       </div>
       <Card className="ring-0 shadow-sm py-0">
-        <CardContent className="p-6 sm:p-8 space-y-4">
+        <CardContent className="p-4 sm:p-8 space-y-4">
           <div>
             <Label>商品</Label>
             <div className="mt-1 w-fit">

@@ -290,7 +290,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const isPending = isSubmitting || isCheckingPostLink || createConnection.isPending || updateConnection.isPending || reactivateConnection.isPending || confirmImages.isPending
 
   return (
-    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
+    <form className="form-compact space-y-4 md:space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
       <div className="space-y-1">
         <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">標題 <span className="text-foreground">*</span></Label>
         <Input

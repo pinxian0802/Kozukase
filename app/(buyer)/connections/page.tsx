@@ -326,7 +326,7 @@ export default function ConnectionsPage() {
 
   return (
     <div className="min-h-screen bg-surface-page">
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-3 py-3 md:px-4 md:py-6">
       <div className="flex items-start gap-6">
         <aside className="hidden w-64 shrink-0 md:block">
           <div className="pr-2">
@@ -335,7 +335,40 @@ export default function ConnectionsPage() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <section className="mb-4 overflow-hidden rounded-2xl border border-border-soft bg-surface-card p-5 pb-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+          {/* Mobile compact header */}
+          <div className="mb-2 md:hidden">
+            <div className="flex items-center justify-between">
+              <h1 className="text-[13px] font-bold text-text-strong">
+                {q ? `「${q}」` : '連線代購'} {listLoading ? '' : `${total} 筆`}
+              </h1>
+              <Sheet>
+                <SheetTrigger
+                  render={
+                    <button className="relative flex h-7 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2.5 text-[11px] text-neutral-600 shadow-sm">
+                      <SlidersHorizontal className="h-3 w-3" />
+                      篩選
+                      {activeFilterCount > 0 && (
+                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+                          {activeFilterCount}
+                        </span>
+                      )}
+                    </button>
+                  }
+                />
+                <SheetContent side="left" className="border-r border-border-soft bg-surface-page p-0 gap-0">
+                  <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin]">
+                    <SheetHeader className="px-0 py-0">
+                      <SheetTitle>篩選條件</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4">{FilterContent()}</div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
+
+          {/* Desktop title card */}
+          <section className="mb-4 hidden overflow-hidden rounded-2xl border border-border-soft bg-surface-card p-5 pb-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] md:block">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold font-heading">
@@ -416,35 +449,18 @@ export default function ConnectionsPage() {
                   </div>
                 )}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Sheet>
-                <SheetTrigger
-                  render={<Button variant="outline" size="icon" className="md:hidden shrink-0"><SlidersHorizontal className="h-4 w-4" /></Button>}
-                />
-                <SheetContent side="left" className="border-r border-border-soft bg-surface-page p-0 gap-0">
-                  <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent] [&::-webkit-scrollbar]:w-0.75 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border-strong">
-                    <SheetHeader className="px-0 py-0">
-                      <SheetTitle>篩選條件</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-4">
-                      {FilterContent()}
-                    </div>
-                  </div>
-                </SheetContent>
-                </Sheet>
-              </div>
             </div>
           </section>
 
           {listLoading ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <Skeleton key={i} className="h-64 rounded-xl" />
               ))}
             </div>
           ) : connections.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
                 {connections.map((c: any) => (
                   <ConnectionCard key={c.id} connection={c} />
                 ))}

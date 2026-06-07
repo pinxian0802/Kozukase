@@ -459,7 +459,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
   const isSubmitDisabled = isPending || isCheckingUrl || isPreparingImages
 
   return (
-    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
+    <form className="form-compact space-y-4 md:space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
       {/* Title */}
       <div>
         <Label htmlFor="listing-title">標題 *</Label>

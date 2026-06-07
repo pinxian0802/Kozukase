@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Globe, ExternalLink, MoreHorizontal } from 'lucide-react'
+import { Globe, ExternalLink, MoreHorizontal, MoreVertical } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -190,62 +190,48 @@ export default function SellerConnectionsPage() {
         </Table>
       </div>
 
-      <div className="lg:hidden space-y-3">
+      <div className="lg:hidden space-y-1.5">
         {filtered.map((conn) => {
           const displayImages = buildDisplayImages(conn)
           const handlers = actionHandlers(conn.id)
           return (
             <div
               key={conn.id}
-              className="rounded-xl bg-white p-3 shadow-sm cursor-pointer"
+              className="rounded-lg border border-border-soft bg-white p-2.5 cursor-pointer"
               onClick={() => router.push(`/dashboard/connections/${conn.id}/edit`)}
             >
-              <div className="flex items-start gap-3 pb-3 border-b border-muted">
+              <div className="flex items-start gap-2.5">
                 <DashboardThumbnailCell
                   images={displayImages}
                   title={conn.title ?? '連線'}
                   fallbackIcon={Globe}
-                  size={56}
+                  size={48}
                 />
-                <div className="min-w-0 flex-1 space-y-1">
-                  <h3 className="truncate font-semibold">{conn.title || '--'}</h3>
-                  <DashboardStatusDot
-                    label={statusLabels[conn.status] ?? conn.status}
-                    dotClassName={statusDotColors[conn.status]}
-                    warning={conn.ended_reason === 'admin' ? (conn.admin_note || '此連線已被管理員中止') : null}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-medium truncate leading-tight">{conn.title || '--'}</p>
+                  <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
+                    {conn.region?.name && <span>{conn.region.name}</span>}
+                    <span>{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <DashboardStatusDot
+                      label={statusLabels[conn.status] ?? conn.status}
+                      dotClassName={statusDotColors[conn.status]}
+                      warning={conn.ended_reason === 'admin' ? (conn.admin_note || '此連線已被管理員中止') : null}
+                    />
+                    {conn.can_wish && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 font-medium">可許願</span>
+                    )}
+                  </div>
+                </div>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <ConnectionActions
+                    connectionId={conn.id}
+                    connectionStatus={conn.status}
+                    pending={actionPending}
+                    {...handlers}
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 py-3 text-sm">
-                <span className="text-xs text-muted-foreground">國家</span>
-                <span className="text-right truncate">{conn.region?.name ?? '--'}</span>
-                <span className="text-xs text-muted-foreground">連線日期</span>
-                <span className="text-right">{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</span>
-                <span className="text-xs text-muted-foreground">預計出貨</span>
-                <span className="text-right">{conn.shipping_date ? formatDate(conn.shipping_date) : '--'}</span>
-                {conn.post_link && (
-                  <>
-                    <span className="text-xs text-muted-foreground">貼文／群組</span>
-                    <span className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <SafeExternalLink
-                        href={conn.post_link}
-                        variant="outline"
-                        size="sm"
-                      >
-                        連結
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </SafeExternalLink>
-                    </span>
-                  </>
-                )}
-              </div>
-              <div className="flex flex-wrap justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-                <ConnectionActions
-                  connectionId={conn.id}
-                  connectionStatus={conn.status}
-                  pending={actionPending}
-                  {...handlers}
-                />
               </div>
             </div>
           )
@@ -271,17 +257,20 @@ function ConnectionActions({
   onDelete,
 }: ConnectionActionsProps) {
   return (
-    <div className="inline-flex items-center justify-end gap-2">
-      <Button size="sm" variant="outline" render={<Link href={`/dashboard/connections/${connectionId}/edit`} />}>編輯</Button>
-      {connectionStatus !== 'pending_approval' && (
+    <div className="inline-flex items-center justify-end gap-2 max-md:gap-1">
+      <Button size="sm" variant="outline" className="max-md:h-6 max-md:px-2 max-md:text-[11px]" render={<Link href={`/dashboard/connections/${connectionId}/edit`} />}>編輯</Button>
+      {connectionStatus === 'pending_approval' ? (
+        <span aria-hidden className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'invisible max-md:size-6 md:hidden' })} />
+      ) : (
         <DropdownMenu>
           <DropdownMenuTrigger
             nativeButton={false}
             disabled={pending}
             aria-label="更多操作"
             render={
-              <span className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}>
-                <MoreHorizontal className="h-4 w-4" />
+              <span className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'max-md:size-6' })}>
+                <MoreHorizontal className="hidden h-4 w-4 md:block" />
+                <MoreVertical className="h-3.5 w-3.5 md:hidden" />
               </span>
             }
           />

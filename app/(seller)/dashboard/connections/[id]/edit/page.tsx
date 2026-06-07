@@ -26,11 +26,11 @@ export default function EditConnectionPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3 sm:items-start">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="font-heading text-[15px] font-semibold tracking-tight text-foreground sm:text-4xl">
           編輯連線公告
         </h1>
       </div>
@@ -48,7 +48,7 @@ export default function EditConnectionPage() {
       )}
 
       <Card className="ring-0 shadow-sm">
-        <CardContent className="px-6 py-4 sm:px-8 sm:py-5">
+        <CardContent className="px-4 py-4 sm:px-8 sm:py-5">
           <ConnectionForm mode="edit" initialData={connection} />
         </CardContent>
       </Card>

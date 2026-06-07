@@ -22,11 +22,11 @@ export default function WishesPage() {
   const wishes = data?.pages.flatMap((p: any) => p.items) ?? []
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <div className="mb-8 flex items-start justify-between gap-4">
+    <div className="mx-auto max-w-6xl px-3 py-3 md:px-4 md:py-6">
+      <div className="mb-4 flex items-start justify-between gap-3 md:mb-8 md:gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-heading mb-2">許願榜</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-base font-bold font-heading mb-1 md:text-2xl md:mb-2">許願榜</h1>
+          <p className="text-xs text-muted-foreground md:text-sm">
             大家最想代購的商品，一起許願讓更多賣家看見
           </p>
         </div>
@@ -39,14 +39,14 @@ export default function WishesPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[3/4] rounded-2xl" />
           ))}
         </div>
       ) : wishes.length > 0 ? (
         <>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {wishes.map((wish: any) => (
               <WishCard key={wish.id} wish={wish} />
             ))}

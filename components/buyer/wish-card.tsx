@@ -27,7 +27,7 @@ export function WishCard({ wish }: { wish: WishCardWish }) {
   const displayName = wish.profile?.display_name ?? '匿名'
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-sm">
+    <div className="overflow-hidden rounded-none bg-white md:rounded-2xl md:border md:border-border-soft md:shadow-sm">
       {/* 商品圖片 */}
       <div className="relative aspect-square bg-muted">
         {imageUrl ? (
@@ -46,19 +46,19 @@ export function WishCard({ wish }: { wish: WishCardWish }) {
       </div>
 
       {/* 內容 */}
-      <div className="p-4 space-y-2">
-        <p className="font-bold leading-snug line-clamp-2 text-foreground">
+      <div className="px-1.5 py-1.5 space-y-0.5 md:p-4 md:space-y-2">
+        <p className="leading-tight line-clamp-2 min-h-[2lh] text-foreground text-[10px] md:font-bold md:leading-snug md:text-base md:min-h-0">
           {wish.product.name}
         </p>
-        <p className="text-sm text-muted-foreground line-clamp-2">{wish.content}</p>
+        <p className="text-[9px] text-muted-foreground line-clamp-1 md:text-sm md:line-clamp-2">{wish.content}</p>
 
         {/* 許願者 */}
-        <div className="flex items-center gap-2 pt-1">
-          <Avatar className="h-6 w-6">
+        <div className="flex items-center gap-1 md:gap-2 md:pt-1">
+          <Avatar className="h-3.5 w-3.5 md:h-6 md:w-6">
             <AvatarImage src={wish.profile?.avatar_url ?? undefined} />
-            <AvatarFallback className="text-[10px]">{displayName[0]}</AvatarFallback>
+            <AvatarFallback className="text-[7px] md:text-[10px]">{displayName[0]}</AvatarFallback>
           </Avatar>
-          <span className="text-xs text-muted-foreground truncate">{displayName}</span>
+          <span className="text-[9px] text-neutral-400 truncate md:text-xs">{displayName}</span>
         </div>
       </div>
     </div>

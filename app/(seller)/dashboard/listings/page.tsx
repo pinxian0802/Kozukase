@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package, ExternalLink, MoreHorizontal } from 'lucide-react'
+import { Package, ExternalLink, MoreHorizontal, MoreVertical } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -214,25 +214,29 @@ export default function SellerListingsPage() {
         </Table>
       </div>
 
-      <div className="lg:hidden space-y-3">
+      <div className="lg:hidden space-y-1.5">
         {items.map((listing) => {
           const displayImages = buildDisplayImages(listing)
           const handlers = actionHandlers(listing.id)
           return (
             <div
               key={listing.id}
-              className="rounded-xl bg-white p-3 shadow-sm cursor-pointer"
+              className="flex items-center gap-2.5 rounded-lg border border-border-soft bg-white p-2.5 cursor-pointer"
               onClick={() => router.push(`/dashboard/listings/${listing.id}/edit`)}
             >
-              <div className="flex items-start gap-3 pb-3 border-b border-muted">
-                <DashboardThumbnailCell
-                  images={displayImages}
-                  title={listing.product?.name ?? '商品'}
-                  fallbackIcon={Package}
-                  size={56}
-                />
-                <div className="min-w-0 flex-1 space-y-1">
-                  <h3 className="truncate font-semibold">{listing.title || '--'}</h3>
+              <DashboardThumbnailCell
+                images={displayImages}
+                title={listing.product?.name ?? '商品'}
+                fallbackIcon={Package}
+                size={48}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-medium truncate leading-tight">{listing.title || listing.product?.name || '--'}</p>
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5 leading-tight">
+                  {listing.product?.name ?? ''}
+                  {listing.price != null ? ` · ${formatPrice(listing.price, listing.is_price_on_request)}` : listing.is_price_on_request ? ' · 私訊報價' : ''}
+                </p>
+                <div className="mt-0.5">
                   <DashboardStatusDot
                     label={statusLabels[listing.status] ?? listing.status}
                     dotClassName={statusDotColors[listing.status]}
@@ -240,42 +244,7 @@ export default function SellerListingsPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 py-3 text-sm">
-                <span className="text-xs text-muted-foreground">商品名稱</span>
-                <span className="truncate text-right">
-                  {listing.product?.is_removed === true ? (
-                    <span className="text-destructive font-medium">此商品已被移除</span>
-                  ) : listing.product?.name ? (
-                    <Link
-                      href={`/products/${listing.product_id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="hover:underline"
-                    >
-                      {listing.product.name}
-                    </Link>
-                  ) : '--'}
-                </span>
-                <span className="text-xs text-muted-foreground">售價</span>
-                <span className="text-right font-semibold">{formatPrice(listing.price, listing.is_price_on_request)}</span>
-                <span className="text-xs text-muted-foreground">截止日</span>
-                <span className="text-right">{listing.expires_at ? formatDate(listing.expires_at) : '--'}</span>
-                {listing.post_url && (
-                  <>
-                    <span className="text-xs text-muted-foreground">貼文／群組</span>
-                    <span className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <SafeExternalLink
-                        href={listing.post_url}
-                        variant="outline"
-                        size="sm"
-                      >
-                        連結
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </SafeExternalLink>
-                    </span>
-                  </>
-                )}
-              </div>
-              <div className="flex flex-wrap justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <ListingActions
                   listingId={listing.id}
                   listingStatus={listing.status}
@@ -312,17 +281,20 @@ function ListingActions({
   onDelete,
 }: ListingActionsProps) {
   return (
-    <div className="inline-flex items-center justify-start gap-2">
-      <Button size="sm" variant="outline" render={<Link href={`/dashboard/listings/${listingId}/edit`} />}>編輯</Button>
-      {listingStatus === 'pending_approval' ? null : (
+    <div className="inline-flex items-center justify-start gap-2 max-md:gap-1">
+      <Button size="sm" variant="outline" className="max-md:h-6 max-md:px-2 max-md:text-[11px]" render={<Link href={`/dashboard/listings/${listingId}/edit`} />}>編輯</Button>
+      {listingStatus === 'pending_approval' ? (
+        <span aria-hidden className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'invisible max-md:size-6 md:hidden' })} />
+      ) : (
         <DropdownMenu>
           <DropdownMenuTrigger
             nativeButton={false}
             disabled={pending}
             aria-label="更多操作"
             render={
-              <span className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}>
-                <MoreHorizontal className="h-4 w-4" />
+              <span className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'max-md:size-6' })}>
+                <MoreHorizontal className="hidden h-4 w-4 md:block" />
+                <MoreVertical className="h-3.5 w-3.5 md:hidden" />
               </span>
             }
           />

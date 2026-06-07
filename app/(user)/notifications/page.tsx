@@ -30,9 +30,9 @@ export default function NotificationsPage() {
   const notifications = data?.pages.flatMap((p: any) => p.items) ?? []
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold font-heading">通知</h1>
+    <div className="mx-auto max-w-2xl px-3 py-3 md:px-4 md:py-6">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h1 className="text-base font-bold font-heading md:text-2xl">通知</h1>
         <Button variant="ghost" size="sm" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}>
           <CheckCheck className="mr-1 h-4 w-4" />全部已讀
         </Button>
@@ -52,7 +52,7 @@ export default function NotificationsPage() {
             <div
               key={n.id}
               className={cn(
-                'rounded-lg border p-4 transition-colors',
+                'rounded-lg border p-3 transition-colors md:p-4',
                 !n.is_read && 'bg-brand-50 border-brand-300 cursor-pointer'
               )}
               onClick={() => !n.is_read && markRead.mutate({ id: n.id })}

@@ -236,6 +236,62 @@ button {
 }
 
 /* ───────────────────────────────────────────────────────────────
+ * 只在手機版（< md / 768px）隱藏視窗（y 軸）捲軸 — 仍保留捲動功能。
+ * 電腦版維持原本捲軸；內部 overflow 區塊（桌機表格、條款表格等）
+ * 的水平捲軸不受影響。
+ * ─────────────────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  html,
+  body {
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* 舊版 Edge / IE */
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {      /* Chrome / Safari / 新版 Edge */
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
+ * 手機版（< md / 768px）表單壓縮
+ * 只作用於標了 .form-compact 的 dashboard 表單（代購／連線）；
+ * 電腦版 (md+) 與其他頁面完全不受影響。
+ * ─────────────────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .form-compact [data-slot="label"] {
+    font-size: 0.75rem;                   /* 12px（原 14px） */
+  }
+  .form-compact [data-slot="input"],
+  .form-compact [data-slot="select-trigger"],
+  .form-compact [data-slot="control-trigger"] {
+    height: 1.875rem;                     /* 30px（原 36px） */
+    font-size: 0.8125rem;                 /* 13px（原 16px） */
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+  .form-compact [data-slot="textarea"] {
+    min-height: 3.75rem;                  /* 60px（原 128px） */
+    font-size: 0.8125rem;
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+  /* 多行/可換行控件（多選框、標籤輸入）— 用 min-height 才能隨內容增高 */
+  .form-compact [data-slot="control-multiline"] {
+    min-height: 1.875rem;                 /* 30px */
+    font-size: 0.8125rem;
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+  }
+  /* 圖片上傳區、按鈕等也略縮字級 */
+  .form-compact [data-slot="input"]::placeholder,
+  .form-compact [data-slot="textarea"]::placeholder {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
  * Typography utility classes (DS v1 Phase 3)
  * 用 `.t-*` 取代逐處 `text-Xxl font-bold leading-...`
  * 詳見 docs/design-system/tokens.md

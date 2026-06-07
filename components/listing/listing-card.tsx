@@ -35,8 +35,8 @@ export function ListingCard({ listing, showStatus = false, showBrand = true, sho
 
   return (
     <Link href={`/listings/${listing.id}`}>
-      <div className="group overflow-hidden rounded-2xl bg-white shadow-md transition-shadow hover:shadow-lg">
-        <div className={`relative overflow-hidden bg-white ${tallImage ? 'h-[180px]' : 'aspect-video'}`}>
+      <div className="group overflow-hidden rounded-none bg-white md:rounded-2xl md:shadow-md md:transition-shadow md:hover:shadow-lg">
+        <div className={`relative overflow-hidden bg-white ${tallImage ? 'aspect-square md:h-[180px] md:aspect-auto' : 'aspect-square md:aspect-video'}`}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -51,13 +51,13 @@ export function ListingCard({ listing, showStatus = false, showBrand = true, sho
             </div>
           )}
         </div>
-        <div className="space-y-2 px-3 pb-3 pt-2">
+        <div className="space-y-0.5 px-1.5 pb-1.5 pt-1 md:space-y-2 md:px-3 md:pb-3 md:pt-2">
           {listing.product && (
             <div className="grid gap-0.5">
               {showBrand && brandLabel && (
                 <p className="truncate text-[11px] font-medium leading-none text-muted-foreground">{brandLabel}</p>
               )}
-              <h3 className="line-clamp-2 text-base font-bold leading-snug">
+              <h3 className="line-clamp-2 min-h-[2lh] text-[10px] leading-tight md:text-base md:font-bold md:leading-snug md:min-h-0">
                 {listing.title || listing.product.name}
               </h3>
               {listing.title && listing.product.name && (
@@ -69,7 +69,7 @@ export function ListingCard({ listing, showStatus = false, showBrand = true, sho
             <p className="text-xs text-muted-foreground">{listing.seller.name}</p>
           )}
           <div className="flex items-center justify-between pt-1">
-            <span className="text-sm font-semibold text-primary">
+            <span className="text-[11px] font-bold md:text-sm md:font-semibold" style={{ color: 'var(--brand-700)' }}>
               {formatPrice(listing.price, listing.is_price_on_request)}
             </span>
             {showShippingDate && (

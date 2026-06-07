@@ -38,7 +38,7 @@ export default async function SellerLayout({ children }: { children: React.React
             avatarUrl: sellerAvatarUrl,
           }}
         />
-        <main className="flex-1 p-6 bg-white">{children}</main>
+        <main className="min-w-0 flex-1 px-3 py-3 bg-white pb-[calc(4rem+env(safe-area-inset-bottom))] max-md:overflow-x-clip md:p-6 md:pb-6">{children}</main>
       </div>
     </>
   )

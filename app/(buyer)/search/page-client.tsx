@@ -311,7 +311,7 @@ function SearchContent() {
 
   return (
     <div className="min-h-screen bg-surface-page">
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-3 py-3 md:px-4 md:py-6">
       <div className="flex items-start gap-6">
         {/* Desktop sidebar */}
         <aside className="hidden w-64 shrink-0 md:block">
@@ -322,8 +322,82 @@ function SearchContent() {
 
         {/* Results */}
         <div className="min-w-0 flex-1">
-          {/* Title card */}
-          <section className="mb-4 overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+          {/* Title card — mobile: compact inline; desktop: card */}
+          {/* Mobile compact header */}
+          <div className="mb-2 md:hidden">
+            <div className="flex items-center justify-between">
+              <h1 className="text-[13px] font-bold text-text-strong">
+                {tab === 'products'
+                  ? q ? `「${q}」 ${total} 件` : `商品 ${total} 件`
+                  : q ? `「${q}」 ${listingTotal} 筆` : `代購 ${listingTotal} 筆`
+                }
+              </h1>
+              <Sheet>
+                <SheetTrigger
+                  render={
+                    <button className="relative flex h-7 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2.5 text-[11px] text-neutral-600 shadow-sm">
+                      <SlidersHorizontal className="h-3 w-3" />
+                      篩選
+                      {activeFilters.length > 0 && (
+                        <span
+                          className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                          style={{ backgroundColor: KZ.teal }}
+                        >
+                          {activeFilters.length}
+                        </span>
+                      )}
+                    </button>
+                  }
+                />
+                <SheetContent side="left" className="w-80">
+                  <SheetHeader>
+                    <SheetTitle>篩選條件</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 px-1">{FilterPanel()}</div>
+                </SheetContent>
+              </Sheet>
+            </div>
+            {/* Mobile tab bar */}
+            <div className="flex gap-0 mt-1.5 border-b border-border-soft">
+              {(['listings', 'products'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => updateTab(t)}
+                  className={[
+                    'flex-1 py-1.5 text-[13px] font-semibold transition-colors text-center border-b-2',
+                    tab === t
+                      ? 'border-brand-500 text-brand-500'
+                      : 'border-transparent text-text-faint',
+                  ].join(' ')}
+                >
+                  {t === 'products' ? '商品' : '代購'}
+                  <span className="text-[11px] font-normal ml-0.5">
+                    {t === 'products' ? total : listingTotal}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {/* Mobile active filter chips */}
+            {activeFilters.length > 0 && (
+              <div className="flex gap-1 mt-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {activeFilters.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    className="shrink-0 inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2 py-0.5 text-[10px] font-medium text-text-muted"
+                    onClick={f.onRemove}
+                  >
+                    {f.label}
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Desktop title card */}
+          <section className="mb-4 hidden overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-[0_12px_40px_rgba(15,23,42,0.06)] md:block">
             <div className="flex items-start justify-between gap-4 p-5">
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-2xl font-bold">
@@ -348,35 +422,7 @@ function SearchContent() {
                   </div>
                 )}
               </div>
-
-              <div className="flex shrink-0 items-center gap-2">
-                <Sheet>
-                  <SheetTrigger
-                    render={
-                      <button className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:bg-gray-50 md:hidden">
-                        <SlidersHorizontal className="h-4 w-4" />
-                        {activeFilters.length > 0 && (
-                          <span
-                            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                            style={{ backgroundColor: KZ.teal }}
-                          >
-                            {activeFilters.length}
-                          </span>
-                        )}
-                      </button>
-                    }
-                  />
-                  <SheetContent side="left" className="w-80">
-                    <SheetHeader>
-                      <SheetTitle>篩選條件</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6 px-1">{FilterPanel()}</div>
-                  </SheetContent>
-                </Sheet>
-              </div>
             </div>
-
-            {/* Tab bar — 緊貼 header 底部 */}
             <div className="flex items-end gap-1 px-5">
               {(['listings', 'products'] as const).map((t) => (
                 <button
@@ -398,7 +444,7 @@ function SearchContent() {
 
           {tab === 'products' ? (
             isFetching ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <Skeleton className="aspect-square w-full rounded-lg" />
@@ -409,7 +455,7 @@ function SearchContent() {
               </div>
             ) : products.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
                   {products.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -434,7 +480,7 @@ function SearchContent() {
             )
           ) : (
             listingFetching ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <Skeleton className="aspect-[4/3] w-full rounded-lg" />

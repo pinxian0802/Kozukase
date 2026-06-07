@@ -161,8 +161,8 @@ export default function BecomeSellerPage() {
   if (session.isSeller && searchParams.get('preview') !== 'submitted' && searchParams.get('preview') !== 'form') {
     return (
       <div className="min-h-screen">
-        <div className="mx-auto max-w-2xl px-4 py-8">
-          <div className="border border-border-soft rounded-2xl p-6 bg-white">
+        <div className="mx-auto max-w-2xl px-3 py-3 md:px-4 md:py-8">
+          <div className="border border-border-soft rounded-lg p-4 bg-white md:rounded-2xl md:p-6">
             <h2 className="font-semibold text-[17px] mb-1" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
               你已經是賣家了
             </h2>

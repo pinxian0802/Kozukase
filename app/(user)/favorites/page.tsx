@@ -45,16 +45,16 @@ export default function FavoritesPage() {
   ]
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
-      <h1 className="text-xl font-bold font-heading">我的收藏</h1>
+    <div className="mx-auto max-w-4xl px-3 py-3 space-y-4 md:px-4 md:py-6 md:space-y-6">
+      <h1 className="text-base font-bold font-heading md:text-xl">我的收藏</h1>
 
       {/* Filter chips */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-1.5 flex-wrap md:gap-2">
         {tabs.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
+            className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium transition-all cursor-pointer md:px-4 md:py-2 md:text-sm ${
               filter === key
                 ? 'bg-brand-500 text-white shadow-sm'
                 : 'bg-muted text-muted-foreground hover:bg-brand-50 hover:text-brand-700'
@@ -72,7 +72,7 @@ export default function FavoritesPage() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">商品</h3>
           )}
           {productBookmarks?.items && productBookmarks.items.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
               {productBookmarks.items.map((b: any) => (
                 <ProductCard key={b.id} product={b.product} />
               ))}
@@ -90,7 +90,7 @@ export default function FavoritesPage() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">代購</h3>
           )}
           {listingBookmarks?.items && listingBookmarks.items.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
               {listingBookmarks.items.map((b: any) => (
                 <ListingCard key={b.id} listing={b.listing} />
               ))}
@@ -108,7 +108,7 @@ export default function FavoritesPage() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">連線</h3>
           )}
           {connectionBookmarks?.items && connectionBookmarks.items.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
               {connectionBookmarks.items.map((b: any) => (
                 <ConnectionCard key={b.id} connection={b.connection} />
               ))}
@@ -126,11 +126,11 @@ export default function FavoritesPage() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">許願</h3>
           )}
           {myWishes?.items && myWishes.items.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
               {myWishes.items.map((wish: any) => {
                 const imageUrl = getCardImageUrl(wish.product as any)
                 return (
-                  <div key={wish.id} className="relative overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-sm">
+                  <div key={wish.id} className="relative overflow-hidden rounded-xl border border-border-soft bg-surface-card shadow-sm md:rounded-2xl">
                     {/* 叉叉按鈕 */}
                     <button
                       type="button"

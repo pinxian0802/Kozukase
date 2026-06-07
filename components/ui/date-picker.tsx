@@ -55,6 +55,7 @@ function DatePicker({
       <Popover open={open} onOpenChange={setOpen} triggerId={triggerId}>
         <PopoverTrigger
           id={triggerId}
+          data-slot="control-trigger"
           className={cn(
             buttonVariants({
               variant: "outline",

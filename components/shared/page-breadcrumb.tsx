@@ -22,7 +22,7 @@ interface PageBreadcrumbProps {
 
 export function PageBreadcrumb({ items }: PageBreadcrumbProps) {
   return (
-    <Breadcrumb className="mb-4">
+    <Breadcrumb className="mb-2 hidden md:flex md:mb-4">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink render={<Link href="/" />}>首頁</BreadcrumbLink>

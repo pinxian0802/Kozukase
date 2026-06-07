@@ -46,6 +46,7 @@ export function TagInput({
 
   return (
     <div
+      data-slot="control-multiline"
       className={cn(
         'flex min-h-9 w-full flex-wrap cursor-text items-center gap-1.5 rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm transition-colors',
         'focus-within:border-ring dark:bg-input/30',

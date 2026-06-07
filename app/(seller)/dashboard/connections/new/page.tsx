@@ -11,17 +11,17 @@ export default function NewConnectionPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3 sm:items-start">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="font-heading text-[15px] font-semibold tracking-tight text-foreground sm:text-4xl">
           新增連線公告
         </h1>
       </div>
 
       <Card className="ring-0 shadow-sm">
-        <CardContent className="p-6 sm:p-8">
+        <CardContent className="p-4 sm:p-8">
           <ConnectionForm mode="create" />
         </CardContent>
       </Card>

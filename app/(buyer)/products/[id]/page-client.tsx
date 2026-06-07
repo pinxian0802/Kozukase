@@ -187,7 +187,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-surface-page">
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <div className="mx-auto max-w-6xl px-3 py-3 md:px-4 md:py-6">
         <PageBreadcrumb items={[
           { label: '商品', href: backHref },
           { label: product.name },
@@ -230,10 +230,10 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
           {/* Right content */}
           <div className="min-w-0 flex-1 space-y-4">
             {/* 尋找代購 title card */}
-            <section className="mb-4 overflow-hidden rounded-2xl border border-border-soft bg-surface-card p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
-              <div className="flex items-start justify-between gap-4">
+            <section className="mb-3 overflow-hidden rounded-xl border border-border-soft bg-surface-card p-3 shadow-[0_12px_40px_rgba(15,23,42,0.06)] md:mb-4 md:rounded-2xl md:p-5">
+              <div className="flex items-start justify-between gap-3 md:gap-4">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-2xl font-bold font-heading">尋找代購，共 {filteredListings.length} 位</h2>
+                  <h2 className="text-base font-bold font-heading md:text-2xl">尋找代購，共 {filteredListings.length} 位</h2>
                   {(isPriceFiltered || inStockOnly) && (
                     <div className="mt-3 flex flex-wrap items-center gap-1.5">
                       {inStockOnly && (

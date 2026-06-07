@@ -48,7 +48,7 @@ export function HomeHero({
   if (count === 0) return null
 
   return (
-    <section className="mx-auto max-w-6xl px-4 pt-6">
+    <section className="mx-auto max-w-6xl px-3 pt-3 md:px-4 md:pt-6">
       <div
         className="relative"
         onMouseEnter={() => setPaused(true)}
@@ -66,7 +66,7 @@ export function HomeHero({
           >
             {slides.map((slide, i) => {
               const inner = (
-                <div className="relative aspect-[16/9] w-full md:aspect-[16/6]">
+                <div className="relative aspect-[5/2] w-full md:aspect-[16/6]">
                   <Image
                     src={slide.src}
                     alt={slide.alt ?? ''}

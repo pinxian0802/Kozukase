@@ -49,6 +49,7 @@ function DateRangePicker({
         disabled={disabled}
         aria-invalid={invalid || undefined}
         data-invalid={invalid || undefined}
+        data-slot="control-trigger"
         type="button"
         className={cn(
           buttonVariants({

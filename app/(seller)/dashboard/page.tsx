@@ -57,19 +57,19 @@ export default function SellerDashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-heading">{getGreeting()}，歡迎回來</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{today}</p>
+          <h1 className="text-[15px] font-bold font-heading md:text-2xl">{getGreeting()}，歡迎回來</h1>
+          <p className="text-[11px] text-muted-foreground mt-0.5 md:text-sm">{today}</p>
         </div>
-        <div className="flex gap-2 mt-3 sm:mt-0">
-          <Button variant="cta-outline" size="default" render={<Link href="/dashboard/listings/new" />}>
-            <Plus className="mr-1 h-4 w-4" />新增代購
+        <div className="flex gap-1.5 shrink-0 md:gap-2">
+          <Button variant="cta-outline" size="sm" className="h-8 px-3 text-[11px] md:h-9 md:px-4 md:text-sm" render={<Link href="/dashboard/listings/new" />}>
+            <Plus className="mr-0.5 h-3 w-3 md:mr-1 md:h-4 md:w-4" />代購
           </Button>
-          <Button variant="cta-outline" size="default" render={<Link href="/dashboard/connections/new" />}>
-            <Globe className="mr-1 h-4 w-4" />新增連線
+          <Button variant="cta-outline" size="sm" className="h-8 px-3 text-[11px] md:h-9 md:px-4 md:text-sm" render={<Link href="/dashboard/connections/new" />}>
+            <Globe className="mr-0.5 h-3 w-3 md:mr-1 md:h-4 md:w-4" />連線
           </Button>
         </div>
       </div>
@@ -79,10 +79,10 @@ export default function SellerDashboardPage() {
 
       {/* Listing quota overview */}
       <Card className="ring-0 shadow-sm bg-white">
-        <CardContent className="pt-5 pb-5">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-sm font-medium">代購刊登量</span>
-            <span className="text-sm tabular-nums">
+        <CardContent className="pt-3 pb-3 md:pt-5 md:pb-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium md:text-sm">代購刊登量</span>
+            <span className="text-xs tabular-nums md:text-sm">
               <span className="font-bold">{total}</span>
               <span className="text-muted-foreground"> / {MAX_LISTINGS}</span>
             </span>
@@ -117,22 +117,22 @@ export default function SellerDashboardPage() {
           </div>
 
           {/* Legend */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-muted-foreground md:mt-3 md:gap-x-5 md:gap-y-1.5 md:text-xs">
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2 w-2 rounded-sm bg-green-500" />
+              <span className="inline-block h-1.5 w-1.5 rounded-sm md:h-2 md:w-2 bg-green-500" />
               上架中 <strong className="text-foreground">{active}</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2 w-2 rounded-sm bg-amber-400" />
+              <span className="inline-block h-1.5 w-1.5 rounded-sm md:h-2 md:w-2 bg-amber-400" />
               待審核 <strong className="text-foreground">{pending}</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2 w-2 rounded-sm bg-blue-400" />
+              <span className="inline-block h-1.5 w-1.5 rounded-sm md:h-2 md:w-2 bg-blue-400" />
               草稿 <strong className="text-foreground">{draft}</strong>
             </span>
             {inactive > 0 && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-sm bg-red-400" />
+                <span className="inline-block h-1.5 w-1.5 rounded-sm md:h-2 md:w-2 bg-red-400" />
                 已下架 <strong className="text-foreground">{inactive}</strong>
               </span>
             )}
@@ -144,7 +144,7 @@ export default function SellerDashboardPage() {
       </Card>
 
       {/* Recent listings + Active connections */}
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+      <div className="grid gap-3 md:gap-6 lg:grid-cols-[3fr_2fr]">
         {/* Recent listings */}
         <Card className="ring-0 shadow-sm bg-white">
           <CardHeader className="pb-3">
@@ -153,7 +153,7 @@ export default function SellerDashboardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs gap-1 text-muted-foreground"
+                className="h-8 md:h-7 text-xs gap-1 text-muted-foreground"
                 render={<Link href="/dashboard/listings" />}
               >
                 全部 <ArrowRight className="h-3 w-3" />
@@ -162,14 +162,14 @@ export default function SellerDashboardPage() {
           </CardHeader>
           <CardContent className="pt-0 pb-2">
             {recentListings && recentListings.items.length > 0 ? (
-              <div className="divide-y divide-border -mx-6">
+              <div className="divide-y divide-border -mx-4 md:-mx-6">
                 {recentListings.items.map((l: any) => {
                   const sc = listingStatusConfig[l.status] ?? { label: l.status, dot: 'bg-muted-foreground/40' }
                   return (
                     <Link
                       key={l.id}
                       href={`/dashboard/listings/${l.id}/edit`}
-                      className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
+                      className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors md:px-6 md:py-3"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{l.title ?? l.product?.name ?? '未知商品'}</p>
@@ -217,7 +217,7 @@ export default function SellerDashboardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs gap-1 text-muted-foreground"
+                className="h-8 md:h-7 text-xs gap-1 text-muted-foreground"
                 render={<Link href="/dashboard/connections" />}
               >
                 全部 <ArrowRight className="h-3 w-3" />
@@ -226,14 +226,14 @@ export default function SellerDashboardPage() {
           </CardHeader>
           <CardContent className="pt-0 pb-2">
             {recentConnections.length > 0 ? (
-              <div className="divide-y divide-border -mx-6">
+              <div className="divide-y divide-border -mx-4 md:-mx-6">
                 {recentConnections.map((c: any) => {
                   const cs = connectionStatusConfig[c.status] ?? { label: c.status, dot: 'bg-muted-foreground/40' }
                   return (
                     <Link
                       key={c.id}
                       href={`/dashboard/connections/${c.id}/edit`}
-                      className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors"
+                      className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors md:px-6 md:py-3"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{c.title ?? c.region?.name ?? '未知地區'}</p>

@@ -41,7 +41,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
   const card = (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-200 hover:shadow-md',
+        'group relative overflow-hidden rounded-none bg-white shadow-none md:rounded-2xl md:shadow-sm md:transition-shadow md:duration-200 md:hover:shadow-md',
         variant === 'compact' ? 'flex items-center gap-4 p-5' : '',
         className
       )}
@@ -100,12 +100,15 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       ) : (
         <>
           {/* 佔位:在 flex flow 撐出 name 區高度,卡片總高 = 圖片 + 此佔位 */}
-          <div aria-hidden className="invisible bg-white px-4 pb-3 pt-4">
+          {/* Mobile: simple inline text */}
+          <div className="px-1.5 py-1.5 md:hidden">
+            <p className="line-clamp-2 min-h-[2lh] text-[10px] leading-tight text-foreground" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+          </div>
+          {/* Desktop: absolute overlay with hover expand */}
+          <div aria-hidden className="invisible bg-white px-4 pb-3 pt-4 hidden md:block">
             <p className="line-clamp-2 min-h-[2.75rem] font-bold leading-snug text-base">.</p>
           </div>
-          {/* 實際文字:absolute 蓋在佔位區上方;hover 時 brand/model 展開,往上長覆蓋圖片底部,卡片總高不變 */}
-          <div className="absolute bottom-0 left-0 right-0 min-h-[4.5rem] bg-white px-4 pb-3 pt-4">
-            {/* Brand — expands from 0 height on hover */}
+          <div className="absolute bottom-0 left-0 right-0 min-h-[4.5rem] bg-white px-4 pb-3 pt-4 hidden md:block">
             {brandLabel && (
               <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
                 <div className="overflow-hidden">
@@ -114,7 +117,6 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
               </div>
             )}
             <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
-            {/* Model — expands from 0 height on hover */}
             {product.model_number && (
               <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
                 <div className="overflow-hidden">

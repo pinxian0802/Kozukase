@@ -151,7 +151,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-4xl px-4 pb-20 pt-6">
+      <main className="mx-auto max-w-4xl px-3 pb-12 pt-3 md:px-4 md:pb-20 md:pt-6">
         <button
           onClick={() => router.back()}
           className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-text-strong transition-colors cursor-pointer"
@@ -161,21 +161,21 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
         </button>
 
         {/* ── Hero ── */}
-        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1.4fr_1fr] md:gap-8 items-start">
+        <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:gap-6 md:grid-cols-[1.4fr_1fr] md:gap-8 items-start">
           {/* Left: avatar + info */}
-          <div className="flex gap-6">
-            <Avatar className="h-[104px] w-[104px] shrink-0">
+          <div className="flex gap-3 md:gap-6">
+            <Avatar className="h-16 w-16 shrink-0 md:h-[104px] md:w-[104px]">
               <AvatarImage src={seller.avatar_url ?? (seller as any).profile?.avatar_url ?? undefined} />
-              <AvatarFallback className="text-3xl font-semibold bg-gradient-to-br from-[#2d3a5e] to-[#0f1a36] text-white">
+              <AvatarFallback className="text-xl font-semibold bg-gradient-to-br from-[#2d3a5e] to-[#0f1a36] text-white md:text-3xl">
                 {seller.name[0]}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex flex-col gap-3 pt-1 min-w-0">
+            <div className="flex flex-col gap-2 pt-0.5 min-w-0 md:gap-3 md:pt-1">
               {/* Name + badge + date */}
               <div>
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <h1 className="text-[28px] font-bold tracking-tight leading-none" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
+                <div className="flex items-center gap-1.5 mb-1 flex-wrap md:gap-2 md:mb-1.5">
+                  <h1 className="text-xl font-bold tracking-tight leading-none md:text-[28px]" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
                     {seller.name}
                   </h1>
                   {seller.is_social_verified && <SocialBadge />}
@@ -308,17 +308,17 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
         </div>
 
         {/* ── Stats bar ── */}
-        <div className="mt-7 mb-9 grid grid-cols-4 border border-border-soft rounded-[14px] overflow-hidden bg-white">
+        <div className="mt-4 mb-5 grid grid-cols-4 border border-border-soft rounded-lg overflow-hidden bg-white md:mt-7 md:mb-9 md:rounded-[14px]">
           {stats.map((s, i) => (
             <div
               key={s.label}
               className={cn(
-                'px-2 py-3.5 sm:px-5 sm:py-[18px] flex flex-col gap-1 items-center text-center justify-center',
+                'px-1.5 py-2.5 sm:px-5 sm:py-[18px] flex flex-col gap-0.5 items-center text-center justify-center md:gap-1',
                 i < stats.length - 1 && 'border-r border-border-soft'
               )}
             >
-              <div className="text-[11px] font-medium text-text-muted uppercase tracking-[.04em]">{s.label}</div>
-              <div className="flex items-baseline gap-1.5" style={{ fontFamily: 'Rubik, sans-serif', fontSize: 24, fontWeight: 700, color: 'var(--text-strong)', letterSpacing: '-0.01em' }}>
+              <div className="text-[9px] font-medium text-text-muted uppercase tracking-[.04em] md:text-[11px]">{s.label}</div>
+              <div className="flex items-baseline gap-1" style={{ fontFamily: 'Rubik, sans-serif', fontSize: 'clamp(16px, 4vw, 24px)', fontWeight: 700, color: 'var(--text-strong)', letterSpacing: '-0.01em' }}>
                 {s.value}
                 {s.star && s.value !== '-' && <Star className="h-3.5 w-3.5 fill-amber-400 stroke-amber-400 mb-0.5" strokeWidth={1.5} />}
               </div>
@@ -337,14 +337,14 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
           {/* ── Products tab ── */}
           <TabsContent value="listings" className="mt-5">
-            <div className="flex items-center gap-3 mb-5 flex-wrap">
-              <div className="flex gap-1 p-[3px] bg-surface-muted rounded-full">
+            <div className="flex items-center gap-2 mb-3 flex-wrap md:gap-3 md:mb-5">
+              <div className="flex gap-0.5 p-[2px] bg-surface-muted rounded-full md:gap-1 md:p-[3px]">
                 {LISTING_CATS.map(c => (
                   <button
                     key={c.key}
                     onClick={() => setListingCat(c.key)}
                     className={cn(
-                      'px-3.5 py-1.5 rounded-full text-[12.5px] font-medium transition-colors',
+                      'px-2.5 py-1 rounded-full text-[10px] font-medium transition-colors md:px-3.5 md:py-1.5 md:text-[12.5px]',
                       listingCat === c.key
                         ? 'bg-white text-text-strong shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
                         : 'text-text-muted hover:text-text-muted'
@@ -355,12 +355,12 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                 ))}
               </div>
               <div className="flex-1" />
-              <div className="flex items-center gap-2 text-[12.5px] text-text-muted">
+              <div className="flex items-center gap-1.5 text-[10px] text-text-muted md:gap-2 md:text-[12.5px]">
                 <span>排序</span>
                 <select
                   value={listingSort}
                   onChange={e => setListingSort(e.target.value)}
-                  className="h-8 border border-border-soft rounded-lg px-2.5 text-[12.5px] bg-white cursor-pointer outline-none"
+                  className="h-7 border border-border-soft rounded-lg px-2 text-[10px] bg-white cursor-pointer outline-none md:h-8 md:px-2.5 md:text-[12.5px]"
                 >
                   <option value="latest">最新上架</option>
                   <option value="price-asc">價格 低 → 高</option>
@@ -370,7 +370,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
             </div>
 
             {listingItems.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
                 {listingItems.map((l: any) => (
                   <ListingCard key={l.id} listing={l} showBrand={false} showShippingDate={false} tallImage />
                 ))}
@@ -383,7 +383,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
           {/* ── Connections tab ── */}
           <TabsContent value="connections" className="mt-5">
             {connections && connections.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
                 {connections.map((c: any) => (
                   <ConnectionCard key={c.id} connection={c} />
                 ))}

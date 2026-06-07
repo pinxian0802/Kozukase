@@ -55,10 +55,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
+      <div className="mx-auto flex h-11 max-w-7xl items-center gap-2 px-3 md:h-16 md:gap-4 md:px-4">
         {/* Logo */}
         <Link href="/" className="shrink-0">
-          <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="h-9 w-auto" priority />
+          <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="h-6 w-auto md:h-9" priority />
         </Link>
 
         {/* Desktop Search */}
@@ -88,15 +88,15 @@ export function Header() {
         </nav>
 
         {/* Auth Section */}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1 md:gap-2">
           {/* Mobile Search Toggle */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden h-8 w-8"
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
           >
-            <Search className="h-5 w-5" />
+            <Search className="h-4 w-4" />
           </Button>
 
           {session?.profile ? (
@@ -109,7 +109,7 @@ export function Header() {
                   nativeButton={false}
                   render={
                     <span className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })}>
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-7 w-7 md:h-8 md:w-8">
                         <AvatarImage src={session.profile.avatar_url ?? undefined} />
                         <AvatarFallback>{session.profile.display_name?.[0] ?? '?'}</AvatarFallback>
                       </Avatar>
@@ -194,7 +194,7 @@ export function Header() {
 
       {/* Mobile Search Bar */}
       {mobileSearchOpen && (
-        <div className="border-t px-4 py-2 md:hidden">
+        <div className="border-t px-3 py-1.5 md:hidden">
           <form onSubmit={handleSearch}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

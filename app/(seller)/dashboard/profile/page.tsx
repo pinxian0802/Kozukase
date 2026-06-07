@@ -391,7 +391,7 @@ export default function SellerProfilePage() {
   const threadsHandle = seller?.threads_handle as string | null | undefined
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
       <Tabs defaultValue="seller-info">
         <FilterTabsList items={[
           { value: 'seller-info', label: '賣家資料' },
@@ -399,17 +399,17 @@ export default function SellerProfilePage() {
         ]} />
 
         <TabsContent value="seller-info" className="mt-4">
-          <Card className="ring-0 shadow-sm bg-white">
+          <Card size="sm" className="ring-0 shadow-sm bg-white">
             <CardHeader>
-              <CardTitle>賣家資料</CardTitle>
+              <CardTitle className="font-semibold">賣家資料</CardTitle>
             </CardHeader>
             <CardContent>
               {(isSellerLoading || isRegionsLoading) ? (
-                <div className="space-y-5">
+                <div className="space-y-3 md:space-y-5">
                   {/* 頭貼 */}
-                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-                    <Skeleton className="mt-2 h-4 w-10" />
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+                    <Skeleton className="h-3 w-10 md:mt-2 md:h-4" />
+                    <div className="flex items-center justify-center gap-4 md:justify-start">
                       <Skeleton className="h-24 w-24 rounded-full" />
                       <div className="flex flex-col gap-1.5">
                         <Skeleton className="h-3.5 w-16" />
@@ -420,42 +420,43 @@ export default function SellerProfilePage() {
                   </div>
 
                   {/* 賣家名稱 */}
-                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-                    <Skeleton className="mt-2 h-4 w-20" />
-                    <Skeleton className="h-10 w-full rounded-md" />
+                  <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+                    <Skeleton className="h-3 w-20 md:mt-2 md:h-4" />
+                    <Skeleton className="h-[30px] w-full rounded-lg md:h-10" />
                   </div>
 
                   {/* 代購地區 */}
-                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-                    <Skeleton className="mt-2 h-4 w-20" />
-                    <Skeleton className="h-10 w-full rounded-md" />
+                  <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+                    <Skeleton className="h-3 w-20 md:mt-2 md:h-4" />
+                    <Skeleton className="h-[30px] w-full rounded-lg md:h-10" />
                   </div>
 
                   {/* 簡介 */}
-                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-                    <Skeleton className="mt-2 h-4 w-10" />
-                    <Skeleton className="h-44 w-full rounded-md" />
+                  <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+                    <Skeleton className="h-3 w-10 md:mt-2 md:h-4" />
+                    <Skeleton className="h-20 w-full rounded-lg md:h-44" />
                   </div>
 
                   {/* 儲存按鈕 */}
-                  <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
-                    <div />
-                    <Skeleton className="h-9 w-28 justify-self-end rounded-md" />
+                  <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
+                    <div className="hidden md:block" />
+                    <Skeleton className="ml-auto h-8 w-24 rounded-lg md:h-9 md:w-28 md:justify-self-end" />
                   </div>
                 </div>
               ) : (
-              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+              <form onSubmit={handleSubmit} className="form-compact space-y-3 md:space-y-5" noValidate>
+                <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
                   <Label className="pt-2">頭貼</Label>
                   <AvatarUpload
                     value={avatarImage}
                     onChange={setAvatarImage}
                     pendingFile={pendingFile}
                     onPendingFileChange={setPendingFile}
+                    className="max-md:justify-center"
                   />
                 </div>
 
-                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
                   <Label htmlFor="name" className="pt-2">賣家名稱 <span className="text-foreground">*</span></Label>
                   <div>
                     <Input
@@ -473,7 +474,7 @@ export default function SellerProfilePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
                   <Label className="pt-2">代購地區 <span className="text-foreground">*</span></Label>
                   <div>
                     <MultiSelect
@@ -492,7 +493,7 @@ export default function SellerProfilePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
                   <Label htmlFor="bio" className="pt-2">簡介</Label>
                   <div>
                     <Textarea
@@ -508,15 +509,15 @@ export default function SellerProfilePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
                   <Label className="pt-2">購買證明</Label>
-                  <div className="flex items-center gap-3 pt-1">
-                    <Switch checked={canProvideProof} onCheckedChange={setCanProvideProof} />
-                    <span className="text-sm text-muted-foreground">可提供購買證明 / 明細（協助買家辨別正品）</span>
+                  <div className="flex items-center gap-2.5 pt-1 md:gap-3">
+                    <Switch checked={canProvideProof} onCheckedChange={setCanProvideProof} className="max-md:origin-left max-md:scale-90" />
+                    <span className="text-[12px] text-muted-foreground md:text-sm">可提供購買證明 / 明細（協助買家辨別正品）</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[140px_1fr] items-start gap-x-4">
+                <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
                   <div />
                   <button type="submit" className={buttonVariants({ className: 'w-fit justify-self-end' })} disabled={isSubmitting || updateSeller.isPending || getPresignedUrl.isPending}>
                     {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
@@ -530,9 +531,9 @@ export default function SellerProfilePage() {
         </TabsContent>
 
         <TabsContent value="social" className="mt-4">
-          <Card className="ring-0 shadow-sm bg-white">
+          <Card size="sm" className="ring-0 shadow-sm bg-white">
             <CardHeader>
-              <CardTitle>社群帳號</CardTitle>
+              <CardTitle className="font-semibold">社群帳號</CardTitle>
             </CardHeader>
 
             {thVerify.step !== 'idle' ? (
@@ -828,7 +829,7 @@ export default function SellerProfilePage() {
               <CardContent className="p-0 divide-y divide-border">
 
                 {/* Instagram Row */}
-                <div className="flex items-center gap-3.5 px-5 py-4">
+                <div className="flex items-center gap-2.5 px-3 py-3 md:gap-3.5 md:px-5 md:py-4">
                   <div className="relative flex-shrink-0">
                     <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.1)]">
                       <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
@@ -886,7 +887,7 @@ export default function SellerProfilePage() {
                 </div>
 
                 {/* Threads Row */}
-                <div className="flex items-center gap-3.5 px-5 py-4">
+                <div className="flex items-center gap-2.5 px-3 py-3 md:gap-3.5 md:px-5 md:py-4">
                   <div className="relative flex-shrink-0">
                     <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.1)]">
                       <Image src="/images/threads.png" alt="Threads" width={40} height={40} />

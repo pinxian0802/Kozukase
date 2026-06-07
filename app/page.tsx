@@ -51,9 +51,29 @@ export default async function HomePage() {
         <HomeHero slides={heroSlides} />
 
         {/* Categories */}
-        <section className="mx-auto max-w-6xl px-4 py-10">
-          <h2 className="font-heading text-xl font-bold mb-5 text-foreground md:text-2xl">商品分類</h2>
-          <div className="grid grid-cols-5 gap-1 md:grid-cols-8">
+        <section className="mx-auto max-w-6xl px-3 py-2 md:px-4 md:py-10">
+          <h2 className="font-heading text-[13px] font-bold mb-1.5 text-foreground md:text-2xl md:mb-5 hidden md:block">商品分類</h2>
+          {/* Mobile: horizontal scroll */}
+          <div className="flex gap-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+            {categories.map((cat) => {
+              const Icon = cat.icon
+              return (
+                <Link
+                  key={cat.key}
+                  href={`/search?category=${cat.key}`}
+                  className="flex flex-col items-center gap-1 shrink-0 px-1.5"
+                  style={{ width: 56 }}
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-[10px] text-center text-muted-foreground leading-tight whitespace-nowrap">{cat.label}</span>
+                </Link>
+              )
+            })}
+          </div>
+          {/* Desktop: grid */}
+          <div className="hidden md:grid md:grid-cols-8 md:gap-1">
             {categories.map((cat) => {
               const Icon = cat.icon
               return (
@@ -77,7 +97,7 @@ export default async function HomePage() {
           <div className="bg-surface-muted/40">
             <SectionCarousel title="熱門商品" viewAllHref="/search">
               {popularProducts.map((p) => (
-                <div key={p.id} className="w-40 shrink-0 snap-start md:w-[calc((100%-64px)/5)]">
+                <div key={p.id} className="w-[100px] shrink-0 snap-start md:w-[calc((100%-64px)/5)]">
                   <ProductCard product={p} imageAspect="1/1" />
                 </div>
               ))}
@@ -89,7 +109,7 @@ export default async function HomePage() {
         {upcomingConnections.length > 0 && (
           <SectionCarousel title="即將出發的連線代購" viewAllHref="/connections">
             {upcomingConnections.map((c) => (
-              <div key={c.id} className="w-72 shrink-0 snap-start md:w-[calc((100%-48px)/4)]">
+              <div key={c.id} className="w-[156px] shrink-0 snap-start md:w-[calc((100%-48px)/4)]">
                 <ConnectionCard connection={c} />
               </div>
             ))}
@@ -98,12 +118,12 @@ export default async function HomePage() {
 
         {/* CTA */}
         <section className="border-t bg-foreground">
-          <div className="mx-auto max-w-2xl px-4 py-16 text-center md:py-20">
-            <h2 className="font-heading text-2xl font-bold text-background md:text-3xl">成為 Kozukase 賣家</h2>
-            <p className="mt-3 text-sm text-background/60">讓更多買家找到你的代購服務</p>
+          <div className="mx-auto max-w-2xl px-4 py-10 text-center md:py-20">
+            <h2 className="font-heading text-xl font-bold text-background md:text-3xl">成為 Kozukase 賣家</h2>
+            <p className="mt-2 text-xs text-background/60 md:mt-3 md:text-sm">讓更多買家找到你的代購服務</p>
             <Button
               size="lg"
-              className="mt-8 bg-background text-foreground hover:bg-background/90"
+              className="mt-5 bg-background text-foreground hover:bg-background/90 md:mt-8"
               render={<Link href="/become-seller" />}
             >
               立即上架

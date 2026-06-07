@@ -85,7 +85,7 @@ export default function EditListingPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold font-heading">編輯代購</h1>
+        <h1 className="text-[15px] font-bold font-heading md:text-2xl">編輯代購</h1>
       </div>
 
       {adminTakenDown && (
@@ -96,7 +96,7 @@ export default function EditListingPage() {
       )}
 
       <Card className="ring-0 shadow-sm py-0">
-        <CardContent className="px-6 py-4 sm:px-8 sm:py-5 space-y-4">
+        <CardContent className="px-4 py-4 sm:px-8 sm:py-5 space-y-4">
           {productRemoved && (
             <div className="space-y-3">
               <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">

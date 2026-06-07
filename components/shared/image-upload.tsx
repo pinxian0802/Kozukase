@@ -283,19 +283,19 @@ export function ImageUpload({
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               className={cn(
-                'flex min-h-56 items-center justify-center rounded-2xl border-2 border-dashed border-border/70 px-4 py-10 text-center transition-colors',
+                'flex min-h-36 items-center justify-center rounded-2xl border-2 border-dashed border-border/70 px-4 py-6 text-center transition-colors md:min-h-56 md:py-10',
                 isDragging && 'border-primary bg-primary/5',
                 invalid && !isDragging && 'border-destructive',
                 remainingSlots > 0 && !uploading ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed opacity-70'
               )}
             >
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-border/60">
+              <div className="flex flex-col items-center gap-2 md:gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-border/60 md:h-14 md:w-14">
                   {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
                 </div>
                 <div className="space-y-1">
-                  <p className="text-base font-medium text-foreground">拖曳圖片到這裡</p>
-                  <p className="text-sm text-muted-foreground">或點擊選擇檔案</p>
+                  <p className="text-sm font-medium text-foreground md:text-base">拖曳圖片到這裡</p>
+                  <p className="text-xs text-muted-foreground md:text-sm">或點擊選擇檔案</p>
                 </div>
               </div>
             </div>
@@ -304,7 +304,7 @@ export function ImageUpload({
       )}
 
       {previewItems.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-4">
           {images.map((img, index) => (
             <Card key={`img-${img.r2Key}-${index}`} className="relative aspect-square overflow-hidden rounded-xl border-border/70 shadow-sm py-0 gap-0">
               <CardContent className="relative h-full w-full p-0">
