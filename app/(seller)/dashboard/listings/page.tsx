@@ -119,7 +119,7 @@ export default function SellerListingsPage() {
       emptyState={{ icon: Package, title: '還沒有代購', description: '建立你的第一個代購商品吧!' }}
     >
       <div className="hidden lg:block">
-        <Table>
+        <Table className="text-[13px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[96px]">圖片</TableHead>
@@ -231,7 +231,7 @@ export default function SellerListingsPage() {
                 size={48}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-medium truncate leading-tight">{listing.title || listing.product?.name || '--'}</p>
+                <p className="text-[13px] font-medium truncate leading-tight">{listing.title || listing.product?.name || '--'}</p>
                 <p className="text-[11px] text-muted-foreground truncate mt-0.5 leading-tight">
                   {listing.product?.name ?? ''}
                   {listing.price != null ? ` · ${formatPrice(listing.price, listing.is_price_on_request)}` : listing.is_price_on_request ? ' · 私訊報價' : ''}

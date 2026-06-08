@@ -55,8 +55,8 @@ export function DashboardListShell({
           <h1 className="text-[15px] font-bold font-heading md:text-2xl">{title}</h1>
           <p className="text-[11px] text-muted-foreground md:text-sm">{usageHint}</p>
         </div>
-        <Button variant="cta-outline" size="sm" render={<Link href={newButton.href} />}>
-          <Plus className="mr-0.5 h-2.5 w-2.5 md:mr-1 md:h-4 md:w-4" />
+        <Button variant="cta-outline" size="xs" render={<Link href={newButton.href} />}>
+          <Plus className="mr-0.5 h-2.5 w-2.5 md:mr-1 md:h-3.5 md:w-3.5" />
           {newButton.label}
         </Button>
       </div>

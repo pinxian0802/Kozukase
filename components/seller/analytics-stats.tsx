@@ -45,13 +45,13 @@ export function AnalyticsStats() {
   return (
     <div className="space-y-2 md:space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-[12px] font-semibold md:text-sm">數據總覽</h2>
+        <h2 className="text-sm font-semibold">數據總覽</h2>
         <div className="flex gap-0.5 md:gap-1">
           {([7, 30, 90] as Days[]).map(d => (
             <Button
               key={d}
               variant={days === d ? 'default' : 'ghost'}
-              size="sm"
+              size="xs"
               onClick={() => setDays(d)}
             >
               {d}天

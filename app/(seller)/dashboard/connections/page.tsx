@@ -106,7 +106,7 @@ export default function SellerConnectionsPage() {
       emptyState={{ icon: Globe, title: '還沒有連線公告', description: '新增連線公告讓買家知道你的代購行程!' }}
     >
       <div className="hidden lg:block">
-        <Table>
+        <Table className="text-[13px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[96px]">圖片</TableHead>
@@ -208,7 +208,7 @@ export default function SellerConnectionsPage() {
                   size={48}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12px] font-medium truncate leading-tight">{conn.title || '--'}</p>
+                  <p className="text-[13px] font-medium truncate leading-tight">{conn.title || '--'}</p>
                   <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
                     {conn.region?.name && <span>{conn.region.name}</span>}
                     <span>{formatDate(conn.start_date)} ~ {formatDate(conn.end_date)}</span>

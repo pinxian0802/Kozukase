@@ -401,7 +401,7 @@ export default function SellerProfilePage() {
         <TabsContent value="seller-info" className="mt-4">
           <Card size="sm" className="ring-0 shadow-sm bg-white">
             <CardHeader>
-              <CardTitle className="font-semibold">賣家資料</CardTitle>
+              <CardTitle className="text-sm font-semibold">賣家資料</CardTitle>
             </CardHeader>
             <CardContent>
               {(isSellerLoading || isRegionsLoading) ? (
@@ -533,7 +533,7 @@ export default function SellerProfilePage() {
         <TabsContent value="social" className="mt-4">
           <Card size="sm" className="ring-0 shadow-sm bg-white">
             <CardHeader>
-              <CardTitle className="font-semibold">社群帳號</CardTitle>
+              <CardTitle className="text-sm font-semibold">社群帳號</CardTitle>
             </CardHeader>
 
             {thVerify.step !== 'idle' ? (

@@ -65,11 +65,11 @@ export default function SellerDashboardPage() {
           <p className="text-[11px] text-muted-foreground mt-0.5 md:text-sm">{today}</p>
         </div>
         <div className="flex gap-1.5 shrink-0 md:gap-2">
-          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/listings/new" />}>
-            <Plus className="mr-0.5 h-2.5 w-2.5 md:mr-1 md:h-4 md:w-4" />代購
+          <Button variant="cta-outline" size="xs" render={<Link href="/dashboard/listings/new" />}>
+            <Plus className="mr-0.5 h-2.5 w-2.5 md:mr-1 md:h-3.5 md:w-3.5" />代購
           </Button>
-          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/connections/new" />}>
-            <Globe className="mr-0.5 h-3 w-3 md:mr-1 md:h-4 md:w-4" />連線
+          <Button variant="cta-outline" size="xs" render={<Link href="/dashboard/connections/new" />}>
+            <Globe className="mr-0.5 h-3 w-3 md:mr-1 md:h-3.5 md:w-3.5" />連線
           </Button>
         </div>
       </div>
@@ -172,8 +172,8 @@ export default function SellerDashboardPage() {
                       className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors md:px-6 md:py-3"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{l.title ?? l.product?.name ?? '未知商品'}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        <p className="text-[13px] font-medium truncate">{l.title ?? l.product?.name ?? '未知商品'}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
                           {l.product?.name ?? ''}
                           {l.price != null
                             ? `・NT$ ${l.price.toLocaleString()}`
@@ -236,8 +236,8 @@ export default function SellerDashboardPage() {
                       className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors md:px-6 md:py-3"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{c.title ?? c.region?.name ?? '未知地區'}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        <p className="text-[13px] font-medium truncate">{c.title ?? c.region?.name ?? '未知地區'}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
                           {c.region?.name ?? ''}・至 {c.end_date}
                         </p>
                       </div>

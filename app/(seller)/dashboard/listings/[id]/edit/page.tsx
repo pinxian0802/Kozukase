@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, AlertTriangle } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -89,20 +90,21 @@ export default function EditListingPage() {
       </div>
 
       {adminTakenDown && (
-        <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>此代購因「{listing.admin_note}」已被管理員下架，請修改後重新送出審核。</p>
-        </div>
+        <Alert variant="destructive" title="代購已被管理員下架">
+          因「{listing.admin_note}」遭下架，請修改後重新送出審核。
+        </Alert>
+      )}
+
+      {productRemoved && (
+        <Alert variant="warning" title="商品已被管理員移除">
+          請重新選擇商品後再重新送出。
+        </Alert>
       )}
 
       <Card className="ring-0 shadow-sm py-0">
         <CardContent className="px-4 py-4 sm:px-8 sm:py-5 space-y-4">
           {productRemoved && (
             <div className="space-y-3">
-              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>此商品已被管理員移除，請重新選擇商品後重新送出。</p>
-              </div>
               <div>
                 <Label>商品</Label>
                 <div className="mt-1 w-fit">
