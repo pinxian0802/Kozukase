@@ -29,6 +29,7 @@ export function getNotificationContent(
     : typeof p.reason === 'string' ? p.reason
     : null
   const rating = typeof p.rating === 'number' ? p.rating : null
+  const threadsUsername = typeof p.threads_username === 'string' ? p.threads_username : null
 
   switch (type) {
     case 'connection_removed_by_admin':
@@ -79,6 +80,22 @@ export function getNotificationContent(
         body: rating
           ? `有買家給了你 ${rating} 星評價，點擊查看並回覆。`
           : '有買家給了你新評價，點擊查看並回覆。',
+      }
+    case 'threads_verification_approved':
+      return {
+        title: 'Threads 帳號驗證已通過',
+        body: threadsUsername
+          ? `你的 Threads 帳號「@${threadsUsername}」已通過驗證，賣家頁將顯示驗證標章。`
+          : '你的 Threads 帳號已通過驗證，賣家頁將顯示驗證標章。',
+      }
+    case 'threads_verification_rejected':
+      return {
+        title: 'Threads 帳號驗證未通過',
+        body: (
+          <>
+            {reason ? `因「${reason}」，` : ''}你的 Threads 帳號{threadsUsername ? `「@${threadsUsername}」` : ''}驗證未通過，請確認後重新申請，如有疑問請來信 <MailLink />。
+          </>
+        ),
       }
     case 'new_listing_for_wish':
       return {
