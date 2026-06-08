@@ -52,7 +52,6 @@ export function AnalyticsStats() {
               key={d}
               variant={days === d ? 'default' : 'ghost'}
               size="sm"
-              className="h-8 px-2.5 text-[11px] md:h-7 md:px-3 md:text-xs"
               onClick={() => setDays(d)}
             >
               {d}天

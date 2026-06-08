@@ -540,8 +540,8 @@ export default function SellerProfilePage() {
 
               /* ── Threads 驗證流程 ── */
               <CardContent className="p-0">
-                <div className="flex items-center justify-center" style={{ height: 360 }}>
-                  <div className="w-full max-w-[300px] px-5">
+                <div className="flex items-center justify-center h-[360px] max-md:h-[300px]">
+                  <div className="w-full max-w-[300px] px-5 max-md:scale-[0.85]">
 
                     {thVerify.step === 'entering_username' && (
                       <div className="flex flex-col gap-7">
@@ -667,8 +667,8 @@ export default function SellerProfilePage() {
 
               /* ── IG 驗證流程 ── */
               <CardContent className="p-0">
-                <div className="flex items-center justify-center" style={{ height: 360 }}>
-                  <div className="w-full max-w-[300px] px-5">
+                <div className="flex items-center justify-center h-[360px] max-md:h-[300px]">
+                  <div className="w-full max-w-[300px] px-5 max-md:scale-[0.85]">
 
                     {igVerify.step === 'entering_username' && (
                       <div className="flex flex-col gap-7">

@@ -65,10 +65,10 @@ export default function SellerDashboardPage() {
           <p className="text-[11px] text-muted-foreground mt-0.5 md:text-sm">{today}</p>
         </div>
         <div className="flex gap-1.5 shrink-0 md:gap-2">
-          <Button variant="cta-outline" size="sm" className="h-8 px-3 text-[11px] md:h-9 md:px-4 md:text-sm" render={<Link href="/dashboard/listings/new" />}>
-            <Plus className="mr-0.5 h-3 w-3 md:mr-1 md:h-4 md:w-4" />代購
+          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/listings/new" />}>
+            <Plus className="mr-0.5 h-2.5 w-2.5 md:mr-1 md:h-4 md:w-4" />代購
           </Button>
-          <Button variant="cta-outline" size="sm" className="h-8 px-3 text-[11px] md:h-9 md:px-4 md:text-sm" render={<Link href="/dashboard/connections/new" />}>
+          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/connections/new" />}>
             <Globe className="mr-0.5 h-3 w-3 md:mr-1 md:h-4 md:w-4" />連線
           </Button>
         </div>
@@ -153,7 +153,7 @@ export default function SellerDashboardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 md:h-7 text-xs gap-1 text-muted-foreground"
+                className="gap-1 text-muted-foreground"
                 render={<Link href="/dashboard/listings" />}
               >
                 全部 <ArrowRight className="h-3 w-3" />
@@ -217,7 +217,7 @@ export default function SellerDashboardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 md:h-7 text-xs gap-1 text-muted-foreground"
+                className="gap-1 text-muted-foreground"
                 render={<Link href="/dashboard/connections" />}
               >
                 全部 <ArrowRight className="h-3 w-3" />

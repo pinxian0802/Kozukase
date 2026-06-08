@@ -282,9 +282,9 @@ function ListingActions({
 }: ListingActionsProps) {
   return (
     <div className="inline-flex items-center justify-start gap-2 max-md:gap-1">
-      <Button size="sm" variant="outline" className="max-md:h-6 max-md:px-2 max-md:text-[11px]" render={<Link href={`/dashboard/listings/${listingId}/edit`} />}>編輯</Button>
+      <Button size="xs" variant="outline" render={<Link href={`/dashboard/listings/${listingId}/edit`} />}>編輯</Button>
       {listingStatus === 'pending_approval' ? (
-        <span aria-hidden className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'invisible max-md:size-6 md:hidden' })} />
+        <span aria-hidden className={buttonVariants({ variant: 'ghost', size: 'icon-xs', className: 'invisible md:hidden' })} />
       ) : (
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -292,7 +292,7 @@ function ListingActions({
             disabled={pending}
             aria-label="更多操作"
             render={
-              <span className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'max-md:size-6' })}>
+              <span className={buttonVariants({ variant: 'ghost', size: 'icon-xs' })}>
                 <MoreHorizontal className="hidden h-4 w-4 md:block" />
                 <MoreVertical className="h-3.5 w-3.5 md:hidden" />
               </span>
