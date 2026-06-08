@@ -12,7 +12,7 @@ export default function NewConnectionPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-center gap-3 sm:items-start">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="font-heading text-[15px] font-semibold tracking-tight text-foreground sm:text-4xl">

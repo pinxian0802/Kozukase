@@ -730,11 +730,11 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
       {/* Actions */}
       <div className="space-y-2 pt-4">
         <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={() => handleSave('draft')} disabled={isSubmitDisabled}>
+          <Button type="button" variant="outline" size="sm" onClick={() => handleSave('draft')} disabled={isSubmitDisabled}>
             {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
             {mode === 'edit' ? '儲存變更' : '儲存代購'}
           </Button>
-          <button type="submit" disabled={isSubmitDisabled || requiresReselect} className={buttonVariants({ className: 'flex-1' })}>
+          <button type="submit" disabled={isSubmitDisabled || requiresReselect} className={buttonVariants({ size: 'sm', className: 'flex-1' })}>
             {isSubmitDisabled ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
             {mode === 'create' ? '直接上架' : (isInactive ? (needsReapproval ? '重新送出審核' : '重新上架') : '更新代購')}
           </button>

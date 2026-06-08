@@ -43,7 +43,7 @@ export function ProductPicker({ title, onSelectExisting, onSubmitDraft, onCancel
   return (
     <div className="mx-auto max-w-4xl space-y-4 md:space-y-6">
       <div className="flex items-center gap-3">
-        <Button type="button" variant="ghost" size="icon" onClick={onCancel}>
+        <Button type="button" variant="ghost" size="icon-sm" onClick={onCancel}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-[15px] font-bold font-heading md:text-2xl">{title}</h1>

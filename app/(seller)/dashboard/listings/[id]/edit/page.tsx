@@ -82,7 +82,7 @@ export default function EditListingPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-[15px] font-bold font-heading md:text-2xl">編輯代購</h1>

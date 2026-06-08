@@ -519,7 +519,7 @@ export default function SellerProfilePage() {
 
                 <div className="flex flex-col gap-1.5 md:grid md:grid-cols-[140px_1fr] md:items-start md:gap-x-4">
                   <div />
-                  <button type="submit" className={buttonVariants({ className: 'w-fit justify-self-end' })} disabled={isSubmitting || updateSeller.isPending || getPresignedUrl.isPending}>
+                  <button type="submit" className={buttonVariants({ size: 'sm', className: 'w-fit justify-self-end' })} disabled={isSubmitting || updateSeller.isPending || getPresignedUrl.isPending}>
                     {updateSeller.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
                     儲存變更
                   </button>

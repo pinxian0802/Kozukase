@@ -80,7 +80,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
   return (
     <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
       <div className="flex items-center gap-3">
-        <Button type="button" variant="ghost" size="icon" onClick={onBack}>
+        <Button type="button" variant="ghost" size="icon-sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-[15px] font-bold font-heading md:text-2xl">新增商品</h1>
@@ -172,10 +172,10 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
         </div>
 
         <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onBack}>
+          <Button type="button" variant="outline" size="sm" onClick={onBack}>
             取消
           </Button>
-          <Button type="button" onClick={handleContinue} disabled={isSubmitting}>
+          <Button type="button" size="sm" onClick={handleContinue} disabled={isSubmitting}>
             {isSubmitting ? '處理中...' : '下一步'}
           </Button>
         </div>

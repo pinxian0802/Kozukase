@@ -62,7 +62,7 @@ export default function NewListingPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex items-center gap-3">
-        <Button type="button" variant="ghost" size="icon" onClick={() => setProduct(null)}>
+        <Button type="button" variant="ghost" size="icon-sm" onClick={() => setProduct(null)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-[15px] font-bold font-heading md:text-2xl">新增代購</h1>
