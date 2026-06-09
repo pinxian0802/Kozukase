@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { Package } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getCardImageUrl } from '@/lib/utils/image-variants.mjs'
@@ -27,16 +28,19 @@ export function WishCard({ wish }: { wish: WishCardWish }) {
   const displayName = wish.profile?.display_name ?? '匿名'
 
   return (
-    <div className="overflow-hidden rounded-none bg-white md:rounded-2xl md:border md:border-border-soft md:shadow-sm">
+    <Link
+      href={`/wishes/${wish.id}`}
+      aria-label={`查看「${wish.product.name}」的許願`}
+      className="group block overflow-hidden rounded-none bg-white md:rounded-2xl md:border md:border-border-soft md:shadow-[0_2px_12px_rgba(15,23,42,0.08)] md:transition-shadow md:hover:shadow-lg">
       {/* 商品圖片 */}
-      <div className="relative aspect-square bg-muted">
+      <div className="relative aspect-square w-full overflow-hidden bg-muted md:aspect-auto md:h-[180px]">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={wish.product.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover"
+            sizes="(max-width: 640px) 50vw, 33vw"
+            className="object-cover transition-transform group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground/30">
@@ -61,6 +65,6 @@ export function WishCard({ wish }: { wish: WishCardWish }) {
           <span className="text-[9px] text-neutral-400 truncate md:text-xs">{displayName}</span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

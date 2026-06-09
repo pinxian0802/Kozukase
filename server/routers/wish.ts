@@ -73,10 +73,26 @@ export const wishRouter = router({
 
   publicFeed: publicProcedure
     .input(z.object({
-      cursor: z.string().optional(),
-      limit: z.number().min(1).max(50).default(20),
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(50).default(15),
+      category: z.string().optional(),
+      brandId: z.string().uuid().optional(),
     }))
     .query(async ({ ctx, input }) => {
+      // 依商品屬性（類別／品牌）篩選時，先取出符合的 product_id 再過濾許願
+      let productIds: string[] | null = null
+      if (input.category || input.brandId) {
+        let productQuery = ctx.db.from('products').select('id')
+        if (input.category) productQuery = productQuery.eq('category', input.category)
+        if (input.brandId) productQuery = productQuery.eq('brand_id', input.brandId)
+        const { data: products, error: productError } = await productQuery
+        if (productError) throw productError
+        productIds = (products ?? []).map((p) => p.id)
+        if (productIds.length === 0) {
+          return { items: [], total: 0, page: input.page, totalPages: 0 }
+        }
+      }
+
       let query = ctx.db
         .from('wishes')
         .select(`
@@ -86,18 +102,47 @@ export const wishRouter = router({
             catalog_image:product_images!fk_catalog_image(id, url, thumbnail_url)
           ),
           profile:profiles(display_name, avatar_url)
-        `)
+        `, { count: 'exact' })
         .order('created_at', { ascending: false })
 
-      if (input.cursor) {
-        const { sortValue } = decodeCursor(input.cursor)
-        if (sortValue) query = query.lt('created_at', sortValue)
+      if (productIds !== null) {
+        query = query.in('product_id', productIds)
       }
 
-      query = query.limit(input.limit + 1)
-      const { data, error } = await query
+      const offset = (input.page - 1) * input.limit
+      query = query.range(offset, offset + input.limit - 1)
+
+      const { data, error, count } = await query
       if (error) throw error
-      return paginateResults(data ?? [], input.limit, (item) => item.created_at)
+
+      const total = count ?? 0
+      return {
+        items: data ?? [],
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / input.limit),
+      }
+    }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.db
+        .from('wishes')
+        .select(`
+          id, created_at, content,
+          product:products(
+            id, name, brand:brands(name), model_number, category, wish_count,
+            catalog_image:product_images!fk_catalog_image(id, url, thumbnail_url),
+            product_images:product_images!product_images_product_id_fkey(id, url, thumbnail_url)
+          ),
+          profile:profiles(display_name, avatar_url)
+        `)
+        .eq('id', input.id)
+        .maybeSingle()
+
+      if (error) throw error
+      return data
     }),
 
   // 保留備用（後台排行或未來功能）
