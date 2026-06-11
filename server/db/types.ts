@@ -35,6 +35,10 @@ export type NotificationType =
   | 'product_removed'
   | 'account_action_taken'
   | 'new_listing_for_wish'
+  | 'threads_verification_approved'
+  | 'threads_verification_rejected'
+  | 'ig_verification_approved'
+  | 'ig_verification_rejected'
 
 export type ConnectionStatus = 'active' | 'ended' | 'pending_approval'
 

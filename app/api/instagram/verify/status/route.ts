@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const db = getDb()
   const { data: codeRow } = await db
     .from('ig_verification_codes')
-    .select('id, seller_id, ig_username, code, expires_at, verified_at')
+    .select('id, seller_id, ig_username, code, status, verified_at')
     .eq('id', id)
     .eq('seller_id', user.id)
     .single()
@@ -26,12 +26,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  if (codeRow.verified_at) {
+  if (codeRow.status === 'approved') {
     return NextResponse.json({ verified: true, ig_handle: codeRow.ig_username })
   }
 
-  if (new Date(codeRow.expires_at) < new Date()) {
-    return NextResponse.json({ verified: false, expired: true })
+  // 只有「已按我已傳送」的 sent 階段才掃收件匣
+  if (codeRow.status !== 'sent') {
+    return NextResponse.json({ verified: false })
   }
 
   // 主動查 IG 收件匣
@@ -47,6 +48,8 @@ export async function GET(request: NextRequest) {
       }).eq('id', user.id),
 
       db.from('ig_verification_codes').update({
+        status: 'approved',
+        source: 'auto',
         verified_at: new Date().toISOString(),
       }).eq('id', codeRow.id),
     ])

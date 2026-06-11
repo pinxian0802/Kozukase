@@ -30,6 +30,7 @@ export function getNotificationContent(
     : null
   const rating = typeof p.rating === 'number' ? p.rating : null
   const threadsUsername = typeof p.threads_username === 'string' ? p.threads_username : null
+  const igUsername = typeof p.ig_username === 'string' ? p.ig_username : null
 
   switch (type) {
     case 'connection_removed_by_admin':
@@ -94,6 +95,22 @@ export function getNotificationContent(
         body: (
           <>
             {reason ? `因「${reason}」，` : ''}你的 Threads 帳號{threadsUsername ? `「@${threadsUsername}」` : ''}驗證未通過，請確認後重新申請，如有疑問請來信 <MailLink />。
+          </>
+        ),
+      }
+    case 'ig_verification_approved':
+      return {
+        title: 'Instagram 帳號驗證已通過',
+        body: igUsername
+          ? `你的 Instagram 帳號「@${igUsername}」已通過驗證，賣家頁將顯示驗證標章。`
+          : '你的 Instagram 帳號已通過驗證，賣家頁將顯示驗證標章。',
+      }
+    case 'ig_verification_rejected':
+      return {
+        title: 'Instagram 帳號驗證未通過',
+        body: (
+          <>
+            {reason ? `因「${reason}」，` : ''}你的 Instagram 帳號{igUsername ? `「@${igUsername}」` : ''}驗證未通過，請確認後重新申請，如有疑問請來信 <MailLink />。
           </>
         ),
       }

@@ -1012,4 +1012,112 @@ export const adminRouter = router({
 
       return { success: true }
     }),
+
+  listIgVerifications: adminProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.db
+      .from('ig_verification_codes')
+      .select('id, seller_id, ig_username, code, created_at, sellers(name)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+    if (error) throw error
+    return (data ?? []).map((r: {
+      id: string; seller_id: string; ig_username: string; code: string; created_at: string
+      sellers: { name: string } | { name: string }[] | null
+    }) => ({
+      id: r.id,
+      seller_id: r.seller_id,
+      ig_username: r.ig_username,
+      code: r.code,
+      created_at: r.created_at,
+      seller_name: Array.isArray(r.sellers) ? r.sellers[0]?.name ?? '' : r.sellers?.name ?? '',
+    }))
+  }),
+
+  listIgVerificationHistory: adminProcedure
+    .input(z.object({ from: z.string().optional(), to: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      let q = ctx.db
+        .from('ig_verification_codes')
+        .select('id, seller_id, ig_username, status, source, reject_reason, reviewed_at, verified_at, created_at, sellers(name)')
+        .in('status', ['approved', 'rejected'])
+      if (input.from) q = q.gte('reviewed_at', new Date(`${input.from}T00:00:00+08:00`).toISOString())
+      if (input.to) q = q.lte('reviewed_at', new Date(`${input.to}T23:59:59.999+08:00`).toISOString())
+      const { data, error } = await q.order('created_at', { ascending: false }).limit(200)
+      if (error) throw error
+      return (data ?? []).map((r: {
+        id: string; seller_id: string; ig_username: string; status: string; source: string | null
+        reject_reason: string | null; reviewed_at: string | null; verified_at: string | null; created_at: string
+        sellers: { name: string } | { name: string }[] | null
+      }) => ({
+        id: r.id,
+        seller_id: r.seller_id,
+        ig_username: r.ig_username,
+        status: r.status,
+        source: r.source,
+        reject_reason: r.reject_reason,
+        // 自動通過無 reviewed_at，用 verified_at 當審核時間顯示
+        reviewed_at: r.reviewed_at ?? r.verified_at,
+        created_at: r.created_at,
+        seller_name: Array.isArray(r.sellers) ? r.sellers[0]?.name ?? '' : r.sellers?.name ?? '',
+      }))
+    }),
+
+  approveIgVerification: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: req } = await ctx.db
+        .from('ig_verification_codes')
+        .select('id, seller_id, ig_username, status')
+        .eq('id', input.id)
+        .maybeSingle()
+      if (!req) throw new TRPCError({ code: 'NOT_FOUND', message: '找不到此申請' })
+      if (req.status !== 'pending') throw new TRPCError({ code: 'BAD_REQUEST', message: '此申請已處理過' })
+
+      await ctx.db.from('sellers').update({
+        ig_handle: req.ig_username,
+        ig_connected_at: new Date().toISOString(),
+        is_social_verified: true,
+      }).eq('id', req.seller_id)
+
+      await ctx.db.from('ig_verification_codes').update({
+        status: 'approved',
+        source: 'manual',
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: ctx.user.id,
+      }).eq('id', req.id)
+
+      await ctx.db.from('notifications').insert({
+        recipient_id: req.seller_id,
+        type: 'ig_verification_approved',
+        payload: { ig_username: req.ig_username },
+      })
+      return { success: true }
+    }),
+
+  rejectIgVerification: adminProcedure
+    .input(z.object({ id: z.string().uuid(), reason: z.string().max(500).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: req } = await ctx.db
+        .from('ig_verification_codes')
+        .select('id, seller_id, ig_username, status')
+        .eq('id', input.id)
+        .maybeSingle()
+      if (!req) throw new TRPCError({ code: 'NOT_FOUND', message: '找不到此申請' })
+      if (req.status !== 'pending') throw new TRPCError({ code: 'BAD_REQUEST', message: '此申請已處理過' })
+
+      await ctx.db.from('ig_verification_codes').update({
+        status: 'rejected',
+        source: 'manual',
+        reject_reason: input.reason ?? null,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: ctx.user.id,
+      }).eq('id', req.id)
+
+      await ctx.db.from('notifications').insert({
+        recipient_id: req.seller_id,
+        type: 'ig_verification_rejected',
+        payload: { ig_username: req.ig_username, reason: input.reason ?? null },
+      })
+      return { success: true }
+    }),
 })

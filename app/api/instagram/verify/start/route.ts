@@ -40,12 +40,19 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 清除此 seller 既有的未驗證碼
+  // 清除此 seller 既有未結案的碼（非 approved）
   await db
     .from('ig_verification_codes')
     .delete()
     .eq('seller_id', user.id)
-    .is('verified_at', null)
+    .neq('status', 'approved')
+
+  // 重驗撤銷：若目前已驗證，產新碼即先撤銷已驗證狀態，審過才恢復
+  await db
+    .from('sellers')
+    .update({ is_social_verified: false })
+    .eq('id', user.id)
+    .eq('is_social_verified', true)
 
   // 用 CSPRNG 產 4 位數碼（randomInt 上界不含，故 10000 → 1000~9999）
   const code = String(randomInt(1000, 10000))
@@ -58,6 +65,7 @@ export async function POST(request: NextRequest) {
       ig_username: igUsername,
       code,
       expires_at: expiresAt.toISOString(),
+      status: 'created',
     })
     .select('id, code, expires_at')
     .single()
