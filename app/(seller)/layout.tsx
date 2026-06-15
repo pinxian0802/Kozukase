@@ -28,7 +28,7 @@ export default async function SellerLayout({ children }: { children: React.React
 
   return (
     <>
-      <Header />
+      <Header showSubNav={false} />
       <div className="flex flex-1">
         <Sidebar
           mode="seller"

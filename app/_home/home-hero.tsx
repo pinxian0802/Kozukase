@@ -66,7 +66,7 @@ export function HomeHero({
           >
             {slides.map((slide, i) => {
               const inner = (
-                <div className="relative aspect-[5/2] w-full md:aspect-[16/6]">
+                <div className="relative aspect-[5/2] w-full md:aspect-[16/5]">
                   <Image
                     src={slide.src}
                     alt={slide.alt ?? ''}

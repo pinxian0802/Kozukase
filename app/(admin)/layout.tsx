@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      <Header />
+      <Header showSubNav={false} />
       <div className="flex flex-1">
         <Sidebar mode="admin" />
         <main className="flex-1 p-6">{children}</main>

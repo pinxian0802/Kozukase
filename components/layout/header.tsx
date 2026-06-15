@@ -16,7 +16,7 @@ import { NotificationBell } from '@/components/shared/notification-bell'
 import { MessageBell } from '@/components/shared/message-bell'
 import { UserChannelListener } from '@/components/layout/user-channel-listener'
 
-export function Header() {
+export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -55,7 +55,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-11 max-w-7xl items-center gap-2 px-3 md:h-16 md:gap-4 md:px-4">
+      <div className="mx-auto flex h-11 max-w-6xl items-center gap-2 px-3 md:h-16 md:gap-4 md:px-4">
         {/* Logo */}
         <Link href="/" className="shrink-0">
           <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="h-6 w-auto md:h-9" priority />
@@ -73,19 +73,6 @@ export function Header() {
             />
           </div>
         </form>
-
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-2">
-          <Link href="/search?tab=listings" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
-            商品代購
-          </Link>
-          <Link href="/connections" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
-            連線代購
-          </Link>
-          <Link href="/wishes" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
-            許願榜
-          </Link>
-        </nav>
 
         {/* Auth Section */}
         <div className="ml-auto flex items-center gap-1 md:gap-2">
@@ -191,6 +178,23 @@ export function Header() {
           </Sheet>
         </div>
       </div>
+
+      {/* Desktop Sub Nav(navbar 下方第二排,靠左對齊 banner) */}
+      {showSubNav && (
+      <nav className="hidden md:block border-t">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5 md:px-4">
+          <Link href="/search?tab=listings" className={buttonVariants({ variant: 'ghost', size: 'sm', className: '-ml-3' })}>
+            商品代購
+          </Link>
+          <Link href="/connections" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+            連線代購
+          </Link>
+          <Link href="/wishes" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+            許願榜
+          </Link>
+        </div>
+      </nav>
+      )}
 
       {/* Mobile Search Bar */}
       {mobileSearchOpen && (
