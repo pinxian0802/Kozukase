@@ -2,6 +2,9 @@
 
 export type ProductCategory =
   | 'fashion'
+  | 'luxury'
+  | 'bags'
+  | 'shoes'
   | 'beauty'
   | 'health'
   | 'food'

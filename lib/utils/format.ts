@@ -51,6 +51,8 @@ export function formatLastSeen(dateString: string | null | undefined): string | 
 export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   fashion: '時尚穿搭',
   luxury: '精品/名牌',
+  bags: '包包配件',
+  shoes: '鞋類',
   beauty: '美妝保養',
   health: '保健品',
   food: '食品零食',

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const productCategoryEnum = z.enum([
-  'fashion', 'luxury', 'beauty', 'health', 'food', 'electronics',
+  'fashion', 'luxury', 'bags', 'shoes', 'beauty', 'health', 'food', 'electronics',
   'lifestyle', 'sports', 'toys', 'books', 'pets',
   'culture', 'automotive', 'baby', 'jewelry', 'idol', 'other',
 ])
