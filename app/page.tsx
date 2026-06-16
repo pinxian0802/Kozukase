@@ -3,9 +3,7 @@ import { format } from 'date-fns'
 import {
   ShoppingBag, Sparkles, Candy, Smartphone, Home, Gamepad2, MoreHorizontal,
   HeartPulse, Dumbbell, BookOpen, PawPrint, Landmark, Car, Baby, Gem, Star,
-  Luggage, Laptop, Plane,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { ProductCard } from '@/components/product/product-card'
@@ -13,6 +11,7 @@ import { ConnectionCard } from '@/components/connection/connection-card'
 import { createServerCaller } from '@/lib/trpc/server'
 import { HomeHero } from './_home/home-hero'
 import { SectionCarousel } from './_home/section-carousel'
+import { SellerCtaBanner } from './_home/seller-cta-banner'
 
 const categories = [
   { key: 'fashion', label: '時尚穿搭', icon: ShoppingBag },
@@ -117,75 +116,8 @@ export default async function HomePage() {
           </SectionCarousel>
         )}
 
-        {/* CTA — 成為賣家「代購旅程」 */}
-        <section className="mx-auto max-w-6xl px-3 py-2 md:px-4 md:py-10">
-          <div className="relative isolate overflow-hidden rounded-xl bg-gradient-to-br from-neutral-50 to-neutral-100">
-          {/* 柔光 blob(底色層次) */}
-          <div className="pointer-events-none absolute -left-20 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-white/60 blur-3xl" />
-          <div className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full bg-white/60 blur-3xl" />
-
-          {/* 散落圓點 */}
-          <div className="pointer-events-none absolute inset-0">
-            <span className="absolute left-[10%] top-[24%] h-2 w-2 rounded-full bg-neutral-400/60" />
-            <span className="absolute left-[22%] top-[68%] h-1.5 w-1.5 rounded-full bg-neutral-400/50" />
-            <span className="absolute left-[44%] top-[16%] h-1 w-1 rounded-full bg-neutral-400/60" />
-            <span className="absolute right-[28%] top-[72%] h-2 w-2 rounded-full bg-neutral-400/50" />
-            <span className="absolute right-[14%] top-[40%] h-1.5 w-1.5 rounded-full bg-neutral-400/60" />
-            <span className="absolute right-[38%] top-[30%] h-1 w-1 rounded-full bg-neutral-400/50" />
-          </div>
-
-          {/* 虛線飛行航線(行李箱 → 電腦) */}
-          <svg
-            className="pointer-events-none absolute inset-0 h-full w-full"
-            viewBox="0 0 400 200"
-            preserveAspectRatio="none"
-            fill="none"
-            aria-hidden
-          >
-            <path
-              d="M 44 168 Q 210 48 360 40"
-              stroke="#a3a3a3"
-              strokeOpacity="0.8"
-              strokeWidth="2"
-              strokeDasharray="2 9"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-
-          {/* 小飛機(沿著航線) */}
-          <Plane
-            className="pointer-events-none absolute right-[24%] top-[26%] h-6 w-6 rotate-[24deg] text-neutral-500 md:h-8 md:w-8"
-            strokeWidth={1.75}
-            aria-hidden
-          />
-
-          {/* 行李箱(左下)/ 電腦(右上) */}
-          <Luggage
-            className="pointer-events-none absolute -bottom-3 -left-3 h-24 w-24 rotate-12 text-amber-700 md:-bottom-5 md:-left-5 md:h-44 md:w-44"
-            strokeWidth={1.5}
-            aria-hidden
-          />
-          <Laptop
-            className="pointer-events-none absolute -right-3 -top-3 h-24 w-24 -rotate-12 text-slate-700 md:-right-5 md:-top-5 md:h-44 md:w-44"
-            strokeWidth={1.5}
-            aria-hidden
-          />
-
-          {/* 內容 */}
-          <div className="relative mx-auto max-w-2xl px-4 py-12 text-center md:py-24">
-            <h2 className="font-heading text-xl font-bold text-neutral-900 md:text-3xl">成為 Kozukase 賣家</h2>
-            <p className="mt-2 text-xs text-neutral-500 md:mt-3 md:text-sm">讓更多買家找到你的代購服務</p>
-            <Button
-              size="lg"
-              className="mt-5 shadow-sm md:mt-8"
-              render={<Link href="/become-seller" />}
-            >
-              立即上架
-            </Button>
-          </div>
-          </div>
-        </section>
+        {/* CTA — 成為賣家（Mountain Vista 旅遊主題 banner，見 _home/seller-cta-banner） */}
+        <SellerCtaBanner />
       </main>
       <Footer />
     </>
