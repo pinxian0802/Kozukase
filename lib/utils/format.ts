@@ -58,6 +58,7 @@ export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   food: '食品零食',
   electronics: '3C 電器',
   lifestyle: '生活雜貨',
+  home: '家居家飾',
   sports: '運動戶外',
   toys: '公仔玩具/遊戲',
   books: '書籍文具',

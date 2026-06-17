@@ -9,30 +9,11 @@ import { HomeHero } from './_home/home-hero'
 import { SectionCarousel } from './_home/section-carousel'
 import { SellerCtaBanner } from './_home/seller-cta-banner'
 import { CategoryIcon } from './_home/category-icon'
+import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { JsonLd } from '@/lib/seo/jsonld'
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@/lib/seo/builders'
 
-const categories = [
-  { key: 'fashion', label: '時尚穿搭' },
-  { key: 'luxury', label: '精品名牌' },
-  { key: 'bags', label: '包包配件' },
-  { key: 'shoes', label: '鞋類' },
-  { key: 'beauty', label: '美妝保養' },
-  { key: 'health', label: '保健品' },
-  { key: 'food', label: '食品零食' },
-  { key: 'electronics', label: '3C 電器' },
-  { key: 'lifestyle', label: '生活雜貨' },
-  { key: 'sports', label: '運動戶外' },
-  { key: 'toys', label: '公仔玩具' },
-  { key: 'books', label: '書籍文具' },
-  { key: 'pets', label: '寵物用品' },
-  { key: 'culture', label: '文化紀念品' },
-  { key: 'automotive', label: '汽機車用品' },
-  { key: 'baby', label: '母嬰用品' },
-  { key: 'jewelry', label: '珠寶首飾' },
-  { key: 'idol', label: '明星偶像' },
-  { key: 'other', label: '其他' },
-]
+const categories = Object.entries(PRODUCT_CATEGORY_LABELS).map(([key, label]) => ({ key, label }))
 
 export default async function HomePage() {
   const trpc = await createServerCaller()
