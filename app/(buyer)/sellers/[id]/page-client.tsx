@@ -19,7 +19,7 @@ import { ReportDialog } from '@/components/shared/report-dialog'
 import { SharePopover } from '@/components/shared/share-popover'
 import { ReviewComposer } from '@/components/review/review-composer'
 import { ReviewList } from '@/components/review/review-list'
-import { ListingCard } from '@/components/listing/listing-card'
+import { ListingResultCard } from '@/components/listing/listing-result-card'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { trpc } from '@/lib/trpc/client'
@@ -372,7 +372,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
             {listingItems.length > 0 ? (
               <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
                 {listingItems.map((l: any) => (
-                  <ListingCard key={l.id} listing={l} showBrand={false} showShippingDate={false} tallImage />
+                  <ListingResultCard key={l.id} listing={l} showSeller={false} />
                 ))}
               </div>
             ) : (

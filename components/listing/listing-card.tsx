@@ -34,9 +34,9 @@ export function ListingCard({ listing, showStatus = false, showBrand = true, sho
   }
 
   return (
-    <Link href={`/listings/${listing.id}`}>
-      <div className="group overflow-hidden rounded-none bg-white md:rounded-2xl md:shadow-md md:transition-shadow md:hover:shadow-lg">
-        <div className={`relative overflow-hidden bg-white ${tallImage ? 'aspect-square md:h-[180px] md:aspect-auto' : 'aspect-square md:aspect-video'}`}>
+    <Link href={`/listings/${listing.id}`} className="block h-full">
+      <div className="group flex h-full flex-col overflow-hidden rounded-none bg-white md:rounded-2xl md:shadow-md md:transition-shadow md:hover:shadow-lg">
+        <div className={`relative shrink-0 overflow-hidden bg-white ${tallImage ? 'aspect-square md:h-[180px] md:aspect-auto' : 'aspect-square md:aspect-video'}`}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -51,7 +51,7 @@ export function ListingCard({ listing, showStatus = false, showBrand = true, sho
             </div>
           )}
         </div>
-        <div className="space-y-0.5 px-1.5 pb-1.5 pt-1 md:space-y-2 md:px-3 md:pb-3 md:pt-2">
+        <div className="flex flex-1 flex-col space-y-0.5 px-1.5 pb-1.5 pt-1 md:space-y-2 md:px-3 md:pb-3 md:pt-2">
           {listing.product && (
             <div className="grid gap-0.5">
               {showBrand && brandLabel && (
@@ -68,7 +68,7 @@ export function ListingCard({ listing, showStatus = false, showBrand = true, sho
           {listing.seller && (
             <p className="text-xs text-muted-foreground">{listing.seller.name}</p>
           )}
-          <div className="flex items-center justify-between pt-1">
+          <div className="mt-auto flex items-center justify-between pt-1">
             <span className="text-[11px] font-bold md:text-sm md:font-semibold" style={{ color: 'var(--brand-700)' }}>
               {formatPrice(listing.price, listing.is_price_on_request)}
             </span>
