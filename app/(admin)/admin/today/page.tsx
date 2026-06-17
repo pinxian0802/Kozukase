@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Check, X, Package, Tags, Globe, Pencil, Trash2, GitMerge } from 'lucide-react'
+import { Check, X, Package, Pencil, Trash2, GitMerge } from 'lucide-react'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Button } from '@/components/ui/button'
@@ -66,7 +66,7 @@ function ProductsTab() {
   })
 
   if (isLoading) return <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-[28px]" />)}</div>
-  if (!products?.length) return <EmptyState icon={Package} title="今天還沒有新增商品" />
+  if (!products?.length) return <EmptyState icon="product" title="今天還沒有新增商品" />
 
   return (
     <>
@@ -239,7 +239,7 @@ function BrandsTab() {
   })
 
   if (isLoading) return <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 rounded-lg" />)}</div>
-  if (!brands?.length) return <EmptyState icon={Tags} title="今天還沒有新增品牌" />
+  if (!brands?.length) return <EmptyState icon="brand" title="今天還沒有新增品牌" />
 
   return (
     <div className="space-y-2">
@@ -354,7 +354,7 @@ function ListingsTab() {
   })
 
   if (isLoading) return <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
-  if (!listings?.length) return <EmptyState icon={Package} title="今天還沒有新增代購" />
+  if (!listings?.length) return <EmptyState icon="product" title="今天還沒有新增代購" />
 
   return (
     <div className="space-y-4">
@@ -446,7 +446,7 @@ function ConnectionsTab() {
   })
 
   if (isLoading) return <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
-  if (!connections?.length) return <EmptyState icon={Globe} title="今天還沒有新增連線" />
+  if (!connections?.length) return <EmptyState icon="connection" title="今天還沒有新增連線" />
 
   return (
     <div className="space-y-3">

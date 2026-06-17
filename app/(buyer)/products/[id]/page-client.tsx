@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Bookmark, SlidersHorizontal, X, PackageOpen } from 'lucide-react'
+import { Bookmark, SlidersHorizontal, X } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -161,7 +161,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-surface-page">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <EmptyState
-            icon={PackageOpen}
+            icon="notFound"
             title="找不到此商品"
             description="此頁面已失效"
           >

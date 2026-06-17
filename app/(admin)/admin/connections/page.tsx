@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, X, Globe } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -94,7 +94,7 @@ export default function AdminConnectionsPage() {
           </table>
         </div>
       ) : (
-        <EmptyState icon={Globe} title="沒有待審核的連線" description="目前沒有需要審核的連線申請" />
+        <EmptyState icon="connection" title="沒有待審核的連線" description="目前沒有需要審核的連線申請" />
       )}
     </div>
   )

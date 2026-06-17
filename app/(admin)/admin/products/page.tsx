@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Search, Trash2, Tags, Package } from 'lucide-react'
+import { Search, Trash2, Package } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -167,7 +167,7 @@ export default function AdminProductsPage() {
           </table>
         </div>
       ) : (
-        <EmptyState icon={Tags} title="沒有找到商品" />
+        <EmptyState icon="notFound" title="沒有找到商品" />
       )}
 
       <ProductEditDialog

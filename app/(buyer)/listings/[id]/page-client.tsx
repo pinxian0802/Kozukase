@@ -2,7 +2,7 @@
 
 import { use, useEffect } from 'react'
 import Image from 'next/image'
-import { Bookmark, ExternalLink, ChevronRight, MessageSquare, Truck, PackageOpen } from 'lucide-react'
+import { Bookmark, ExternalLink, ChevronRight, MessageSquare, Truck } from 'lucide-react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SocialBadge } from '@/components/seller/social-badge'
@@ -76,7 +76,7 @@ export default function ListingPageClient({ params }: { params: Promise<{ id: st
     return (
       <div className="mx-auto max-w-5xl px-6 py-6">
         <EmptyState
-          icon={PackageOpen}
+          icon="notFound"
           title="找不到此代購"
           description="此頁面已失效"
         >

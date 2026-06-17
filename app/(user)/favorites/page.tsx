@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Bookmark, Heart } from 'lucide-react'
 import { ProductCard } from '@/components/product/product-card'
 import { ListingCard } from '@/components/listing/listing-card'
 import { ConnectionCard } from '@/components/connection/connection-card'
@@ -78,7 +77,7 @@ export default function FavoritesPage() {
               ))}
             </div>
           ) : (
-            <EmptyState icon={Bookmark} title="還沒有收藏的商品" />
+            <EmptyState icon="favorite" title="還沒有收藏的商品" />
           )}
         </div>
       )}
@@ -96,7 +95,7 @@ export default function FavoritesPage() {
               ))}
             </div>
           ) : (
-            <EmptyState icon={Bookmark} title="還沒有收藏的代購" />
+            <EmptyState icon="favorite" title="還沒有收藏的代購" />
           )}
         </div>
       )}
@@ -114,7 +113,7 @@ export default function FavoritesPage() {
               ))}
             </div>
           ) : (
-            <EmptyState icon={Bookmark} title="還沒有收藏的連線" />
+            <EmptyState icon="favorite" title="還沒有收藏的連線" />
           )}
         </div>
       )}
@@ -168,7 +167,7 @@ export default function FavoritesPage() {
               })}
             </div>
           ) : (
-            <EmptyState icon={Heart} title="還沒有許願" description="去許願榜新增你想代購的商品吧！" />
+            <EmptyState icon="wish" title="還沒有許願" description="去許願榜新增你想代購的商品吧！" />
           )}
         </div>
       )}

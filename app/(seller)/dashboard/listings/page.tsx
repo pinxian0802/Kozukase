@@ -116,7 +116,7 @@ export default function SellerListingsPage() {
       onTabChange={setStatus}
       isLoading={isLoading}
       isEmpty={isEmpty}
-      emptyState={{ icon: Package, title: '還沒有代購', description: '建立你的第一個代購商品吧!' }}
+      emptyState={{ icon: 'product', title: '還沒有代購', description: '建立你的第一個代購商品吧!' }}
     >
       <div className="hidden lg:block">
         <Table className="text-[13px]">

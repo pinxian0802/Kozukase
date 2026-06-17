@@ -2,7 +2,7 @@
 
 import { use, useEffect } from 'react'
 import Link from 'next/link'
-import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark, Link2Off } from 'lucide-react'
+import { MapPin, Truck, Check, MessageSquare, ChevronRight, Bookmark } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SocialBadge } from '@/components/seller/social-badge'
 import { SafeExternalLink } from '@/components/shared/safe-external-link'
@@ -104,7 +104,7 @@ export default function ConnectionDetailPage({ params }: { params: Promise<{ id:
     return (
       <div className="mx-auto max-w-5xl px-6 py-6">
         <EmptyState
-          icon={Link2Off}
+          icon="notFound"
           title="找不到此連線"
           description="此頁面已失效"
         >

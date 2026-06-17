@@ -103,7 +103,7 @@ export default function SellerConnectionsPage() {
       onTabChange={setStatus}
       isLoading={isLoading}
       isEmpty={isEmpty}
-      emptyState={{ icon: Globe, title: '還沒有連線公告', description: '新增連線公告讓買家知道你的代購行程!' }}
+      emptyState={{ icon: 'connection', title: '還沒有連線公告', description: '新增連線公告讓買家知道你的代購行程!' }}
     >
       <div className="hidden lg:block">
         <Table className="text-[13px]">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Users, Ban, CheckCircle } from 'lucide-react'
+import { Search, Ban, CheckCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -113,7 +113,7 @@ export default function AdminSellersPage() {
           </table>
         </div>
       ) : (
-        <EmptyState icon={Users} title="沒有找到賣家" />
+        <EmptyState icon="seller" title="沒有找到賣家" />
       )}
     </div>
   )

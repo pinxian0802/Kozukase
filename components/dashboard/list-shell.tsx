@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import type { EmptyIconName } from '@/components/shared/empty-state-icons'
 import { Tabs } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,7 +29,7 @@ export type DashboardListShellProps = {
   isLoading: boolean
   isEmpty: boolean
   emptyState: {
-    icon: LucideIcon
+    icon: EmptyIconName
     title: string
     description: string
   }

@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryStates, parseAsString, parseAsInteger } from 'nuqs'
-import { Heart, Plus, SlidersHorizontal, X } from 'lucide-react'
+import { Plus, SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
 import { WishCard } from '@/components/buyer/wish-card'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -273,7 +273,7 @@ export default function WishesPage() {
               />
             </>
           ) : (
-            <EmptyState icon={Heart} title="還沒有人許願" description="先去新增你想要的商品吧！" />
+            <EmptyState icon="wish" title="還沒有人許願" description="先去新增你想要的商品吧！" />
           )}
         </div>
       </div>

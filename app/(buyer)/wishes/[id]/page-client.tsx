@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { Heart, Package, ChevronRight, HeartCrack } from 'lucide-react'
+import { Heart, Package, ChevronRight } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ImageGallery } from '@/components/shared/image-gallery'
@@ -24,7 +24,7 @@ export default function WishDetailPage({ params }: { params: Promise<{ id: strin
   if (!wish || !wish.product) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-6">
-        <EmptyState icon={HeartCrack} title="找不到此許願" description="此許願已被刪除或頁面已失效">
+        <EmptyState icon="wishBroken" title="找不到此許願" description="此許願已被刪除或頁面已失效">
           <Link
             href="/wishes"
             className="inline-flex h-10 items-center justify-center rounded-lg px-6 text-sm font-semibold text-white transition-all hover:opacity-85 active:scale-[0.98]"

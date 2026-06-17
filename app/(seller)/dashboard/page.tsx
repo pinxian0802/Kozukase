@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Package, Globe, Plus, ArrowRight } from 'lucide-react'
+import { Plus, ArrowRight } from 'lucide-react'
+import { EmptyIcon } from '@/components/shared/empty-state-icons'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
@@ -194,7 +195,7 @@ export default function SellerDashboardPage() {
               </div>
             ) : (
               <div className="py-10 flex flex-col items-center text-center gap-2">
-                <Package className="h-8 w-8 text-muted-foreground/30" />
+                <EmptyIcon name="product" className="h-8 w-8" />
                 <p className="text-sm text-muted-foreground">還沒有代購</p>
                 <Button
                   variant="cta-outline"
@@ -253,7 +254,7 @@ export default function SellerDashboardPage() {
               </div>
             ) : (
               <div className="py-10 flex flex-col items-center text-center gap-2">
-                <Globe className="h-8 w-8 text-muted-foreground/30" />
+                <EmptyIcon name="connection" className="h-8 w-8" />
                 <p className="text-sm text-muted-foreground">沒有進行中的連線</p>
                 <Button
                   variant="cta-outline"

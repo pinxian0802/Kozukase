@@ -15,7 +15,6 @@ import { Pagination } from '@/components/ui/pagination'
 import type { ProductCategory } from '@/lib/validators/product'
 import { trpc } from '@/lib/trpc/client'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
-import { Package } from 'lucide-react'
 
 // Kozukase brand palette
 // teal 改為指向 design-system token；pink 暫保留 hex，待 Phase 4 決定是否進 token。
@@ -473,7 +472,7 @@ function SearchContent() {
               </>
             ) : (
               <EmptyState
-                icon={Package}
+                icon="notFound"
                 title="找不到相符的商品"
                 description="試試其他關鍵字或調整篩選條件"
               />
@@ -501,7 +500,7 @@ function SearchContent() {
               </>
             ) : (
               <EmptyState
-                icon={Package}
+                icon="notFound"
                 title="找不到相符的代購"
                 description="試試其他關鍵字或調整篩選條件"
               />

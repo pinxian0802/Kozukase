@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, X, Package } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -90,7 +90,7 @@ export default function AdminListingsPage() {
           </table>
         </div>
       ) : (
-        <EmptyState icon={Package} title="沒有待審核的商品" description="目前沒有需要審核的上架申請" />
+        <EmptyState icon="product" title="沒有待審核的商品" description="目前沒有需要審核的上架申請" />
       )}
     </div>
   )

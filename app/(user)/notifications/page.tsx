@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, CheckCheck } from 'lucide-react'
+import { CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
           )}
         </div>
       ) : (
-        <EmptyState icon={Bell} title="沒有通知" description="有新動態時會在這裡通知你" />
+        <EmptyState icon="notification" title="沒有通知" description="有新動態時會在這裡通知你" />
       )}
     </div>
   )

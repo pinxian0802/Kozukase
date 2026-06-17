@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Flag, CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -199,7 +199,7 @@ export default function AdminReportsPage() {
           </table>
         </div>
       ) : (
-        <EmptyState icon={Flag} title="沒有檢舉" description={statusFilter === 'pending' ? '目前沒有待處理的檢舉' : '沒有符合的檢舉記錄'} />
+        <EmptyState icon="report" title="沒有檢舉" description={statusFilter === 'pending' ? '目前沒有待處理的檢舉' : '沒有符合的檢舉記錄'} />
       )}
 
       {/* 評論全文彈窗 */}

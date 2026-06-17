@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useQueryState, useQueryStates, parseAsString, parseAsInteger, parseAsBoolean } from 'nuqs'
 import { format, isValid, parseISO } from 'date-fns'
-import { Globe, Info, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Info, Search, SlidersHorizontal, X } from 'lucide-react'
 import { FilterCheckbox } from '@/components/ui/filter-checkbox'
 import { Switch } from '@/components/ui/switch'
 import { ConnectionCard } from '@/components/connection/connection-card'
@@ -474,7 +474,7 @@ export default function ConnectionsPage() {
             </>
           ) : (
             <EmptyState
-              icon={Globe}
+              icon="connection"
               title="找不到相符的連線代購"
               description="試試其他地區、日期或地點條件"
             />

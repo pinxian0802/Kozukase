@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BadgeCheck, Check, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -130,7 +130,7 @@ function VerificationPanel(props: PanelProps) {
               </table>
             </div>
           ) : (
-            <EmptyState icon={BadgeCheck} title={`目前沒有待審核的 ${platformLabel} 驗證`} />
+            <EmptyState icon="verified" title={`目前沒有待審核的 ${platformLabel} 驗證`} />
           )}
         </TabsContent>
 
@@ -196,7 +196,7 @@ function VerificationPanel(props: PanelProps) {
               </table>
             </div>
           ) : (
-            <EmptyState icon={BadgeCheck} title={(from || to) ? '這段期間沒有審核紀錄' : '還沒有審核紀錄'} />
+            <EmptyState icon="verified" title={(from || to) ? '這段期間沒有審核紀錄' : '還沒有審核紀錄'} />
           )}
         </TabsContent>
       </div>

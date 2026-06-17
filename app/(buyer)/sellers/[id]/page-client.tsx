@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   UserPlus, UserCheck, MapPin, Calendar,
-  Star, Package, Globe, CheckCircle2, MessageCircle, ChevronLeft
+  Star, CheckCircle2, MessageCircle, ChevronLeft
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -376,7 +376,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Package} title="尚無上架商品" />
+              <EmptyState icon="product" title="尚無上架商品" />
             )}
           </TabsContent>
 
@@ -389,7 +389,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Globe} title="尚無進行中的連線代購" />
+              <EmptyState icon="connection" title="尚無進行中的連線代購" />
             )}
           </TabsContent>
 
@@ -458,7 +458,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                     )}
                   </>
                 ) : (
-                  !myReview && <EmptyState icon={Star} title="尚無評價" description="成為第一個留評價的人" />
+                  !myReview && <EmptyState icon="review" title="尚無評價" description="成為第一個留評價的人" />
                 )}
               </div>
             </div>
