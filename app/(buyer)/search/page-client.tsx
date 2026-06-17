@@ -479,10 +479,10 @@ function SearchContent() {
             )
           ) : (
             listingFetching ? (
-              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
+              <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="space-y-3">
-                    <Skeleton className="aspect-[4/3] w-full rounded-lg" />
+                    <Skeleton className="aspect-square w-full rounded-lg" />
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                   </div>
@@ -490,7 +490,7 @@ function SearchContent() {
               </div>
             ) : listings.length > 0 ? (
               <>
-                <ListingComparison listings={listings as any} />
+                <ListingComparison listings={listings as any} columns={4} />
                 <Pagination
                   page={safePage}
                   totalPages={listingTotalPages}

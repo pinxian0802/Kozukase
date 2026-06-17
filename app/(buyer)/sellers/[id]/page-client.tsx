@@ -24,18 +24,9 @@ import { ConnectionCard } from '@/components/connection/connection-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { trpc } from '@/lib/trpc/client'
 import { useSession } from '@/lib/context/session-context'
-import { formatDate } from '@/lib/utils/format'
+import { formatDate, PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-
-const LISTING_CATS = [
-  { key: 'all', label: '全部' },
-  { key: 'fashion', label: '服飾鞋款' },
-  { key: 'beauty', label: '美妝' },
-  { key: 'food', label: '食品' },
-  { key: 'other', label: '其他' },
-]
-
 
 function StarRow({ value, size = 14 }: { value: number; size?: number }) {
   return (
@@ -136,6 +127,29 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
   const listingItems = listings?.items ?? []
 
+  // 分類晶片：依這個賣家實際上架過的商品分類動態產生（用系統 20 分類標籤）
+  const listingCats = [
+    { key: 'all', label: '全部' },
+    ...Array.from(new Set(listingItems.map((l: any) => l.product?.category).filter(Boolean)))
+      .map((key) => ({ key: key as string, label: PRODUCT_CATEGORY_LABELS[key as string] ?? (key as string) })),
+  ]
+
+  // 套用分類篩選 + 排序（後端只回最新排序，價格排序在前端處理）
+  const visibleListings = listingItems
+    .filter((l: any) => listingCat === 'all' || l.product?.category === listingCat)
+    .sort((a: any, b: any) => {
+      if (listingSort === 'price-asc' || listingSort === 'price-desc') {
+        // 來訊問價（price 為 null）一律排在最後，不分升冪降冪
+        const an = a.price == null
+        const bn = b.price == null
+        if (an && bn) return 0
+        if (an) return 1
+        if (bn) return -1
+        return listingSort === 'price-asc' ? a.price - b.price : b.price - a.price
+      }
+      // latest：建立時間新→舊
+      return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+    })
 
 
   const igHandle = seller.ig_handle
@@ -339,7 +353,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
           <TabsContent value="listings" className="mt-5">
             <div className="flex items-center gap-2 mb-3 flex-wrap md:gap-3 md:mb-5">
               <div className="flex gap-0.5 p-[2px] bg-surface-muted rounded-full md:gap-1 md:p-[3px]">
-                {LISTING_CATS.map(c => (
+                {listingCats.map(c => (
                   <button
                     key={c.key}
                     onClick={() => setListingCat(c.key)}
@@ -369,9 +383,9 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
               </div>
             </div>
 
-            {listingItems.length > 0 ? (
+            {visibleListings.length > 0 ? (
               <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 md:gap-4">
-                {listingItems.map((l: any) => (
+                {visibleListings.map((l: any) => (
                   <ListingResultCard key={l.id} listing={l} showSeller={false} />
                 ))}
               </div>

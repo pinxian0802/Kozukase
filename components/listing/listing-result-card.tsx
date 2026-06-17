@@ -56,7 +56,7 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
       {/* Mobile: flat white block; Desktop: card with shadow */}
       <Card className="group flex h-full flex-col gap-0 overflow-hidden rounded-none py-0 ring-0 shadow-none md:rounded-2xl md:shadow-[0_2px_12px_rgba(15,23,42,0.08)] md:transition-shadow md:hover:shadow-lg">
         <div className="flex h-full flex-col">
-          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted md:aspect-[4/3]">
+          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted">
             {imageUrl && (
               <img
                 src={imageUrl}
@@ -71,7 +71,7 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
             )}
           </div>
 
-          <CardContent className="flex flex-1 flex-col px-1.5 py-1.5 md:p-4">
+          <CardContent className="flex flex-1 flex-col px-1.5 py-1.5 md:p-3">
             <h3 className="line-clamp-2 min-h-[2lh] text-[10px] leading-tight md:line-clamp-2 md:text-base md:font-bold md:leading-snug" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>
               {listing.title ?? ' '}
             </h3>
@@ -97,8 +97,8 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
               )}
             </div>
 
-            <div className="mt-auto pt-1 md:pt-6">
-              <span className="text-[11px] font-bold leading-tight md:text-xl md:font-semibold" style={{ color: 'var(--brand-700)' }}>
+            <div className="mt-auto pt-1 md:pt-3">
+              <span className="text-[11px] font-bold leading-tight md:text-lg md:font-semibold" style={{ color: 'var(--brand-700)' }}>
                 {formatPrice(listing.price, listing.is_price_on_request)}
               </span>
             </div>
