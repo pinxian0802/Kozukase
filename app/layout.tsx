@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Rubik, Inter, Noto_Sans_TC } from "next/font/google";
+import { SITE_URL, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/seo/site";
 import { TRPCProvider } from "@/lib/trpc/provider";
 import { SessionProvider } from "@/lib/context/session-context";
 import { getServerSession } from "@/lib/supabase/get-session";
@@ -29,9 +30,9 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://kozukase.com'),
-  title: 'Kozukase | 日本代購比價平台',
-  description: '比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務',
+  metadataBase: new URL(SITE_URL),
+  title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+  description: SITE_DESCRIPTION,
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32' },
@@ -41,17 +42,19 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   openGraph: {
-    siteName: 'Kozukase',
+    siteName: SITE_NAME,
     type: 'website',
     locale: 'zh_TW',
-    title: 'Kozukase | 日本代購比價平台',
-    description: '比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務',
-    url: 'https://kozukase.com',
+    title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    images: [{ url: '/logo.png' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kozukase | 日本代購比價平台',
-    description: '比較日本代購賣家的價格、評價、運送速度，找到最適合你的代購服務',
+    title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    images: ['/logo.png'],
   },
 };
 

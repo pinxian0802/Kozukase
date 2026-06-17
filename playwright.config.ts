@@ -51,7 +51,7 @@ export default defineConfig({
     },
     {
       name: 'cross-role',
-      testMatch: /(cross-role|messages|report-takedown|threads-verification|admin-reports|admin-listings|admin-connections|seller-create)\.spec\.ts/,
+      testMatch: /(cross-role|messages|report-takedown|threads-verification|admin-reports|admin-listings|admin-connections|seller-create|seo)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },

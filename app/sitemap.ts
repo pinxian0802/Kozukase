@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { SITE_URL } from '@/lib/seo/site'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createClient(
@@ -9,13 +10,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: 'https://kozukase.com',
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: 'https://kozukase.com/search',
+      url: `${SITE_URL}/search`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,
@@ -28,14 +29,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ])
 
   const sellerRoutes: MetadataRoute.Sitemap = (sellers ?? []).map((s) => ({
-    url: `https://kozukase.com/sellers/${s.id}`,
+    url: `${SITE_URL}/sellers/${s.id}`,
     lastModified: s.updated_at ? new Date(s.updated_at) : new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
   }))
 
   const productRoutes: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
-    url: `https://kozukase.com/products/${p.id}`,
+    url: `${SITE_URL}/products/${p.id}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.6,

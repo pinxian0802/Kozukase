@@ -9,6 +9,8 @@ import { HomeHero } from './_home/home-hero'
 import { SectionCarousel } from './_home/section-carousel'
 import { SellerCtaBanner } from './_home/seller-cta-banner'
 import { CategoryIcon } from './_home/category-icon'
+import { JsonLd } from '@/lib/seo/jsonld'
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@/lib/seo/builders'
 
 const categories = [
   { key: 'fashion', label: '時尚穿搭' },
@@ -46,6 +48,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={[buildOrganizationJsonLd(), buildWebSiteJsonLd()]} />
       <Header />
       <main className="flex-1">
         <HomeHero slides={heroSlides} />
