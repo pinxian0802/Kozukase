@@ -74,22 +74,32 @@ function FormSection({ index, accent, title, hint, done, required = true, meta, 
 }
 
 
+// 賣家權益圖示 — 與首頁分類同款 Fluent Emoji Flat（MIT），內嵌彩色 SVG body。
+const PERK_ICONS = {
+  // 購物袋 — 上架代購商品
+  listing: '<g fill="none"><path fill="#F9C23C" d="M28.61 30H16.43c-.78 0-1.42-.632-1.42-1.424V15.424c0-.782.63-1.424 1.42-1.424h12.18c.78 0 1.42.632 1.42 1.424v13.162A1.42 1.42 0 0 1 28.61 30"/><path fill="#FF6723" d="M17.563 16.031a.5.5 0 0 1 .5.5v2.684c0 2.035 1.94 3.8 4.484 3.8c2.553 0 4.484-1.764 4.484-3.8V16.53a.5.5 0 0 1 1 0v2.684c0 2.721-2.522 4.8-5.484 4.8c-2.95 0-5.485-2.078-5.485-4.8V16.53a.5.5 0 0 1 .5-.5"/><path fill="#00A6ED" d="M18.13 27.966H3.73c-.95 0-1.73-.77-1.73-1.73V9.726c0-.95.77-1.73 1.73-1.73h14.4c.95 0 1.73.77 1.73 1.73v16.52c0 .95-.77 1.72-1.73 1.72"/><path fill="#0074BA" d="M11.016 2C7.746 2 5 4.375 5 7.425V10.5a.5.5 0 0 0 1 0V7.425C6 5.031 8.189 3 11.016 3s5.015 2.031 5.015 4.425V10.5a.5.5 0 0 0 1 0V7.425c0-3.05-2.746-5.425-6.015-5.425M2 14.69h17.86v2.33H2zm0 4.49h17.86v2.33H2zm17.86 4.49H2V26h17.86z"/></g>',
+  // 飛機 — 發布連線代購
+  trip: '<g fill="none"><path fill="#9B9B9B" d="m15 5.5l1.615-.512l.051-.052a1.14 1.14 0 0 0 .01-1.6a1.126 1.126 0 0 0-1.592-.011L14.022 4.38zm13.659 12.436l-.679.676L27 17.5l.442-1.415c.41-.169.9-.087 1.227.25a1.123 1.123 0 0 1-.01 1.601"/><path fill="#CDC4D6" d="m14.12 28.875l-1.348-5.554a26 26 0 0 0 4.825-3.61l3.428-3.254l3.443-1.551l1.943-3.563l2.295-2.18a4.163 4.163 0 0 0 .1-5.935a4.14 4.14 0 0 0-5.924.04L20.36 5.892l-4.1 1.727l-1.037 3.618l-2.96 3.08a26.2 26.2 0 0 0-3.646 4.813l-5.525-1.404a.9.9 0 0 0-.859.23c-.44.442-.2.993.24 1.454l9.95 10.087c.49.521 1.009.692 1.448.25a.9.9 0 0 0 .25-.872"/><path fill="#00A6ED" d="m27.793 5.77l-1.54-1.552a.73.73 0 0 0-1.032-.01a.713.713 0 0 0-.01 1.022l1.54 1.552a.73.73 0 0 0 1.032.01a.72.72 0 0 0 .01-1.022"/><path fill="#0084CE" d="m15.216 11.245l5.166-5.375L8.346 3.05c-.46-.11-.95-.04-1.37.19c-1.3.73-1.3 2.59-.01 3.32zm11.213.08l-5.42 5.147L25.46 24.7c.7 1.31 2.57 1.34 3.32.06c.24-.41.32-.89.22-1.36zM8.156 22.315a1.07 1.07 0 0 1 1.527.01c.43.421.42 1.111-.01 1.533L6.84 26.685a1.07 1.07 0 0 1-1.526-.01a1.08 1.08 0 0 1 .01-1.533z"/></g>',
+  // 盾牌 — 獲得驗證徽章
+  verified: '<g fill="none"><path fill="#E6E6E6" d="M12.096 2a2.78 2.78 0 0 0-1.9.694c-.837.75-.724 1.467-1.471 2.521A2.9 2.9 0 0 1 6.833 6.53l-.03.007a2.63 2.63 0 0 0-1.921 2.356c-.65 5.089 1.1 13 5.322 17.331a24.4 24.4 0 0 0 3.749 2.919a6.53 6.53 0 0 0 4.259 0a22.6 22.6 0 0 0 3.77-2.922c4.087-4.192 5.983-12.138 5.322-17.33a2.59 2.59 0 0 0-1.951-2.364a2.9 2.9 0 0 1-1.892-1.315c-.676-.954-.667-1.8-1.471-2.52a2.78 2.78 0 0 0-1.9-.695z"/><path fill="#AEDDFF" d="M20.009 3.5H16l-3.214 12.419L16 28.5c2 0 2-.5 4-2c0 0 6.5-4.5 6-17c0 0 .002-1.25-1-1.5c-2.5-.5-3.5-3.5-3.5-3.5c-.132-.334-.5-1-1.491-1"/><path fill="#00A6ED" d="M12.019 3.5h4.008v25c-2 0-2-.5-4-2c0 0-6.5-4.5-6-17c0 0-.002-1.25 1-1.5c2.5-.5 3.5-3.5 3.5-3.5c.132-.334.5-1 1.492-1"/></g>',
+} as const
+
 interface PerkProps {
-  color: string
-  icon: React.ReactNode
+  body: string
   title: string
   desc: string
 }
 
-function Perk({ color, icon, title, desc }: PerkProps) {
+function Perk({ body, title, desc }: PerkProps) {
   return (
     <div className="flex gap-3 items-start">
-      <span
-        className="w-9 h-9 rounded-[10px] flex items-center justify-center text-white flex-shrink-0"
-        style={{ background: color }}
-      >
-        {icon}
-      </span>
+      <svg
+        viewBox="0 0 32 32"
+        className="w-9 h-9 flex-shrink-0"
+        role="img"
+        aria-hidden
+        dangerouslySetInnerHTML={{ __html: body }}
+      />
       <div>
         <div className="text-[13.5px] font-semibold text-text-strong mb-0.5">{title}</div>
         <div className="text-[12px] text-text-muted leading-[1.5]">{desc}</div>
@@ -275,16 +285,14 @@ export default function BecomeSellerPage() {
                 style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}
               >
                 {submitted ? '恭喜成為' : '成為'}{' '}
-                <span
-                  style={{
-                    background: `linear-gradient(95deg, ${KZ.teal}, ${KZ.purple} 35%, ${KZ.pink} 60%, ${KZ.orange})`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  Kozukase
-                </span>{' '}
+                <Image
+                  src="/logo.png"
+                  alt="Kozukase"
+                  width={510}
+                  height={175}
+                  priority
+                  className="inline-block w-auto h-[1.5em] align-[-0.4em] mx-1"
+                />{' '}
                 賣家
               </h1>
               <p className="text-[15px] text-text-muted leading-[1.65] mt-3">
@@ -612,7 +620,7 @@ export default function BecomeSellerPage() {
           </div>{/* end left column */}
 
           {/* RIGHT: sticky sidebar */}
-          {!submitted && <aside className="flex flex-col gap-4" style={{ position: 'sticky', top: 96, alignSelf: 'flex-start' }}>
+          {!submitted && <aside className="flex flex-col gap-4 self-start sticky top-24 md:top-[136px]">
 
             {/* Progress */}
             <div className="border border-border-soft rounded-[14px] p-5 bg-white">
@@ -640,32 +648,17 @@ export default function BecomeSellerPage() {
               <div className="text-[11px] font-medium text-text-muted uppercase tracking-[.05em] mb-3.5">賣家可以做什麼</div>
               <div className="flex flex-col gap-3.5">
                 <Perk
-                  color={KZ.teal}
-                  icon={
-                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 8v13H3V8" /><path d="M1 3h22v5H1z" /><line x1="10" x2="14" y1="12" y2="12" />
-                    </svg>
-                  }
+                  body={PERK_ICONS.listing}
                   title="上架代購商品"
                   desc="發布商品圖、價格、出貨時間等等資訊"
                 />
                 <Perk
-                  color={KZ.pink}
-                  icon={
-                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" />
-                    </svg>
-                  }
+                  body={PERK_ICONS.trip}
                   title="發布連線代購"
                   desc="公告出國代購連線行程，集中收單。"
                 />
                 <Perk
-                  color={KZ.orange}
-                  icon={
-                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                  }
+                  body={PERK_ICONS.verified}
                   title="獲得驗證徽章"
                   desc="完成審核後，賣家頁面顯示已驗證標記。"
                 />
