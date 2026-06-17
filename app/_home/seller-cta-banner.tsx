@@ -358,7 +358,7 @@ export function SellerCtaBanner() {
                   className="seller-banner-dot"
                   style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#FFE082', flexShrink: 0 }}
                 />
-                開店招募中
+                招募中
               </span>
               <div
                 style={{
