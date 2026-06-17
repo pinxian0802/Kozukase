@@ -4,6 +4,8 @@
 .claude/
 .superpowers/
 .mcp.json
+.agents/skills/
+skills-lock.json
 
 # dependencies
 /node_modules
