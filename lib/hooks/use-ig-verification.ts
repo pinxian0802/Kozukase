@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 
 export type IgVerifyStep =
@@ -12,57 +12,33 @@ export type IgVerifyStep =
   | { step: 'rejected'; reason: string | null }
   | { step: 'success' }
 
-export function useIgVerification(onVerified?: () => void) {
+export function useIgVerification() {
   const [state, setState] = useState<IgVerifyStep>({ step: 'idle' })
   const [usernameInput, setUsernameInput] = useState('')
   const [inputError, setInputError] = useState('')
   const [countdown, setCountdown] = useState('')
   // 有一筆待審驗證時記住它的 id：按「返回」回到列表後，外層按鈕據此顯示「審核中」並可點回卡片
   const [pendingId, setPendingId] = useState<string | null>(null)
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const stopPolling = useCallback(() => {
-    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
-  }, [])
-
-  // 按「我已傳送」：凍結過期，開始自動掃
-  const confirmSent = useCallback(async (id: string, code: string) => {
-    stopPolling()
+  // 按「我已傳送」：凍結過期，直接送進管理員待審清單（由後台批次掃描比對）
+  const confirmSent = useCallback(async (id: string) => {
     try {
-      await fetch('/api/instagram/verify/sent', {
+      const res = await fetch('/api/instagram/verify/sent', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       })
-    } catch { /* 忽略，仍進輪詢 */ }
-    let attempts = 0
-    // 立刻顯示「審核中」（與 Threads 一致）；背景仍繼續自動掃收件匣，掃到即跳成功
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        toast.error(`送出失敗（${res.status}）${body.error ?? ''}`)
+        return // 不要假裝審核中：留在傳送驗證碼畫面讓使用者重試
+      }
+    } catch {
+      toast.error('送出失敗，請檢查網路後重試')
+      return
+    }
     setPendingId(id)
     setState({ step: 'reviewing', id })
-    pollingRef.current = setInterval(async () => {
-      if (!pollingRef.current) return
-      try {
-        const res = await fetch(`/api/instagram/verify/status?id=${id}`)
-        const data = await res.json()
-        if (!pollingRef.current) return
-        if (data.verified) {
-          stopPolling()
-          setPendingId(null)
-          setState({ step: 'success' })
-          onVerified?.()
-        } else {
-          attempts++
-          if (attempts >= 5) {
-            stopPolling()
-            await fetch('/api/instagram/verify/escalate', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id }),
-            })
-            setState({ step: 'reviewing', id })
-          }
-        }
-      } catch { /* 下次再試 */ }
-    }, 10000)
-  }, [onVerified, stopPolling])
+  }, [])
 
   // 產碼
   const start = useCallback(async () => {
@@ -87,7 +63,6 @@ export function useIgVerification(onVerified?: () => void) {
   }, [usernameInput])
 
   const cancel = useCallback(async () => {
-    stopPolling()
     if (state.step === 'waiting_send' || state.step === 'reviewing') {
       const id = 'id' in state ? state.id : undefined
       if (id) {
@@ -99,7 +74,7 @@ export function useIgVerification(onVerified?: () => void) {
     }
     setPendingId(null)
     setState({ step: 'idle' }); setUsernameInput(''); setInputError('')
-  }, [state, stopPolling])
+  }, [state])
 
   // 還原進行中的驗證
   useEffect(() => {
@@ -108,15 +83,12 @@ export function useIgVerification(onVerified?: () => void) {
       .then((d: { id: string; code: string; expires_at: string | null; status: string; reject_reason: string | null } | null) => {
         if (!d) return
         if (d.status === 'created' && d.expires_at) setState({ step: 'waiting_send', id: d.id, code: d.code, expiresAt: d.expires_at })
-        else if (d.status === 'sent') confirmSent(d.id, d.code)
-        else if (d.status === 'pending') { setPendingId(d.id); setState({ step: 'reviewing', id: d.id }) }
+        // sent 為舊資料殘留（新流程一律 pending）：一併視為審核中
+        else if (d.status === 'sent' || d.status === 'pending') { setPendingId(d.id); setState({ step: 'reviewing', id: d.id }) }
         else if (d.status === 'rejected') setState({ step: 'rejected', reason: d.reject_reason })
       })
       .catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  useEffect(() => () => stopPolling(), [stopPolling])
 
   // 倒數：只在 waiting_send 跑
   const expiresAt = state.step === 'waiting_send' ? state.expiresAt : null

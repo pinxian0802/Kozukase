@@ -89,7 +89,7 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
           <span className="text-[12px] font-mono text-text-faint tabular-nums text-center">剩餘時間 {countdown}</span>
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => void confirmSent(state.id, state.code)}
+              onClick={() => void confirmSent(state.id)}
               className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
             >
               我已傳送

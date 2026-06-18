@@ -116,7 +116,7 @@ export default function SellerProfilePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const igVm = useIgVerification(() => void refetchSeller())
+  const igVm = useIgVerification()
 
   const handleThVerifyStart = async () => {
     const username = thUsernameInput.trim().toLowerCase()

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getDb } from '@/server/db/client'
 
-// 使用者按「我已傳送」：凍結過期、進入自動掃階段
+// 使用者按「我已傳送」：凍結過期、直接進管理員待審清單（由後台批次掃描比對）
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   const db = getDb()
   const { data, error } = await db
     .from('ig_verification_codes')
-    .update({ status: 'sent', expires_at: null })
+    .update({ status: 'pending', expires_at: null })
     .eq('id', id)
     .eq('seller_id', user.id)
     .eq('status', 'created')

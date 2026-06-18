@@ -34,6 +34,69 @@ type HistoryRow = {
   reviewed_at: string | null
 }
 
+type ScanResultItem = {
+  id: string
+  seller_name: string
+  ig_username: string
+  code: string
+  outcome: 'approved' | 'code_mismatch' | 'not_found'
+  sent_codes: string[]
+}
+
+type ScanResult = {
+  total: number
+  approvedCount: number
+  results: ScanResultItem[]
+}
+
+function ScanResultBody({ result }: { result: ScanResult }) {
+  if (result.total === 0) {
+    return <p className="text-sm text-muted-foreground">目前沒有待審件可以比對。</p>
+  }
+  const failedCount = result.total - result.approvedCount
+  return (
+    <div className="space-y-4">
+      <p className="text-sm">
+        本次掃描 <span className="font-semibold">{result.total}</span> 筆,
+        通過 <span className="font-semibold text-emerald-600">{result.approvedCount}</span> 筆,
+        未通過 <span className="font-semibold text-destructive">{failedCount}</span> 筆。
+      </p>
+      <div className="max-h-[60vh] overflow-auto rounded-xl border">
+        <table className="w-full text-sm">
+          <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 font-medium">賣家</th>
+              <th className="px-3 py-2 font-medium">IG 帳號</th>
+              <th className="px-3 py-2 font-medium">驗證碼</th>
+              <th className="px-3 py-2 font-medium">比對情形</th>
+              <th className="px-3 py-2 font-medium text-right">結果</th>
+            </tr>
+          </thead>
+          <tbody>
+            {result.results.map((r) => (
+              <tr key={r.id} className="border-b last:border-b-0 align-top">
+                <td className="px-3 py-2 font-medium whitespace-nowrap">{r.seller_name}</td>
+                <td className="px-3 py-2 whitespace-nowrap">@{r.ig_username}</td>
+                <td className="px-3 py-2 font-mono">{r.code}</td>
+                <td className="px-3 py-2 text-muted-foreground">
+                  {r.outcome === 'approved' && <>在收件匣找到 @{r.ig_username} 傳來「{r.code}」,與驗證碼相符。</>}
+                  {r.outcome === 'code_mismatch' && <>找到 @{r.ig_username} 傳來的訊息,但內容是「{r.sent_codes.join('、')}」,與驗證碼「{r.code}」不符。</>}
+                  {r.outcome === 'not_found' && <>收件匣找不到 @{r.ig_username} 傳來的任何訊息(可能還沒傳,或帳號打錯)。</>}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {r.outcome === 'approved'
+                    ? <Badge variant="secondary">通過</Badge>
+                    : <Badge variant="destructive">未通過</Badge>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 type PanelProps = {
   platformLabel: string
   accountUrlPrefix: string
@@ -50,13 +113,15 @@ type PanelProps = {
   approvePending: boolean
   onReject: (id: string, reason: string | undefined) => void
   rejectPending: boolean
+  onScan?: () => void
+  scanPending?: boolean
 }
 
 function VerificationPanel(props: PanelProps) {
   const {
     platformLabel, accountUrlPrefix, showSource, pending, pendingLoading,
     history, historyLoading, from, to, onRangeChange, clearRange,
-    onApprove, approvePending, onReject, rejectPending,
+    onApprove, approvePending, onReject, rejectPending, onScan, scanPending,
   } = props
   const [rejectId, setRejectId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
@@ -71,6 +136,14 @@ function VerificationPanel(props: PanelProps) {
       <div className="mt-6">
         {/* ── 待審核 ── */}
         <TabsContent value="pending">
+          {onScan && (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-4 py-3">
+              <p className="text-sm text-muted-foreground">抓取一次 {platformLabel} 收件匣，與所有待審件比對驗證碼，符合的自動通過。</p>
+              <Button onClick={onScan} disabled={scanPending}>
+                {scanPending ? '掃描中⋯' : `掃描比對 ${platformLabel} 收件匣`}
+              </Button>
+            </div>
+          )}
           {pendingLoading ? (
             <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
           ) : pending && pending.length > 0 ? (
@@ -231,6 +304,15 @@ export default function AdminSocialVerificationPage() {
     },
     onError: (err) => toast.error(err.message),
   })
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const igScan = trpc.admin.scanIgVerifications.useMutation({
+    onSuccess: (data) => {
+      setScanResult(data)
+      utils.admin.listIgVerifications.invalidate()
+      utils.admin.listIgVerificationHistory.invalidate()
+    },
+    onError: (err) => toast.error(err.message),
+  })
 
   // Threads
   const [thFrom, setThFrom] = useState('')
@@ -285,6 +367,8 @@ export default function AdminSocialVerificationPage() {
               approvePending={igApprove.isPending}
               onReject={(id, reason) => igReject.mutate({ id, reason })}
               rejectPending={igReject.isPending}
+              onScan={() => igScan.mutate()}
+              scanPending={igScan.isPending}
             />
           </TabsContent>
 
@@ -309,6 +393,13 @@ export default function AdminSocialVerificationPage() {
           </TabsContent>
         </div>
       </Tabs>
+
+      <Dialog open={scanResult !== null} onOpenChange={(open) => { if (!open) setScanResult(null) }}>
+        <DialogContent className="max-w-2xl sm:max-w-2xl">
+          <DialogHeader><DialogTitle>掃描比對結果</DialogTitle></DialogHeader>
+          {scanResult && <ScanResultBody result={scanResult} />}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

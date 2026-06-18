@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, adminProcedure } from '../trpc'
 import { productCategoryEnum } from '@/lib/validators/product'
+import { fetchIgInboxMessages } from '@/lib/instagram/inbox'
 
 function buildAdminDisplayName(user: {
   email?: string | null
@@ -1120,4 +1121,91 @@ export const adminRouter = router({
       })
       return { success: true }
     }),
+
+  // 批次掃描 IG 收件匣：抓一輪訊息，比對目前所有待審件。比對到的自動通過，回傳每筆明細。
+  scanIgVerifications: adminProcedure.mutation(async ({ ctx }) => {
+    const { data: pendingRows, error } = await ctx.db
+      .from('ig_verification_codes')
+      .select('id, seller_id, ig_username, code, sellers(name)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+    if (error) throw error
+
+    const pending = (pendingRows ?? []).map((r: {
+      id: string; seller_id: string; ig_username: string; code: string
+      sellers: { name: string } | { name: string }[] | null
+    }) => ({
+      id: r.id,
+      seller_id: r.seller_id,
+      ig_username: r.ig_username,
+      code: r.code,
+      seller_name: Array.isArray(r.sellers) ? r.sellers[0]?.name ?? '' : r.sellers?.name ?? '',
+    }))
+
+    if (pending.length === 0) {
+      return { total: 0, approvedCount: 0, results: [] as ScanResultItem[] }
+    }
+
+    const messages = await fetchIgInboxMessages()
+    if (messages === null) {
+      throw new TRPCError({ code: 'PRECONDITION_FAILED', message: '尚未設定 Instagram 串接金鑰，無法掃描收件匣' })
+    }
+
+    const results: ScanResultItem[] = []
+    let approvedCount = 0
+
+    for (const req of pending) {
+      const fromUser = messages.filter(m => m.username === req.ig_username.toLowerCase())
+      const match = fromUser.find(m => m.text === req.code)
+
+      if (match) {
+        await ctx.db.from('sellers').update({
+          ig_handle: req.ig_username,
+          ig_user_id: match.senderId,
+          ig_connected_at: new Date().toISOString(),
+          is_social_verified: true,
+        }).eq('id', req.seller_id)
+
+        await ctx.db.from('ig_verification_codes').update({
+          status: 'approved',
+          source: 'auto',
+          verified_at: new Date().toISOString(),
+        }).eq('id', req.id)
+
+        await ctx.db.from('notifications').insert({
+          recipient_id: req.seller_id,
+          type: 'ig_verification_approved',
+          payload: { ig_username: req.ig_username },
+        })
+
+        approvedCount++
+        results.push({
+          id: req.id, seller_name: req.seller_name, ig_username: req.ig_username,
+          code: req.code, outcome: 'approved', sent_codes: [],
+        })
+      } else if (fromUser.length > 0) {
+        results.push({
+          id: req.id, seller_name: req.seller_name, ig_username: req.ig_username,
+          code: req.code, outcome: 'code_mismatch',
+          sent_codes: [...new Set(fromUser.map(m => m.text))],
+        })
+      } else {
+        results.push({
+          id: req.id, seller_name: req.seller_name, ig_username: req.ig_username,
+          code: req.code, outcome: 'not_found', sent_codes: [],
+        })
+      }
+    }
+
+    return { total: pending.length, approvedCount, results }
+  }),
 })
+
+type ScanResultItem = {
+  id: string
+  seller_name: string
+  ig_username: string
+  code: string
+  outcome: 'approved' | 'code_mismatch' | 'not_found'
+  sent_codes: string[]
+}

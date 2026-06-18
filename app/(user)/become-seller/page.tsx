@@ -131,8 +131,7 @@ export default function BecomeSellerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(searchParams.get('preview') === 'submitted')
 
-  const [igConnected, setIgConnected] = useState(false)
-  const igVm = useIgVerification(() => setIgConnected(true))
+  const igVm = useIgVerification()
   const adminHandle = process.env.NEXT_PUBLIC_INSTAGRAM_ADMIN_HANDLE ?? ''
 
   // Threads 驗證狀態機（私訊 + 管理員人工審核）
@@ -538,51 +537,32 @@ export default function BecomeSellerPage() {
                 <div className="grid grid-cols-2 gap-4">
 
                   {/* Instagram Card */}
-                  {igConnected ? (
-                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex items-center justify-center min-h-[175px]">
-                      <div className="flex items-center gap-4">
-                        <div className="relative flex-shrink-0">
-                          <div className="w-14 h-14 rounded-[14px] overflow-hidden">
-                            <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
-                          </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-                            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-[15px] font-semibold text-text-strong">Instagram</p>
-                          <p className="text-[13px] text-text-muted mt-0.5">@{igVm.usernameInput}</p>
-                        </div>
+                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex flex-col justify-between min-h-[175px]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_10px_rgba(221,42,123,0.12)]">
+                        <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-semibold text-text-strong">Instagram</p>
+                        <p className="text-[11.5px] text-text-faint">尚未連結</p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex flex-col justify-between min-h-[175px]">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_10px_rgba(221,42,123,0.12)]">
-                          <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
-                        </div>
-                        <div>
-                          <p className="text-[13px] font-semibold text-text-strong">Instagram</p>
-                          <p className="text-[11.5px] text-text-faint">尚未連結</p>
-                        </div>
-                      </div>
-                      {igVm.pendingId ? (
-                        <button
-                          onClick={() => igVm.setState({ step: 'reviewing', id: igVm.pendingId! })}
-                          className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                        >
-                          審核中
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => igVm.setState({ step: 'entering_username' })}
-                          className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                        >
-                          驗證
-                        </button>
-                      )}
-                    </div>
-                  )}
+                    {igVm.pendingId ? (
+                      <button
+                        onClick={() => igVm.setState({ step: 'reviewing', id: igVm.pendingId! })}
+                        className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
+                      >
+                        審核中
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => igVm.setState({ step: 'entering_username' })}
+                        className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
+                      >
+                        驗證
+                      </button>
+                    )}
+                  </div>
 
                   {/* Threads Card */}
                   <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex flex-col justify-between min-h-[175px]">
@@ -609,10 +589,14 @@ export default function BecomeSellerPage() {
 
               <div className="max-w-[500px] mx-auto w-full flex justify-end">
                 <button
-                  onClick={() => { void igVm.cancel(); router.push('/dashboard') }}
+                  onClick={() => {
+                    // 只清掉「還沒送出」的草稿驗證碼；已送出待審的(有 pendingId)要保留，不可刪
+                    if (!igVm.pendingId) void igVm.cancel()
+                    router.push('/dashboard')
+                  }}
                   className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center gap-2 hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
                 >
-                  {igConnected ? '完成' : '先暫時跳過'}
+                  先暫時跳過
                 </button>
               </div>
             </div>
