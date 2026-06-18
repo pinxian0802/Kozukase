@@ -18,10 +18,71 @@ export default function NotificationsPage() {
     )
 
   const markRead = trpc.notification.markRead.useMutation({
-    onSuccess: () => utils.notification.list.invalidate(),
+    // 樂觀更新:點下去先把這一則在本地標成已讀、鈴鐺未讀數量 -1;失敗回滾。
+    onMutate: async ({ id }) => {
+      await Promise.all([
+        utils.notification.list.cancel(),
+        utils.notification.unreadCount.cancel(),
+      ])
+      const prevList = utils.notification.list.getInfiniteData({ limit: 20 })
+      const prevCount = utils.notification.unreadCount.getData()
+
+      utils.notification.list.setInfiniteData({ limit: 20 }, (old) =>
+        old
+          ? {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                items: page.items.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+              })),
+            }
+          : old
+      )
+      utils.notification.unreadCount.setData(undefined, (old) =>
+        old ? { count: Math.max(0, old.count - 1) } : old
+      )
+
+      return { prevList, prevCount }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prevList) utils.notification.list.setInfiniteData({ limit: 20 }, ctx.prevList)
+      if (ctx?.prevCount) utils.notification.unreadCount.setData(undefined, ctx.prevCount)
+    },
+    onSettled: () => {
+      utils.notification.list.invalidate()
+      utils.notification.unreadCount.invalidate()
+    },
   })
   const markAllRead = trpc.notification.markAllRead.useMutation({
-    onSuccess: () => {
+    // 樂觀更新:本地把全部標成已讀、未讀數量歸零;失敗回滾。
+    onMutate: async () => {
+      await Promise.all([
+        utils.notification.list.cancel(),
+        utils.notification.unreadCount.cancel(),
+      ])
+      const prevList = utils.notification.list.getInfiniteData({ limit: 20 })
+      const prevCount = utils.notification.unreadCount.getData()
+
+      utils.notification.list.setInfiniteData({ limit: 20 }, (old) =>
+        old
+          ? {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                items: page.items.map((n) => ({ ...n, is_read: true })),
+              })),
+            }
+          : old
+      )
+      utils.notification.unreadCount.setData(undefined, () => ({ count: 0 }))
+
+      return { prevList, prevCount }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prevList) utils.notification.list.setInfiniteData({ limit: 20 }, ctx.prevList)
+      if (ctx?.prevCount) utils.notification.unreadCount.setData(undefined, ctx.prevCount)
+    },
+    onSettled: () => {
       utils.notification.list.invalidate()
       utils.notification.unreadCount.invalidate()
     },
@@ -52,14 +113,18 @@ export default function NotificationsPage() {
             <div
               key={n.id}
               className={cn(
-                'rounded-lg border p-3 transition-colors md:p-4',
-                !n.is_read && 'bg-brand-50 border-brand-300 cursor-pointer'
+                'rounded-xl p-3 transition-colors md:p-4',
+                n.is_read
+                  ? 'border border-border-soft'
+                  : 'bg-brand-50 cursor-pointer hover:bg-brand-100'
               )}
               onClick={() => !n.is_read && markRead.mutate({ id: n.id })}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{title}</p>
+                  <p className={cn('text-sm', n.is_read ? 'font-medium text-muted-foreground' : 'font-semibold')}>
+                    {title}
+                  </p>
                   {body && (
                     <p className="text-sm text-muted-foreground mt-0.5">{body}</p>
                   )}
