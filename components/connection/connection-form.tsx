@@ -15,6 +15,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { FormSection, OptionalTag } from '@/components/shared/form-section'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { BrandMultiSelect } from '@/components/shared/brand-select'
 import { trpc } from '@/lib/trpc/client'
@@ -290,184 +291,220 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const isPending = isSubmitting || isCheckingPostLink || createConnection.isPending || updateConnection.isPending || reactivateConnection.isPending || confirmImages.isPending
 
   return (
-    <form className="form-compact space-y-4 md:space-y-6" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
-      <div className="space-y-1">
-        <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">標題 <span className="text-foreground">*</span></Label>
-        <Input
-          id="connection-title"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value)
-            if (errors.title) clearError('title')
-          }}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-          placeholder="輸入標題"
-          maxLength={100}
-          aria-invalid={!!errors.title}
-        />
-        <FormFieldError message={errors.title} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="text-sm font-medium text-foreground">連線國家 *</Label>
-        <SearchableSelect
-          value={regionId}
-          onValueChange={(value) => {
-            setRegionId(value)
-            if (errors.regionId) clearError('regionId')
-          }}
-          options={(regionsData ?? []).map((r: any) => ({ value: r.id, label: r.name }))}
-          placeholder="選擇國家"
-          searchPlaceholder="搜尋國家..."
-          emptyText="找不到相符的國家"
-          invalid={!!errors.regionId}
-        />
-        <FormFieldError message={errors.regionId} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="text-sm font-medium text-foreground">品牌（選填）</Label>
-        <BrandMultiSelect
-          value={brandIds}
-          onValueChange={setBrandIds}
-          placeholder="選擇或新增品牌"
-        />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="text-sm font-medium text-foreground">
-          地點（選填）
-          <span className="ml-1.5 text-xs font-normal text-muted-foreground">輸入後按 Enter 新增，最多 10 個</span>
-        </Label>
-        <TagInput
-          value={locations}
-          onValueChange={setLocations}
-          placeholder="例：札幌、上野動物園"
-          maxTags={10}
-        />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="text-sm font-medium text-foreground">連線日期 *</Label>
-        <DateRangePicker
-          startDate={startDate}
-          endDate={endDate}
-          onRangeChange={({ startDate: newStart, endDate: newEnd }) => {
-            setStartDate(newStart)
-            setEndDate(newEnd)
-            if (errors.startDate) clearError('startDate')
-            if (errors.endDate) clearError('endDate')
-          }}
-          startPlaceholder="選擇開始日期"
-          endPlaceholder="選擇結束日期"
-          className="w-full"
-          invalid={!!(errors.startDate || errors.endDate)}
-          minDate={today}
-        />
-        <FormFieldError message={errors.startDate || errors.endDate} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="text-sm font-medium text-foreground">預計出貨日期 *</Label>
-        <DatePicker
-          value={shippingDate}
-          onValueChange={(value) => {
-            setShippingDate(value)
-            if (errors.shippingDate) clearError('shippingDate')
-          }}
-          placeholder="選擇預計出貨日期"
-          className="w-full"
-          name="shipping_date"
-          invalid={!!errors.shippingDate}
-        />
-        <FormFieldError message={errors.shippingDate} />
-      </div>
-
-      <div className="space-y-1">
-        <Label htmlFor="description" className="text-sm font-medium text-foreground">說明 <span className="text-foreground">*</span></Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => {
-            setDescription(e.target.value)
-            if (errors.description) clearError('description')
-          }}
-          placeholder="補充連線行程說明..."
-          maxLength={500}
-          className="min-h-32 resize-none"
-          aria-invalid={!!errors.description}
-        />
-        <FormFieldError message={errors.description} />
-      </div>
-
-      <div className="space-y-1">
-        <Label htmlFor="billingMethod" className="text-sm font-medium text-foreground">計費方法 <span className="text-foreground">*</span></Label>
-        <Textarea
-          id="billingMethod"
-          value={billingMethod}
-          onChange={(e) => {
-            setBillingMethod(e.target.value)
-            if (errors.billingMethod) clearError('billingMethod')
-          }}
-          placeholder="說明收費方式、付款方式..."
-          maxLength={500}
-          className="min-h-32 resize-none"
-          aria-invalid={!!errors.billingMethod}
-        />
-        <FormFieldError message={errors.billingMethod} />
-      </div>
-
-      <div className="space-y-1">
-        <div className="flex items-center gap-1">
-          <Label htmlFor="postLink" className="text-sm font-medium text-foreground">貼文／群組連結（選填）</Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>可貼上連線相關的連結或貼文連結（如 Facebook 群組、Instagram 貼文等）</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        <div className="relative mt-1">
+    <form className="form-compact space-y-6 md:space-y-8" onSubmit={(event) => { event.preventDefault(); handleSubmit() }} noValidate>
+      {/* ── 基本資訊 ── */}
+      <FormSection title="基本資訊">
+        <div className="space-y-1">
+          <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">標題</Label>
           <Input
-            id="postLink"
-            type="url"
-            value={postLink}
+            id="connection-title"
+            value={title}
             onChange={(e) => {
-              setPostLink(e.target.value)
-              setPostLinkSafe(null)
-              if (errors.postLink) clearError('postLink')
+              setTitle(e.target.value)
+              if (errors.title) clearError('title')
             }}
-            onBlur={handlePostLinkBlur}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-              }
-            }}
-            placeholder="https://www.facebook.com/groups/..."
-            className="pr-16"
-            aria-invalid={!!errors.postLink}
+            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+            placeholder="輸入標題"
+            maxLength={100}
+            aria-invalid={!!errors.title}
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs">
-            {isCheckingPostLink ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-            ) : postLinkSafe === true ? (
-              <><Check className="h-3.5 w-3.5 text-green-600" /><span className="text-green-600">安全</span></>
-            ) : postLinkSafe === false ? (
-              <X className="h-3.5 w-3.5 text-destructive" />
-            ) : null}
-          </span>
+          <FormFieldError message={errors.title} />
         </div>
-        {isCheckingPostLink
-          ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
-          : <FormFieldError message={errors.postLink} />}
-      </div>
 
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">許願</h3>
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-foreground">連線國家</Label>
+          <SearchableSelect
+            value={regionId}
+            onValueChange={(value) => {
+              setRegionId(value)
+              if (errors.regionId) clearError('regionId')
+            }}
+            options={(regionsData ?? []).map((r: any) => ({ value: r.id, label: r.name }))}
+            placeholder="選擇國家"
+            searchPlaceholder="搜尋國家..."
+            emptyText="找不到相符的國家"
+            invalid={!!errors.regionId}
+          />
+          <FormFieldError message={errors.regionId} />
+        </div>
+
+        <div className="space-y-1">
+          <Label>
+            圖片
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span>
+          </Label>
+          <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
+          <ImageUpload
+            purpose="connection"
+            maxImages={5}
+            images={images}
+            invalid={!!errors.images}
+            onChange={(value) => {
+              setImages(value)
+              if (errors.images) clearError('images')
+            }}
+            pendingFiles={pendingFiles}
+            onPendingFilesChange={(value) => {
+              setPendingFiles(value)
+              if (errors.images) clearError('images')
+            }}
+          />
+          <FormFieldError message={errors.images} />
+        </div>
+      </FormSection>
+
+      {/* ── 商品與地點 ── */}
+      <FormSection title="商品與地點">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-foreground">品牌<OptionalTag /></Label>
+          <BrandMultiSelect
+            value={brandIds}
+            onValueChange={setBrandIds}
+            placeholder="選擇或新增品牌"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-foreground">
+            地點<OptionalTag />
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">輸入後按 Enter 新增，最多 10 個</span>
+          </Label>
+          <TagInput
+            value={locations}
+            onValueChange={setLocations}
+            placeholder="例：札幌、上野動物園"
+            maxTags={10}
+          />
+        </div>
+      </FormSection>
+
+      {/* ── 檔期 ── */}
+      <FormSection title="檔期">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-foreground">連線日期</Label>
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onRangeChange={({ startDate: newStart, endDate: newEnd }) => {
+              setStartDate(newStart)
+              setEndDate(newEnd)
+              if (errors.startDate) clearError('startDate')
+              if (errors.endDate) clearError('endDate')
+            }}
+            startPlaceholder="選擇開始日期"
+            endPlaceholder="選擇結束日期"
+            className="w-full"
+            invalid={!!(errors.startDate || errors.endDate)}
+            minDate={today}
+          />
+          <FormFieldError message={errors.startDate || errors.endDate} />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-foreground">預計出貨日期</Label>
+          <DatePicker
+            value={shippingDate}
+            onValueChange={(value) => {
+              setShippingDate(value)
+              if (errors.shippingDate) clearError('shippingDate')
+            }}
+            placeholder="選擇預計出貨日期"
+            className="w-full"
+            name="shipping_date"
+            invalid={!!errors.shippingDate}
+          />
+          <FormFieldError message={errors.shippingDate} />
+        </div>
+      </FormSection>
+
+      {/* ── 說明與計費 ── */}
+      <FormSection title="說明與計費">
+        <div className="space-y-1">
+          <Label htmlFor="description" className="text-sm font-medium text-foreground">說明</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value)
+              if (errors.description) clearError('description')
+            }}
+            placeholder="補充連線行程說明..."
+            maxLength={500}
+            className="min-h-32 resize-none"
+            aria-invalid={!!errors.description}
+          />
+          <FormFieldError message={errors.description} />
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="billingMethod" className="text-sm font-medium text-foreground">計費方法</Label>
+          <Textarea
+            id="billingMethod"
+            value={billingMethod}
+            onChange={(e) => {
+              setBillingMethod(e.target.value)
+              if (errors.billingMethod) clearError('billingMethod')
+            }}
+            placeholder="說明收費方式、付款方式..."
+            maxLength={500}
+            className="min-h-32 resize-none"
+            aria-invalid={!!errors.billingMethod}
+          />
+          <FormFieldError message={errors.billingMethod} />
+        </div>
+      </FormSection>
+
+      {/* ── 其他設定 ── */}
+      <FormSection title="其他設定">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="postLink" className="text-sm font-medium text-foreground">貼文／群組連結<OptionalTag /></Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>可貼上連線相關的連結或貼文連結（如 Facebook 群組、Instagram 貼文等）</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="relative mt-1">
+            <Input
+              id="postLink"
+              type="url"
+              value={postLink}
+              onChange={(e) => {
+                setPostLink(e.target.value)
+                setPostLinkSafe(null)
+                if (errors.postLink) clearError('postLink')
+              }}
+              onBlur={handlePostLinkBlur}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                }
+              }}
+              placeholder="https://www.facebook.com/groups/..."
+              className="pr-16"
+              aria-invalid={!!errors.postLink}
+            />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs">
+              {isCheckingPostLink ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              ) : postLinkSafe === true ? (
+                <><Check className="h-3.5 w-3.5 text-green-600" /><span className="text-green-600">安全</span></>
+              ) : postLinkSafe === false ? (
+                <X className="h-3.5 w-3.5 text-destructive" />
+              ) : null}
+            </span>
+          </div>
+          {isCheckingPostLink
+            ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
+            : <FormFieldError message={errors.postLink} />}
+        </div>
+
         <div className="flex items-center gap-3">
           <Checkbox
             id="canWish"
@@ -479,31 +516,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             <p className="text-xs text-muted-foreground">允許買家對此連線送出許願商品需求</p>
           </div>
         </div>
-      </div>
-
-      <div className="space-y-1">
-        <Label>
-          圖片 *
-          <span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span>
-        </Label>
-        <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
-        <ImageUpload
-          purpose="connection"
-          maxImages={5}
-          images={images}
-          invalid={!!errors.images}
-          onChange={(value) => {
-            setImages(value)
-            if (errors.images) clearError('images')
-          }}
-          pendingFiles={pendingFiles}
-          onPendingFilesChange={(value) => {
-            setPendingFiles(value)
-            if (errors.images) clearError('images')
-          }}
-        />
-        <FormFieldError message={errors.images} />
-      </div>
+      </FormSection>
 
       <button type="submit" disabled={isPending} className={buttonVariants({ size: 'sm', className: 'w-full' })}>
         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

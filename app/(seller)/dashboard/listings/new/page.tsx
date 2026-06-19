@@ -68,33 +68,35 @@ export default function NewListingPage() {
         <h1 className="text-[15px] font-bold font-heading md:text-2xl">新增代購</h1>
       </div>
       <Card className="ring-0 shadow-sm py-0">
-        <CardContent className="p-4 sm:p-8 space-y-4">
-          <div>
-            <Label>商品</Label>
-            <div className="mt-1 w-fit">
-              <ProductCard
-                product={{
-                  id: product.id ?? 'draft-product',
-                  name: product.name,
-                  brand: product.brand_name,
-                  model_number: product.model_number,
-                  catalog_image_url: product.catalog_image_url,
-                }}
-                linkToProduct={false}
-                variant="compact"
-                className="w-fit"
-              />
-            </div>
-          </div>
-
-          <Button type="button" variant="ghost" size="sm" onClick={() => setProduct(null)} className="w-full">
-            重新選擇
-          </Button>
-
+        <CardContent className="p-4 sm:p-8">
           <ListingForm
             productId={product.id}
             mode="create"
             onCreateProduct={isDraftProduct ? deferred.createProductForListing : undefined}
+            productSlot={
+              <>
+                <div>
+                  <Label>商品</Label>
+                  <div className="mt-1 w-fit">
+                    <ProductCard
+                      product={{
+                        id: product.id ?? 'draft-product',
+                        name: product.name,
+                        brand: product.brand_name,
+                        model_number: product.model_number,
+                        catalog_image_url: product.catalog_image_url,
+                      }}
+                      linkToProduct={false}
+                      variant="compact"
+                      className="w-fit"
+                    />
+                  </div>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setProduct(null)} className="w-full">
+                  重新選擇
+                </Button>
+              </>
+            }
           />
         </CardContent>
       </Card>

@@ -102,64 +102,63 @@ export default function EditListingPage() {
       )}
 
       <Card className="ring-0 shadow-sm py-0">
-        <CardContent className="px-4 py-4 sm:px-8 sm:py-5 space-y-4">
-          {productRemoved && (
-            <div className="space-y-3">
-              <div>
-                <Label>商品</Label>
-                <div className="mt-1 w-fit">
-                  {replacement ? (
-                    <ProductCard
-                      product={{
-                        id: replacement.id ?? 'draft-product',
-                        name: replacement.name,
-                        brand: replacement.brand_name,
-                        model_number: replacement.model_number,
-                        catalog_image_url: replacement.catalog_image_url,
-                      }}
-                      linkToProduct={false}
-                      variant="compact"
-                      className="w-fit"
-                    />
-                  ) : (
-                    <div className="opacity-50">
-                      <ProductCard
-                        product={{
-                          id: listing.product?.id ?? 'removed',
-                          name: listing.product?.name ?? '商品',
-                          brand: removedProductBrand,
-                          model_number: listing.product?.model_number,
-                          catalog_image_url:
-                            listing.product?.catalog_image?.thumbnail_url
-                            ?? listing.product?.catalog_image?.url
-                            ?? null,
-                        }}
-                        linkToProduct={false}
-                        variant="compact"
-                        className="w-fit"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="cta-outline"
-                size="sm"
-                onClick={() => setReselecting(true)}
-                className="w-full"
-              >
-                {replacement ? '重新選擇' : '重新選擇商品'}
-              </Button>
-            </div>
-          )}
-
+        <CardContent className="px-4 py-4 sm:px-8 sm:py-5">
           <ListingForm
             productId={productRemoved ? replacement?.id : listing.product_id}
             mode="edit"
             initialData={listing}
             productRemoved={productRemoved}
             onCreateProduct={productRemoved && isDraftReplacement ? deferred.createProductForListing : undefined}
+            productSlot={productRemoved ? (
+              <div className="space-y-3">
+                <div>
+                  <Label>商品</Label>
+                  <div className="mt-1 w-fit">
+                    {replacement ? (
+                      <ProductCard
+                        product={{
+                          id: replacement.id ?? 'draft-product',
+                          name: replacement.name,
+                          brand: replacement.brand_name,
+                          model_number: replacement.model_number,
+                          catalog_image_url: replacement.catalog_image_url,
+                        }}
+                        linkToProduct={false}
+                        variant="compact"
+                        className="w-fit"
+                      />
+                    ) : (
+                      <div className="opacity-50">
+                        <ProductCard
+                          product={{
+                            id: listing.product?.id ?? 'removed',
+                            name: listing.product?.name ?? '商品',
+                            brand: removedProductBrand,
+                            model_number: listing.product?.model_number,
+                            catalog_image_url:
+                              listing.product?.catalog_image?.thumbnail_url
+                              ?? listing.product?.catalog_image?.url
+                              ?? null,
+                          }}
+                          linkToProduct={false}
+                          variant="compact"
+                          className="w-fit"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="cta-outline"
+                  size="sm"
+                  onClick={() => setReselecting(true)}
+                  className="w-full"
+                >
+                  {replacement ? '重新選擇' : '重新選擇商品'}
+                </Button>
+              </div>
+            ) : undefined}
           />
         </CardContent>
       </Card>

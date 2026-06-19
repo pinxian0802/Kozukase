@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Loader2, Package, Check, X, Info } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/ui/date-picker'
 import { ImageUpload, uploadImageFiles, type UploadedImage } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { FormSection, OptionalTag } from '@/components/shared/form-section'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { buttonVariants } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
@@ -116,9 +117,14 @@ interface ListingFormProps {
   onCreateProduct?: () => Promise<string>
   /** True when the listing's original product was removed by an admin. */
   productRemoved?: boolean
+  /**
+   * 商品卡片區（含「重新選擇」鈕）由父頁傳入，渲染在「基本資訊」分組標題下，
+   * 讓建立 / 編輯各情境的商品顯示位置一致。未提供時，編輯模式會顯示內建商品卡。
+   */
+  productSlot?: ReactNode
 }
 
-export function ListingForm({ productId, mode, initialData, onCreateProduct, productRemoved = false }: ListingFormProps) {
+export function ListingForm({ productId, mode, initialData, onCreateProduct, productRemoved = false, productSlot }: ListingFormProps) {
   const router = useRouter()
   const utils = trpc.useUtils()
   const selectedProductImageUrl = initialData?.product?.catalog_image?.thumbnail_url
@@ -459,128 +465,120 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
   const isSubmitDisabled = isPending || isCheckingUrl || isPreparingImages
 
   return (
-    <form className="form-compact space-y-4 md:space-y-6" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
-      {/* Title */}
-      <div>
-        <Label htmlFor="listing-title">標題 *</Label>
-        <Input
-          id="listing-title"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value)
-            if (errors.title) clearError('title')
-          }}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-          placeholder="輸入標題"
-          maxLength={100}
-          className="mt-1"
-          aria-invalid={!!errors.title}
-        />
-        <FormFieldError message={errors.title} />
-      </div>
-
-      {mode === 'edit' && initialData?.product && !productRemoved && (
-        <div>
-          <Label>商品</Label>
-          <ProductCard
-            product={{
-              id: initialData.product.id,
-              name: initialData.product.name,
-              brand: selectedProductBrandLabel,
-              model_number: initialData.product.model_number,
-              catalog_image_url: selectedProductImageUrl,
-            }}
-            linkToProduct={false}
-            variant="compact"
-            className="mt-1 w-fit"
-          />
-        </div>
-      )}
-
-      {/* Images */}
-      <div>
-        <Label>
-          商品圖片 *
-          <span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span>
-        </Label>
-        <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
-        <ImageUpload
-          purpose="listing"
-          maxImages={5}
-          images={images}
-          invalid={!!errors.images}
-          onUploadingChange={(uploading) => {
-            isPreparingImagesRef.current = uploading
-            setIsPreparingImages(uploading)
-          }}
-          onChange={(value) => {
-            setImages(value)
-            if (errors.images) clearError('images')
-          }}
-          pendingFiles={pendingFiles}
-          onPendingFilesChange={(value) => {
-            setPendingFiles(value)
-            if (errors.images) clearError('images')
-          }}
-          className="mt-1"
-        />
-        <FormFieldError message={errors.images} />
-      </div>
-
-      {/* Price */}
-      <div>
-        <Label htmlFor="price">價格 (NT$) *</Label>
-        {!isPriceOnRequest && (
-          <>
-            <Input
-              id="price"
-              type="number"
-              min="0"
-              value={price}
-              onChange={(e) => {
-                setPrice(e.target.value)
-                if (errors.price) clearError('price')
+    <form className="form-compact space-y-6 md:space-y-8" onSubmit={(event) => { event.preventDefault(); handleSave('active') }} noValidate>
+      {/* ── 基本資訊 ── */}
+      <FormSection title="基本資訊">
+        {productSlot}
+        {!productSlot && mode === 'edit' && initialData?.product && !productRemoved && (
+          <div>
+            <Label>商品</Label>
+            <ProductCard
+              product={{
+                id: initialData.product.id,
+                name: initialData.product.name,
+                brand: selectedProductBrandLabel,
+                model_number: initialData.product.model_number,
+                catalog_image_url: selectedProductImageUrl,
               }}
-              onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-              placeholder="輸入價格"
-              className="mt-1"
-              aria-invalid={!!errors.price}
+              linkToProduct={false}
+              variant="compact"
+              className="mt-1 w-fit"
             />
-            <FormFieldError message={errors.price} />
-          </>
+          </div>
         )}
-      </div>
 
-      {/* Shipping */}
-      <div>
-        <Label>預計出貨日期 *</Label>
-        <DatePicker
-          value={shippingDate}
-          onValueChange={(value) => {
-            setShippingDate(value)
-            if (errors.shippingDate) clearError('shippingDate')
-          }}
-          placeholder="選擇預計出貨日期"
-          className="mt-1"
-          minDate={new Date()}
-          invalid={!!errors.shippingDate}
-        />
-        <FormFieldError message={errors.shippingDate} />
-      </div>
+        {/* Title */}
+        <div>
+          <Label htmlFor="listing-title">標題</Label>
+          <Input
+            id="listing-title"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value)
+              if (errors.title) clearError('title')
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+            placeholder="輸入標題"
+            maxLength={100}
+            className="mt-1"
+            aria-invalid={!!errors.title}
+          />
+          <FormFieldError message={errors.title} />
+        </div>
 
-      {/* In Stock */}
-      <div className="flex items-center gap-2">
-        <Switch
-          id="is-in-stock"
-          checked={isInStock}
-          onCheckedChange={setIsInStock}
-        />
-        <Label htmlFor="is-in-stock" className="cursor-pointer">有現貨</Label>
-      </div>
+        {/* Images */}
+        <div>
+          <Label>
+            商品圖片
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">{images.length + pendingFiles.length} / 5</span>
+          </Label>
+          <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
+          <ImageUpload
+            purpose="listing"
+            maxImages={5}
+            images={images}
+            invalid={!!errors.images}
+            onUploadingChange={(uploading) => {
+              isPreparingImagesRef.current = uploading
+              setIsPreparingImages(uploading)
+            }}
+            onChange={(value) => {
+              setImages(value)
+              if (errors.images) clearError('images')
+            }}
+            pendingFiles={pendingFiles}
+            onPendingFilesChange={(value) => {
+              setPendingFiles(value)
+              if (errors.images) clearError('images')
+            }}
+            className="mt-1"
+          />
+          <FormFieldError message={errors.images} />
+        </div>
+      </FormSection>
 
-      {/* Specs */}
-      <div>
-        <Label className="mb-2 block">規格</Label>
+      {/* ── 價格與庫存 ── */}
+      <FormSection title="價格與庫存">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
+          {/* Price */}
+          {!isPriceOnRequest && (
+            <div>
+              <Label htmlFor="price">價格 (NT$)</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                value={price}
+                onChange={(e) => {
+                  setPrice(e.target.value)
+                  if (errors.price) clearError('price')
+                }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                placeholder="輸入價格"
+                className="mt-1"
+                aria-invalid={!!errors.price}
+              />
+              <FormFieldError message={errors.price} />
+            </div>
+          )}
+
+          {/* In Stock */}
+          <div>
+            <Label>庫存<OptionalTag /></Label>
+            <div className="mt-1 flex h-10 items-center gap-2 rounded-md border border-input bg-background px-3.5">
+              <Switch
+                id="is-in-stock"
+                checked={isInStock}
+                onCheckedChange={setIsInStock}
+              />
+              <Label htmlFor="is-in-stock" className="cursor-pointer text-sm font-medium">有現貨</Label>
+            </div>
+          </div>
+        </div>
+      </FormSection>
+
+      {/* ── 規格 ── */}
+      <FormSection title="規格" optional>
         {specs.length > 0 && (
           <div className="mb-2">
             <div className="grid gap-1.5 mb-1 px-0.5" style={{ gridTemplateColumns: '100px 1fr 32px' }}>
@@ -650,82 +648,107 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
         <Button type="button" variant="outline" size="sm" onClick={addSpec} className="w-full border-dashed">
           <Plus className="mr-1 h-3 w-3" />新增規格
         </Button>
-      </div>
+      </FormSection>
 
-      {/* Note */}
-      <div>
-        <Label htmlFor="note">說明</Label>
-        <Textarea
-          id="note"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="補充說明..."
-          maxLength={1000}
-          className="mt-1"
-        />
-      </div>
+      {/* ── 出貨與檔期 ── */}
+      <FormSection title="出貨與檔期">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* Shipping */}
+          <div>
+            <Label>預計出貨日期</Label>
+            <DatePicker
+              value={shippingDate}
+              onValueChange={(value) => {
+                setShippingDate(value)
+                if (errors.shippingDate) clearError('shippingDate')
+              }}
+              placeholder="選擇預計出貨日期"
+              className="mt-1"
+              minDate={new Date()}
+              invalid={!!errors.shippingDate}
+            />
+            <FormFieldError message={errors.shippingDate} />
+          </div>
 
-      {/* Post URL */}
-      <div>
-        <div className="flex items-center gap-1">
-          <Label htmlFor="postUrl">貼文連結 *</Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>可貼上賣場連結或社群貼文連結（如 Instagram、賣貨便等）</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/* Expires */}
+          <div>
+            <Label>截止日期<OptionalTag /></Label>
+            <DatePicker
+              value={expiresAt}
+              onValueChange={setExpiresAt}
+              placeholder="選擇截止日期"
+              className="mt-1"
+              minDate={new Date()}
+            />
+          </div>
         </div>
-        <div className="relative mt-1">
-          <Input
-            id="postUrl"
-            type="url"
-            value={postUrl}
-            onChange={(e) => {
-              setPostUrl(e.target.value)
-              setPostUrlSafe(null)
-              if (errors.postUrl) clearError('postUrl')
-            }}
-            onBlur={handlePostUrlBlur}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-              }
-            }}
-            placeholder="https://www.instagram.com/p/..."
-            className="pr-16"
-            aria-invalid={!!errors.postUrl}
+      </FormSection>
+
+      {/* ── 來源與說明 ── */}
+      <FormSection title="來源與說明">
+        {/* Post URL */}
+        <div>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="postUrl">貼文連結</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>可貼上賣場連結或社群貼文連結（如 Instagram、賣貨便等）</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="relative mt-1">
+            <Input
+              id="postUrl"
+              type="url"
+              value={postUrl}
+              onChange={(e) => {
+                setPostUrl(e.target.value)
+                setPostUrlSafe(null)
+                if (errors.postUrl) clearError('postUrl')
+              }}
+              onBlur={handlePostUrlBlur}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                }
+              }}
+              placeholder="https://www.instagram.com/p/..."
+              className="pr-16"
+              aria-invalid={!!errors.postUrl}
+            />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs">
+              {isCheckingUrl ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              ) : postUrlSafe === true ? (
+                <><Check className="h-3.5 w-3.5 text-green-600" /><span className="text-green-600">安全</span></>
+              ) : postUrlSafe === false ? (
+                <X className="h-3.5 w-3.5 text-destructive" />
+              ) : null}
+            </span>
+          </div>
+          {isCheckingUrl
+            ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
+            : <FormFieldError message={errors.postUrl} />}
+        </div>
+
+        {/* Note */}
+        <div>
+          <Label htmlFor="note">說明<OptionalTag /></Label>
+          <Textarea
+            id="note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="補充說明..."
+            maxLength={1000}
+            className="mt-1"
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs">
-            {isCheckingUrl ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-            ) : postUrlSafe === true ? (
-              <><Check className="h-3.5 w-3.5 text-green-600" /><span className="text-green-600">安全</span></>
-            ) : postUrlSafe === false ? (
-              <X className="h-3.5 w-3.5 text-destructive" />
-            ) : null}
-          </span>
         </div>
-        {isCheckingUrl
-          ? <p className="mt-1 text-xs text-muted-foreground">正在檢查連結安全性...</p>
-          : <FormFieldError message={errors.postUrl} />}
-      </div>
-
-      {/* Expires */}
-      <div>
-        <Label>截止日期</Label>
-        <DatePicker
-          value={expiresAt}
-          onValueChange={setExpiresAt}
-          placeholder="選擇截止日期"
-          className="mt-1"
-          minDate={new Date()}
-        />
-      </div>
+      </FormSection>
 
       {/* Actions */}
       <div className="space-y-2 pt-4">

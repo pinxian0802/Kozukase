@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { SingleImageUpload } from '@/components/shared/single-image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { FormSection, OptionalTag } from '@/components/shared/form-section'
 import { BrandSelect } from '@/components/shared/brand-select'
 import { scrollToFirstError } from '@/lib/utils/scroll-to-error'
 import { trpc } from '@/lib/trpc/client'
@@ -98,94 +99,102 @@ export function WishForm({ onBack, onSubmit, isSubmitting }: WishFormProps) {
         <h1 className="text-2xl font-bold font-heading">新增許願</h1>
       </div>
 
-      <div className="space-y-5">
-        <div>
-          <Label>商品圖片 <span className="text-foreground">*</span></Label>
-          <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
-          <div className="mt-1.5">
-            <SingleImageUpload
-              purpose="product"
-              value={null}
-              onChange={() => {}}
-              pendingFile={pendingFile}
-              onPendingFileChange={(file) => {
-                setPendingFile(file)
-                if (file && imageError) setImageError('')
-              }}
-              invalid={!!imageError}
-            />
+      <div className="space-y-6 md:space-y-8">
+        {/* ── 商品資訊 ── */}
+        <FormSection title="商品資訊">
+          <div>
+            <Label>商品圖片</Label>
+            <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
+            <div className="mt-1.5">
+              <SingleImageUpload
+                purpose="product"
+                value={null}
+                onChange={() => {}}
+                pendingFile={pendingFile}
+                onPendingFileChange={(file) => {
+                  setPendingFile(file)
+                  if (file && imageError) setImageError('')
+                }}
+                invalid={!!imageError}
+              />
+            </div>
+            <FormFieldError message={imageError} />
           </div>
-          <FormFieldError message={imageError} />
-        </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="wish-name">商品名稱 <span className="text-foreground">*</span></Label>
-          <Input
-            id="wish-name"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value)
-              if (nameError) setNameError('')
-            }}
-            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-            placeholder="輸入商品名稱"
-            aria-invalid={!!nameError}
-          />
-          <FormFieldError message={nameError} />
-        </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="wish-name">商品名稱</Label>
+            <Input
+              id="wish-name"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value)
+                if (nameError) setNameError('')
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+              placeholder="輸入商品名稱"
+              aria-invalid={!!nameError}
+            />
+            <FormFieldError message={nameError} />
+          </div>
 
-        <div className="space-y-1.5">
-          <Label>品牌</Label>
-          <BrandSelect
-            value={brandId}
-            onValueChange={setBrandId}
-            placeholder="選擇或新增品牌"
-            deferred
-          />
-        </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>品牌<OptionalTag /></Label>
+              <BrandSelect
+                value={brandId}
+                onValueChange={setBrandId}
+                placeholder="選擇或新增品牌"
+                deferred
+              />
+            </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="wish-model">型號</Label>
-          <Input
-            id="wish-model"
-            value={modelNumber}
-            onChange={(e) => setModelNumber(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-            placeholder="輸入型號"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="wish-model">型號<OptionalTag /></Label>
+              <Input
+                id="wish-model"
+                value={modelNumber}
+                onChange={(e) => setModelNumber(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                placeholder="輸入型號"
+              />
+            </div>
+          </div>
+        </FormSection>
 
-        <div className="space-y-1.5">
-          <Label>國家 <span className="text-foreground">*</span></Label>
-          <SearchableSelect
-            value={regionId}
-            onValueChange={(v) => {
-              setRegionId(v)
-              if (regionError) setRegionError('')
-            }}
-            options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
-            placeholder="選擇國家"
-            searchPlaceholder="搜尋國家..."
-            emptyText="找不到相符的國家"
-          />
-          <FormFieldError message={regionError} />
-        </div>
+        {/* ── 許願詳情 ── */}
+        <FormSection title="許願詳情">
+          <div className="space-y-1.5">
+            <Label>國家</Label>
+            <SearchableSelect
+              value={regionId}
+              onValueChange={(v) => {
+                setRegionId(v)
+                if (regionError) setRegionError('')
+              }}
+              options={(regions ?? []).map((r: { id: string; name: string }) => ({ value: r.id, label: r.name }))}
+              placeholder="選擇國家"
+              searchPlaceholder="搜尋國家..."
+              emptyText="找不到相符的國家"
+            />
+            <FormFieldError message={regionError} />
+          </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="wish-content">許願內容 <span className="text-foreground">*</span></Label>
-          <Textarea
-            id="wish-content"
-            value={content}
-            onChange={(e) => {
-              setContent(e.target.value)
-              if (contentError) setContentError('')
-            }}
-            placeholder="描述你希望代購的細節，例如顏色、尺寸、版本..."
-            rows={4}
-            aria-invalid={!!contentError}
-          />
-          <FormFieldError message={contentError} />
-        </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="wish-content">許願內容</Label>
+            <Textarea
+              id="wish-content"
+              value={content}
+              onChange={(e) => {
+                setContent(e.target.value)
+                if (contentError) setContentError('')
+              }}
+              placeholder="描述你希望代購的細節，例如顏色、尺寸、版本..."
+              rows={4}
+              aria-invalid={!!contentError}
+            />
+            <FormFieldError message={contentError} />
+          </div>
+        </FormSection>
 
         <div className="flex gap-3 pt-2">
           <Button type="button" variant="outline" onClick={onBack}>
