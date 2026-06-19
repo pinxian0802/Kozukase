@@ -49,8 +49,10 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
 
   const handleLogout = async () => {
     const supabase = createSupabaseBrowserClient()
-    await supabase.auth.signOut()
-    router.refresh()
+    // signOut 失敗也不擋導航，避免把使用者困在原頁。
+    await supabase.auth.signOut().catch(() => {})
+    // 整頁導向：清掉 Router Cache 與 Server 端 session，避免登出後殘留舊帳號狀態。
+    window.location.assign('/')
   }
 
   return (

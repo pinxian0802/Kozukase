@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Loader2, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -27,7 +27,6 @@ type LoginErrors = {
 }
 
 export default function LoginPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const handledQueryKey = useRef<string | null>(null)
 
@@ -115,15 +114,18 @@ export default function LoginPage() {
         .eq('id', user.id)
         .single()
       if (!profile?.username) {
-        router.push(`/onboarding${safeNext !== '/' ? `?next=${encodeURIComponent(safeNext)}` : ''}`)
-        router.refresh()
+        // 整頁導向(而非 router.push)：身分剛改變，必須讓 middleware 與
+        // 所有 Server Layout 帶著新 cookie 重跑，避免 Router Cache 殘留舊帳號。
+        window.location.assign(
+          `/onboarding${safeNext !== '/' ? `?next=${encodeURIComponent(safeNext)}` : ''}`
+        )
         return
       }
     }
 
     toast.success('登入成功')
-    router.push(safeNext)
-    router.refresh()
+    // 同上：用整頁導向確保 Server 端 session 以新帳號重新渲染。
+    window.location.assign(safeNext)
   }
 
   return (

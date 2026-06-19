@@ -141,8 +141,9 @@ export default function OnboardingPage() {
       })
 
       toast.success('歡迎加入！')
-      router.push(safeNext)
-      router.refresh()
+      // 整頁導向：profile 剛建立，須讓 root layout 帶新 session 重算，
+      // 否則 Header/Sidebar 會殘留舊 profile（無頭像、舊名字）。
+      window.location.assign(safeNext)
     } catch (error: unknown) {
       if (uploadedR2Key) {
         await deleteObjects.mutateAsync({ r2Keys: [uploadedR2Key] }).catch(() => {})
@@ -151,8 +152,7 @@ export default function OnboardingPage() {
       if (message.includes('已被使用')) {
         setErrors(prev => ({ ...prev, username: '此 username 已被使用' }))
       } else if (message.includes('已設定完成')) {
-        router.push(safeNext)
-        router.refresh()
+        window.location.assign(safeNext)
       } else {
         toast.error('設定失敗，請稍後再試')
       }
