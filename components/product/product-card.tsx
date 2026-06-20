@@ -41,7 +41,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
   const card = (
     <div
       className={cn(
-        '@container group relative overflow-hidden rounded-none bg-white shadow-none md:rounded-2xl md:shadow-sm md:transition-shadow md:duration-200 md:hover:shadow-md',
+        '@container group relative overflow-hidden rounded-xl border border-border-soft bg-white shadow-none md:rounded-2xl md:border-0 md:shadow-sm md:transition-shadow md:duration-200 md:hover:shadow-md',
         variant === 'compact' ? 'flex items-center gap-4 p-5' : '',
         className
       )}
@@ -101,8 +101,9 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
         <>
           {/* 佔位:在 flex flow 撐出 name 區高度,卡片總高 = 圖片 + 此佔位 */}
           {/* Mobile: simple inline text */}
-          <div className="px-2 py-2 md:hidden">
-            <p className="line-clamp-2 min-h-[2lh] text-[13px] leading-snug text-foreground" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+          <div className="px-2.5 py-2.5 md:hidden">
+            {brandLabel && <p className="mb-0.5 truncate text-[11px] text-text-muted">{brandLabel}</p>}
+            <p className="line-clamp-2 min-h-[2lh] text-[14px] font-medium leading-snug text-foreground" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
           </div>
           {/* Desktop: absolute overlay with hover expand */}
           <div aria-hidden className="invisible bg-white px-4 pb-3 pt-4 hidden md:block">

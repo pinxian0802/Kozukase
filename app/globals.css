@@ -361,6 +361,10 @@ button {
   width: 100%;
   container-type: inline-size;
   aspect-ratio: 1072 / 240;
+  /* scaler 子層為 1072px 寬、靠 transform 縮放；transform 不縮小其版面盒子，
+     未裁切會把整頁撐到 ~1088px（手機水平溢出）。scaler 已縮到剛好等於容器寬，
+     故裁切不影響可見內容。 */
+  overflow: hidden;
 }
 .seller-banner-scaler {
   position: absolute;

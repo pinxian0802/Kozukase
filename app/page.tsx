@@ -75,7 +75,7 @@ export default async function HomePage() {
           <div className="bg-surface-muted/40">
             <SectionCarousel title="熱門商品" viewAllHref="/search">
               {popularProducts.map((p) => (
-                <div key={p.id} className="w-[100px] shrink-0 snap-start md:w-[calc((100%-64px)/5)]">
+                <div key={p.id} className="w-full md:w-[calc((100%-64px)/5)] md:shrink-0 md:snap-start">
                   <ProductCard product={p} imageAspect="1/1" />
                 </div>
               ))}
@@ -87,7 +87,7 @@ export default async function HomePage() {
         {upcomingConnections.length > 0 && (
           <SectionCarousel title="即將出發的連線代購" viewAllHref="/connections">
             {upcomingConnections.map((c) => (
-              <div key={c.id} className="w-[156px] shrink-0 snap-start md:w-[calc((100%-48px)/4)]">
+              <div key={c.id} className="w-full md:w-[calc((100%-48px)/4)] md:shrink-0 md:snap-start">
                 <ConnectionCard connection={c} />
               </div>
             ))}

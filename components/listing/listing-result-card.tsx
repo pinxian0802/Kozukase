@@ -72,7 +72,7 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
           </div>
 
           <CardContent className="flex flex-1 flex-col px-1.5 py-1.5 md:p-3">
-            <h3 className="line-clamp-2 min-h-[2lh] text-[10px] leading-tight md:line-clamp-2 md:text-base md:font-bold md:leading-snug" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>
+            <h3 className="line-clamp-2 min-h-[2lh] text-[13px] font-medium leading-snug md:line-clamp-2 md:text-base md:font-bold md:leading-snug" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>
               {listing.title ?? ' '}
             </h3>
 
@@ -98,18 +98,18 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
             </div>
 
             <div className="mt-auto pt-1 md:pt-3">
-              <span className="text-[11px] font-bold leading-tight md:text-lg md:font-semibold" style={{ color: 'var(--brand-700)' }}>
+              <span className="text-[15px] font-extrabold leading-tight md:text-lg md:font-semibold" style={{ color: 'var(--brand-700)' }}>
                 {formatPrice(listing.price, listing.is_price_on_request)}
               </span>
             </div>
 
             {showSeller && listing.seller && (
-              <div className="flex items-center gap-1 mt-1 md:gap-2 md:pt-1.5">
-                <Avatar className="h-3.5 w-3.5 shrink-0 md:h-6 md:w-6">
+              <div className="flex items-center gap-1.5 mt-2 md:gap-2 md:pt-1.5">
+                <Avatar className="h-5 w-5 shrink-0 md:h-6 md:w-6">
                   <AvatarImage src={listing.seller.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-[7px] md:text-xs">{listing.seller.name[0]}</AvatarFallback>
+                  <AvatarFallback className="text-[10px] md:text-xs">{listing.seller.name[0]}</AvatarFallback>
                 </Avatar>
-                <span className="truncate text-[9px] text-neutral-400 md:hidden">{listing.seller.name}</span>
+                <span className="truncate text-[11px] text-text-muted md:hidden">{listing.seller.name}</span>
                 <div className="min-w-0 flex-1 hidden md:block">
                   <div className="flex items-center gap-1">
                     <span className="truncate text-sm font-medium text-text-strong">{listing.seller.name}</span>

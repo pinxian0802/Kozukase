@@ -10,8 +10,102 @@ import Link from 'next/link'
  */
 export function SellerCtaBanner() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12 md:py-20">
-      <div className="seller-banner-wrap">
+    <section className="mx-auto max-w-6xl px-4 py-8 md:py-20">
+      {/* === 手機版（< md）：精簡可讀卡片 ===
+          桌機那張 1072×240 藝術 banner 若整塊 transform:scale 縮到手機寬，
+          會被壓成 ~361×81px 的細條、文字縮到 ~12px 不可讀，故手機另做正常比例卡片。 */}
+      <Link
+        href="/become-seller"
+        className="seller-banner-card md:hidden block relative overflow-hidden no-underline"
+        style={{
+          borderRadius: '18px',
+          padding: '20px',
+          background:
+            'linear-gradient(165deg, #1A237E 0%, #1565C0 45%, #2D8FD5 100%)',
+          boxShadow: '0 10px 30px rgba(21,101,192,0.22)',
+        }}
+      >
+        {/* 右上裝飾光暈 */}
+        <div
+          style={{
+            position: 'absolute',
+            right: '-30px',
+            top: '-30px',
+            width: '140px',
+            height: '140px',
+            borderRadius: '50%',
+            background:
+              'radial-gradient(circle, rgba(255,213,79,0.22) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 12px',
+              borderRadius: '999px',
+              background: 'rgba(255,255,255,0.22)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'white',
+              fontSize: '12px',
+              fontWeight: 700,
+            }}
+          >
+            <span
+              className="seller-banner-dot"
+              style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFE082', flexShrink: 0 }}
+            />
+            招募中
+          </span>
+          <div
+            style={{
+              marginTop: '12px',
+              fontSize: '20px',
+              fontWeight: 800,
+              color: 'white',
+              letterSpacing: '-0.01em',
+              lineHeight: 1.3,
+            }}
+          >
+            成為 Kozukase 賣家
+          </div>
+          <div
+            style={{
+              marginTop: '4px',
+              fontSize: '13px',
+              color: 'rgba(255,255,255,0.88)',
+              lineHeight: 1.5,
+            }}
+          >
+            讓更多買家找到你的代購服務
+          </div>
+          <span
+            style={{
+              marginTop: '16px',
+              display: 'flex',
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              height: '44px',
+              borderRadius: '12px',
+              background: 'white',
+              color: '#1565C0',
+              fontSize: '15px',
+              fontWeight: 700,
+            }}
+          >
+            立即上架
+            <span style={{ fontSize: '17px' }}>→</span>
+          </span>
+        </div>
+      </Link>
+
+      {/* === 桌機版（≥ md）：Mountain Vista 像素藝術 banner === */}
+      <div className="seller-banner-wrap hidden md:block">
         <div className="seller-banner-scaler">
           <div
             className="seller-banner-card"

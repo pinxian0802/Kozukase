@@ -88,9 +88,13 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
             <Search className="h-4 w-4" />
           </Button>
 
+          {/* 即時頻道監聽：不分裝置都掛載 */}
+          {session?.profile && <UserChannelListener />}
+
+          {/* 桌機才顯示帳號操作；手機全部收進右側漢堡選單 */}
+          <div className="hidden items-center gap-1 md:flex md:gap-2">
           {session?.profile ? (
             <>
-              <UserChannelListener />
               <NotificationBell />
               <MessageBell />
               <DropdownMenu>
@@ -150,6 +154,7 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
               </Link>
             </div>
           )}
+          </div>
 
           {/* Mobile Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -175,6 +180,40 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
                 <Link href="/wishes" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                   許願榜
                 </Link>
+
+                {/* 帳號操作（手機從 navbar 收進選單，依登入狀態顯示） */}
+                <div className="my-2 border-t" />
+                {session?.profile ? (
+                  <>
+                    <Link href="/notifications" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
+                      <Bell className="h-4 w-4" />通知
+                    </Link>
+                    <Link href="/messages" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
+                      <Settings className="h-4 w-4" />訊息
+                    </Link>
+                    <Link href="/account" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
+                      <Settings className="h-4 w-4" />帳號設定
+                    </Link>
+                    <Link href="/favorites" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
+                      <Heart className="h-4 w-4" />我的收藏
+                    </Link>
+                    <Link href={session.isSeller ? '/dashboard' : '/become-seller'} onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
+                      <Store className="h-4 w-4" />{session.isSeller ? '賣家後台' : '成為賣家'}
+                    </Link>
+                    <button type="button" onClick={() => { setMobileMenuOpen(false); handleLogout() }} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
+                      <LogOut className="h-4 w-4" />登出
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ className: 'justify-start' })}>
+                      登入
+                    </Link>
+                    <Link href="/register" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'outline', className: 'justify-start' })}>
+                      註冊
+                    </Link>
+                  </>
+                )}
               </nav>
             </SheetContent>
           </Sheet>

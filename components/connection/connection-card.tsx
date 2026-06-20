@@ -45,15 +45,15 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
             />
           )}
         </div>
-        <CardContent className="flex flex-1 flex-col px-1.5 py-1.5 min-h-0 md:p-4">
+        <CardContent className="flex flex-1 flex-col px-2.5 py-2.5 min-h-0 md:p-4">
           {/* Mobile: minimal */}
-          <span className="text-[9px] text-muted-foreground md:text-xs">{formatDate(connection.start_date)} ~ {formatDate(connection.end_date)}</span>
-          <h3 className="text-[10px] leading-tight line-clamp-2 min-h-[2lh] md:text-base md:font-bold md:leading-snug md:line-clamp-1 md:min-h-0" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{connection.title ?? ' '}</h3>
+          <span className="hidden text-text-muted md:block md:text-xs">{formatDate(connection.start_date)} ~ {formatDate(connection.end_date)}</span>
+          <h3 className="mt-0.5 text-[14px] font-medium leading-snug line-clamp-2 min-h-[2lh] md:mt-0 md:text-base md:font-bold md:leading-snug md:line-clamp-1 md:min-h-0" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{connection.title ?? ' '}</h3>
           {/* Location — mobile: inline simple; desktop: chips */}
-          <div className="flex items-center gap-0.5 mt-0.5 md:flex-wrap md:gap-1 md:mt-1.5">
+          <div className="flex items-center gap-0.5 mt-1 md:flex-wrap md:gap-1 md:mt-1.5">
             {connection.region?.name && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-primary md:text-xs md:mr-1">
-                <MapPin className="h-2.5 w-2.5 shrink-0 md:h-3 md:w-3" />
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-primary md:text-xs md:mr-1">
+                <MapPin className="h-3 w-3 shrink-0" />
                 {connection.region.name}
               </span>
             )}
@@ -79,12 +79,12 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
 
           {/* Seller */}
           {connection.seller && (
-            <div className="mt-1 flex items-center gap-1 md:mt-auto md:gap-2 md:pt-3 md:pb-1">
-              <Avatar className="h-3.5 w-3.5 md:h-7 md:w-7">
+            <div className="mt-2 flex items-center gap-1.5 md:mt-auto md:gap-2 md:pt-3 md:pb-1">
+              <Avatar className="h-5 w-5 md:h-7 md:w-7">
                 <AvatarImage src={connection.seller.avatar_url ?? connection.seller.profile?.avatar_url ?? undefined} />
-                <AvatarFallback className="text-[7px] md:text-xs">{connection.seller.name[0]}</AvatarFallback>
+                <AvatarFallback className="text-[10px] md:text-xs">{connection.seller.name[0]}</AvatarFallback>
               </Avatar>
-              <span className="text-[9px] text-neutral-400 truncate md:text-sm md:font-medium md:text-foreground">{connection.seller.name}</span>
+              <span className="text-[11px] text-text-muted truncate md:text-sm md:font-medium md:text-foreground">{connection.seller.name}</span>
               {connection.seller.is_social_verified && <SocialBadge className="h-2.5 w-2.5 text-primary md:h-3.5 md:w-3.5 hidden md:block" />}
             </div>
           )}

@@ -69,6 +69,8 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
   })
 
   const allListings = product?.listings ?? []
+  const _prices = allListings.map((l: any) => l.price).filter((p: any) => p != null) as number[]
+  const lowestPrice = _prices.length ? Math.min(..._prices) : null
   const PRICE_MAX = Math.max(10000, ...allListings.map((l: any) => l.price ?? 0))
   const effectiveMax = maxPrice ?? PRICE_MAX
   const isPriceFiltered = minPrice > 0 || (maxPrice !== null && maxPrice < PRICE_MAX)
@@ -192,6 +194,30 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
           { label: '商品', href: backHref },
           { label: product.name },
         ]} />
+
+        {/* ── 手機版商品 header（圖文並排精簡版）；桌機沿用左側 aside ── */}
+        <section className="md:hidden mb-3 flex gap-3 rounded-2xl border border-border-soft bg-surface-card p-3 shadow-[0_2px_12px_rgba(15,23,42,0.06)]">
+          {galleryImages[0] && (
+            <img
+              src={galleryImages[0].url}
+              alt={product.name}
+              className="h-[88px] w-[88px] shrink-0 rounded-[10px] bg-surface-muted object-cover"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            {brandLabel && <p className="text-xs text-text-muted">{brandLabel}</p>}
+            <h1 className="line-clamp-2 text-[15px] font-bold leading-snug text-text-strong">{product.name}</h1>
+            {lowestPrice != null && (
+              <div className="mt-1.5 flex items-baseline gap-1">
+                <span className="text-[19px] font-extrabold leading-none text-brand-700">
+                  NT${lowestPrice.toLocaleString()}
+                </span>
+                <span className="text-[12px] font-semibold text-text-muted">起</span>
+              </div>
+            )}
+          </div>
+        </section>
+
         <div className="flex items-start gap-6">
           {/* Left sidebar */}
           <aside className="hidden w-64 shrink-0 md:block">
