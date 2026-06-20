@@ -341,7 +341,7 @@ export default function AdminSocialVerificationPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold font-heading">社群驗證</h1>
+      <h1 className="text-[17px] font-bold font-heading md:text-2xl">社群驗證</h1>
 
       <Tabs defaultValue="instagram">
         <FilterTabsList items={[

@@ -62,7 +62,7 @@ export default function SellerDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[15px] font-bold font-heading md:text-2xl">{getGreeting()}，歡迎回來</h1>
+          <h1 className="text-[17px] font-bold font-heading md:text-2xl">{getGreeting()}，歡迎回來</h1>
           <p className="text-[11px] text-muted-foreground mt-0.5 md:text-sm">{today}</p>
         </div>
         <div className="flex gap-1.5 shrink-0 md:gap-2">

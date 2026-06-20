@@ -38,7 +38,7 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold font-heading">使用者管理</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">使用者管理</h1>
         <p className="text-sm text-muted-foreground">列出所有使用者，並指派或取消管理員權限。</p>
       </div>
 

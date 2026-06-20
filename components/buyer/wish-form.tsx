@@ -96,7 +96,7 @@ export function WishForm({ onBack, onSubmit, isSubmitting }: WishFormProps) {
         <Button type="button" variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold font-heading">新增許願</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">新增許願</h1>
       </div>
 
       <div className="space-y-6 md:space-y-8">

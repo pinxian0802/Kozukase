@@ -31,12 +31,15 @@ const buttonVariants = cva(
         xs: "h-7 max-md:h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs max-md:text-[11px] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 max-md:h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 max-md:px-2 text-[0.8rem] max-md:text-[12px] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-10 max-md:h-9 gap-1.5 px-3 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5",
+        // DS v1 — 大型主 CTA（44px 觸控友善，手機降一階為 40px）
+        xl: "h-11 max-md:h-10 gap-2 px-4 text-[15px] has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5",
         icon: "size-9 max-md:size-8",
         "icon-xs":
           "size-7 max-md:size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
         "icon-sm":
           "size-8 max-md:size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-10 max-md:size-9",
+        "icon-xl": "size-11 max-md:size-10",
       },
     },
     defaultVariants: {

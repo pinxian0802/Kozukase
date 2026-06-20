@@ -94,7 +94,7 @@ export default function AdminReportsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold font-heading">檢舉處理</h1>
+      <h1 className="text-[17px] font-bold font-heading md:text-2xl">檢舉處理</h1>
 
       <Tabs value={statusFilter} onValueChange={setStatusFilter}>
         <FilterTabsList items={[

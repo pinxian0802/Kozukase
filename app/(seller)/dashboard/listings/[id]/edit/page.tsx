@@ -86,7 +86,7 @@ export default function EditListingPage() {
         <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-[15px] font-bold font-heading md:text-2xl">編輯代購</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">編輯代購</h1>
       </div>
 
       {adminTakenDown && (

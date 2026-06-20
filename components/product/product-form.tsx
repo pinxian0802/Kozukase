@@ -84,7 +84,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
         <Button type="button" variant="ghost" size="icon-sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-[15px] font-bold font-heading md:text-2xl">新增商品</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">新增商品</h1>
       </div>
 
       <p className="text-[13px] leading-relaxed text-muted-foreground">

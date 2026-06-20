@@ -61,7 +61,7 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold font-heading">商品管理</h1>
+      <h1 className="text-[17px] font-bold font-heading md:text-2xl">商品管理</h1>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

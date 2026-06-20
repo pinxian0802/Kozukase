@@ -45,7 +45,7 @@ export function ProductPicker({ title, onSelectExisting, onSubmitDraft, onCancel
         <Button type="button" variant="ghost" size="icon-sm" onClick={onCancel}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-[15px] font-bold font-heading md:text-2xl">{title}</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">{title}</h1>
       </div>
       <div className="space-y-2">
         <p className="text-sm text-muted-foreground">搜尋或新增商品</p>

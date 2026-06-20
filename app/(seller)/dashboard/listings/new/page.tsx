@@ -65,7 +65,7 @@ export default function NewListingPage() {
         <Button type="button" variant="ghost" size="icon-sm" onClick={() => setProduct(null)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-[15px] font-bold font-heading md:text-2xl">新增代購</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">新增代購</h1>
       </div>
       <Card className="ring-0 shadow-sm py-0">
         <CardContent className="p-4 sm:p-8">

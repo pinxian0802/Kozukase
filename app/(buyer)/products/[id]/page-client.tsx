@@ -233,7 +233,7 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
             <section className="mb-3 overflow-hidden rounded-xl border border-border-soft bg-surface-card p-3 shadow-[0_12px_40px_rgba(15,23,42,0.06)] md:mb-4 md:rounded-2xl md:p-5">
               <div className="flex items-start justify-between gap-3 md:gap-4">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-base font-bold font-heading md:text-2xl">尋找代購，共 {filteredListings.length} 位</h2>
+                  <h2 className="text-[17px] font-bold font-heading md:text-2xl">尋找代購，共 {filteredListings.length} 位</h2>
                   {(isPriceFiltered || inStockOnly) && (
                     <div className="mt-3 flex flex-wrap items-center gap-1.5">
                       {inStockOnly && (

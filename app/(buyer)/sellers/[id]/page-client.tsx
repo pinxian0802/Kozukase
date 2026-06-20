@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect } from 'react'
+import { use, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -8,7 +8,7 @@ import {
   Star, CheckCircle2, MessageCircle, ChevronLeft
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { FilterTabsList } from '@/components/shared/filter-tabs-list'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -39,6 +39,47 @@ function StarRow({ value, size = 14 }: { value: number; size?: number }) {
           strokeWidth={1.5}
         />
       ))}
+    </div>
+  )
+}
+
+function ExpandableBio({ text, className }: { text: string; className?: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const [overflowing, setOverflowing] = useState(false)
+  const ref = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const check = () => {
+      if (expanded) return
+      setOverflowing(el.scrollHeight > el.clientHeight + 1)
+    }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [text, expanded])
+
+  return (
+    <div className={className}>
+      <p
+        ref={ref}
+        className={cn(
+          'text-[13.5px] leading-[1.6] text-text-muted whitespace-pre-wrap md:text-[14px] md:leading-[1.65]',
+          !expanded && 'line-clamp-5'
+        )}
+      >
+        {text}
+      </p>
+      {overflowing && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 inline-block text-[13px] font-medium text-brand-700 hover:text-brand-500 transition-colors cursor-pointer"
+        >
+          {expanded ? '收合' : '展開'}
+        </button>
+      )}
     </div>
   )
 }
@@ -174,8 +215,132 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
           返回
         </button>
 
-        {/* ── Hero ── */}
-        <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:gap-6 md:grid-cols-[1.4fr_1fr] md:gap-8 items-start">
+        {/* ── Mobile hero（置中型，手機專用） ── */}
+        <div className="md:hidden mt-4 mb-5 flex flex-col items-center text-center">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={seller.avatar_url ?? (seller as any).profile?.avatar_url ?? undefined} />
+            <AvatarFallback className="text-2xl font-semibold bg-gradient-to-br from-[#2d3a5e] to-[#0f1a36] text-white">
+              {seller.name[0]}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            <h1 className="text-xl font-bold tracking-tight leading-none" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
+              {seller.name}
+            </h1>
+            {seller.is_social_verified && <SocialBadge />}
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[12px] text-text-faint">
+            {seller.seller_regions && seller.seller_regions.length > 0 && (
+              <>
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {seller.seller_regions.map((r: any) => r.region?.name).filter(Boolean).join('、')}
+                </span>
+                <span>·</span>
+              </>
+            )}
+            <span className="inline-flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              加入於 {formatDate(seller.created_at)}
+            </span>
+          </div>
+
+          {/* Stats strip */}
+          <div className="mt-4 w-full grid grid-cols-4 border border-border-soft rounded-[14px] overflow-hidden bg-white">
+            {stats.map((s, i) => (
+              <div
+                key={s.label}
+                className={cn(
+                  'px-1 py-2.5 flex flex-col items-center justify-center gap-0.5',
+                  i < stats.length - 1 && 'border-r border-border-soft'
+                )}
+              >
+                <div
+                  className="flex items-baseline gap-0.5"
+                  style={{ fontFamily: 'Rubik, sans-serif', fontSize: 'clamp(16px, 4.5vw, 20px)', fontWeight: 700, color: 'var(--text-strong)', letterSpacing: '-0.01em' }}
+                >
+                  {s.value}
+                  {s.star && s.value !== '-' && <Star className="h-3 w-3 fill-amber-400 stroke-amber-400 mb-0.5" strokeWidth={1.5} />}
+                </div>
+                <div className="text-[11px] text-text-muted">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bio */}
+          {(seller as any).bio && (
+            <ExpandableBio text={(seller as any).bio} className="mt-4 w-full text-center" />
+          )}
+
+          {/* Actions */}
+          {!isOwnProfile && (
+            <div className="mt-4 w-full flex gap-2">
+              <Button
+                size="xl"
+                variant={seller.isFollowing ? 'outline-soft' : 'default'}
+                onClick={() => followToggle.mutate({ seller_id: id })}
+                disabled={followToggle.isPending}
+                className="flex-1 rounded-[10px] font-semibold"
+              >
+                {seller.isFollowing
+                  ? <><UserCheck className="h-4 w-4" /> 已追蹤</>
+                  : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-xl"
+                onClick={() => {
+                  const name = seller.name ?? ''
+                  const avatar = seller.avatar_url ?? (seller as any).profile?.avatar_url ?? ''
+                  router.push(`/messages?seller_id=${id}&seller_name=${encodeURIComponent(name)}&seller_avatar=${encodeURIComponent(avatar)}`)
+                }}
+                className="rounded-[10px] text-text-muted shrink-0"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+              <SharePopover
+                title={seller.name ?? ''}
+                triggerClassName={cn(buttonVariants({ variant: 'outline', size: 'icon-xl' }), 'rounded-[10px] text-text-muted shrink-0')}
+              />
+              <ReportDialog seller_id={id} iconOnly />
+            </div>
+          )}
+
+          {/* Social */}
+          {hasSocial && (
+            <div className="mt-2 w-full flex gap-2">
+              {igHandle && (
+                <a
+                  href={`https://www.instagram.com/${igHandle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'ig' })}
+                  className="flex-1 min-w-0 min-h-[52px] flex items-center gap-2.5 border border-border-soft rounded-[14px] bg-white px-3"
+                >
+                  <Image src="/images/instagram.png" alt="Instagram" width={24} height={24} className="rounded-[5px] shrink-0" />
+                  <span className="text-[13.5px] font-semibold text-text-strong truncate">{igHandle}</span>
+                </a>
+              )}
+              {threadsHandle && (
+                <a
+                  href={`https://www.threads.net/@${threadsHandle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => recordSocialClick.mutate({ seller_id: id, platform: 'threads' })}
+                  className="flex-1 min-w-0 min-h-[52px] flex items-center gap-2.5 border border-border-soft rounded-[14px] bg-white px-3"
+                >
+                  <Image src="/images/threads.png" alt="Threads" width={24} height={24} className="rounded-[5px] shrink-0" />
+                  <span className="text-[13.5px] font-semibold text-text-strong truncate">{threadsHandle}</span>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Hero（桌機版） ── */}
+        <div className="hidden md:grid mt-4 gap-4 md:mt-6 md:gap-6 md:grid-cols-[1.4fr_1fr] md:gap-8 items-start">
           {/* Left: avatar + info */}
           <div className="flex gap-3 md:gap-6">
             <Avatar className="h-16 w-16 shrink-0 md:h-[104px] md:w-[104px]">
@@ -217,9 +382,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
 
               {/* Bio */}
               {(seller as any).bio && (
-                <p className="text-[14px] leading-[1.65] text-text-muted max-w-[520px] whitespace-pre-wrap">
-                  {(seller as any).bio}
-                </p>
+                <ExpandableBio text={(seller as any).bio} className="max-w-[520px]" />
               )}
 
               {/* Rating (mobile fallback if no stats bar) */}
@@ -237,21 +400,20 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
             {/* Button row: 追蹤(148px) + 訊息+分享+檢舉(148px) */}
             {!isOwnProfile && (
               <div className="flex gap-2">
-                <button
+                <Button
+                  size="xl"
+                  variant={seller.isFollowing ? 'outline-soft' : 'default'}
                   onClick={() => followToggle.mutate({ seller_id: id })}
                   disabled={followToggle.isPending}
-                  className={cn(
-                    'h-11 w-[148px] rounded-[10px] text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors shrink-0',
-                    seller.isFollowing
-                      ? 'bg-surface-muted text-text-strong hover:bg-neutral-300'
-                      : 'bg-text-strong text-white hover:bg-neutral-800'
-                  )}
+                  className="w-[148px] rounded-[10px] font-semibold"
                 >
                   {seller.isFollowing
                     ? <><UserCheck className="h-4 w-4" /> 已追蹤</>
                     : <><UserPlus className="h-4 w-4" /> 追蹤賣家</>}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon-xl"
                   onClick={() => {
                     const name = seller.name ?? ''
                     const avatar = seller.avatar_url ?? (seller as any).profile?.avatar_url ?? ''
@@ -261,13 +423,13 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                       `&seller_avatar=${encodeURIComponent(avatar)}`
                     )
                   }}
-                  className="h-11 w-11 rounded-[10px] bg-white text-text-muted border border-border-soft inline-flex items-center justify-center hover:bg-surface-muted transition-colors shrink-0"
+                  className="rounded-[10px] text-text-muted shrink-0"
                 >
                   <MessageCircle className="h-4 w-4" />
-                </button>
+                </Button>
                 <SharePopover
                   title={seller.name ?? ''}
-                  triggerClassName="h-11 w-11 rounded-[10px] bg-white text-text-muted border border-border-soft inline-flex items-center justify-center hover:bg-surface-muted transition-colors cursor-pointer shrink-0"
+                  triggerClassName={cn(buttonVariants({ variant: 'outline', size: 'icon-xl' }), 'rounded-[10px] text-text-muted shrink-0')}
                 />
                 <ReportDialog seller_id={id} iconOnly />
               </div>
@@ -300,13 +462,13 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                 </>
               ) : (
                 <>
-                  <div className="w-[148px] shrink-0" />
+                  <div className="hidden md:block md:w-[148px] shrink-0" />
                   <a
                     href={igHandle ? `https://www.instagram.com/${igHandle}` : `https://www.threads.net/@${threadsHandle}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => recordSocialClick.mutate({ seller_id: id, platform: igHandle ? 'ig' : 'threads' })}
-                    className="w-[148px] shrink-0 min-h-[64px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors overflow-hidden"
+                    className="flex-1 md:w-[148px] md:flex-none min-h-[64px] flex items-center gap-2.5 group border border-border-soft rounded-[14px] bg-white px-3 hover:bg-surface-muted transition-colors overflow-hidden"
                   >
                     <Image
                       src={igHandle ? '/images/instagram.png' : '/images/threads.png'}
@@ -321,8 +483,8 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* ── Stats bar ── */}
-        <div className="mt-4 mb-5 grid grid-cols-4 border border-border-soft rounded-lg overflow-hidden bg-white md:mt-7 md:mb-9 md:rounded-[14px]">
+        {/* ── Stats bar（桌機版；手機在上方置中 hero 內） ── */}
+        <div className="hidden md:grid grid-cols-4 border border-border-soft rounded-lg overflow-hidden bg-white md:mt-7 md:mb-9 md:rounded-[14px]">
           {stats.map((s, i) => (
             <div
               key={s.label}
@@ -331,7 +493,7 @@ export default function SellerPageClient({ params }: { params: Promise<{ id: str
                 i < stats.length - 1 && 'border-r border-border-soft'
               )}
             >
-              <div className="text-[9px] font-medium text-text-muted uppercase tracking-[.04em] md:text-[11px]">{s.label}</div>
+              <div className="text-[11px] font-medium text-text-muted uppercase tracking-[.04em]">{s.label}</div>
               <div className="flex items-baseline gap-1" style={{ fontFamily: 'Rubik, sans-serif', fontSize: 'clamp(16px, 4vw, 24px)', fontWeight: 700, color: 'var(--text-strong)', letterSpacing: '-0.01em' }}>
                 {s.value}
                 {s.star && s.value !== '-' && <Star className="h-3.5 w-3.5 fill-amber-400 stroke-amber-400 mb-0.5" strokeWidth={1.5} />}

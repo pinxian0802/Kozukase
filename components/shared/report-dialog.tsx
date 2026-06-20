@@ -58,7 +58,7 @@ export function ReportDialog({ iconOnly, triggerClassName, open: openProp, onOpe
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {hideTrigger ? null : iconOnly ? (
-        <DialogTrigger nativeButton render={<Button variant="outline" size="icon" className={cn("h-11 w-11 rounded-[10px] text-text-muted", triggerClassName)} />}>
+        <DialogTrigger nativeButton render={<Button variant="outline" size="icon-xl" className={cn("rounded-[10px] text-text-muted", triggerClassName)} />}>
           <Flag className="h-4 w-4" />
         </DialogTrigger>
       ) : (

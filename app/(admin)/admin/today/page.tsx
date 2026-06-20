@@ -534,7 +534,7 @@ export default function AdminTodayPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold font-heading">今日新增</h1>
+      <h1 className="text-[17px] font-bold font-heading md:text-2xl">今日新增</h1>
       <Tabs defaultValue="products">
         <FilterTabsList items={tabs.map(({ value, label }) => ({
           value,

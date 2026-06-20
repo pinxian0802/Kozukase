@@ -93,7 +93,7 @@ export default function NotificationsPage() {
   return (
     <div className="mx-auto max-w-2xl px-3 py-3 md:px-4 md:py-6">
       <div className="flex items-center justify-between mb-4 md:mb-6">
-        <h1 className="text-base font-bold font-heading md:text-2xl">通知</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">通知</h1>
         <Button variant="ghost" size="sm" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}>
           <CheckCheck className="mr-1 h-4 w-4" />全部已讀
         </Button>

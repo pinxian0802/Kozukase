@@ -98,7 +98,7 @@ export default function AdminBannersPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold font-heading">輪播管理</h1>
+        <h1 className="text-[17px] font-bold font-heading md:text-2xl">輪播管理</h1>
         <p className="mt-1 text-muted-foreground">
           設定首頁頂部的橫式 banner 輪播。建議圖片比例 16:6(桌機),例如 1920×720。用右側上/下箭頭調整順序。
         </p>

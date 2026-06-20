@@ -36,7 +36,7 @@ export default function AdminListingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold font-heading">代購審核</h1>
+      <h1 className="text-[17px] font-bold font-heading md:text-2xl">代購審核</h1>
 
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>

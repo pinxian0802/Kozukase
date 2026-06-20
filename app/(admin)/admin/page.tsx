@@ -44,7 +44,7 @@ export default function AdminHomePage() {
           <Shield className="h-3.5 w-3.5" />
           管理後台入口
         </div>
-        <h1 className="text-3xl font-bold font-heading">管理後台總覽</h1>
+        <h1 className="text-[20px] font-bold font-heading md:text-3xl">管理後台總覽</h1>
         <p className="max-w-2xl text-muted-foreground">
           從這裡直接進入使用者、商品與審核功能。你可以先管理帳號權限，再處理商品與後台審核作業。
         </p>

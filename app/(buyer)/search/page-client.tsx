@@ -399,7 +399,7 @@ function SearchContent() {
           <section className="mb-4 hidden overflow-hidden rounded-2xl border border-border-soft bg-surface-card shadow-[0_12px_40px_rgba(15,23,42,0.06)] md:block">
             <div className="flex items-start justify-between gap-4 p-5">
               <div className="min-w-0 flex-1">
-                <h1 className="font-heading text-2xl font-bold">
+                <h1 className="font-heading text-[17px] font-bold md:text-2xl">
                   {tab === 'products'
                     ? q ? `「${q}」的搜尋結果，共 ${total} 件` : `瀏覽商品，共 ${total} 件`
                     : q ? `「${q}」的代購，共 ${listingTotal} 筆` : `瀏覽代購，共 ${listingTotal} 筆`

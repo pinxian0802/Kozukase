@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 export default function ToastTestPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold font-heading">Toast 測試</h1>
+      <h1 className="text-[17px] font-bold font-heading md:text-2xl">Toast 測試</h1>
       <div className="flex flex-wrap gap-3">
         <Button variant="outline" onClick={() => toast.success('操作成功！')}>success</Button>
         <Button variant="outline" onClick={() => toast.error('發生錯誤！')}>error</Button>

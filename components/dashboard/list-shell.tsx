@@ -52,7 +52,7 @@ export function DashboardListShell({
     <div className="space-y-3 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[15px] font-bold font-heading md:text-2xl">{title}</h1>
+          <h1 className="text-[17px] font-bold font-heading md:text-2xl">{title}</h1>
           <p className="text-[11px] text-muted-foreground md:text-sm">{usageHint}</p>
         </div>
         <Button variant="cta-outline" size="xs" className="md:h-8 md:gap-1.5 md:px-3 md:text-sm" render={<Link href={newButton.href} />}>

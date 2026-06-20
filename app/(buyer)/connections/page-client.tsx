@@ -371,7 +371,7 @@ export default function ConnectionsPage() {
           <section className="mb-4 hidden overflow-hidden rounded-2xl border border-border-soft bg-surface-card p-5 pb-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] md:block">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold font-heading">
+                <h1 className="text-[17px] font-bold font-heading md:text-2xl">
                   {q ? `「${q}」的搜尋結果` : '連線代購'}，共 {listLoading ? '' : total} 筆
                 </h1>
                 {activeFilterCount > 0 && (
