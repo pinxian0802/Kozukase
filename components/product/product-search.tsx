@@ -52,7 +52,7 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
         <div className="space-y-3">
           {showLoading ? (
             /* Loading skeleton */
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="animate-pulse overflow-hidden rounded-2xl border bg-white">
                   <div className="aspect-square bg-muted-foreground/10" />
@@ -66,7 +66,7 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
             </div>
           ) : results && results.length > 0 ? (
             /* Product grid */
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {results.map((product) => (
                 <ProductCard
                   key={product.id}

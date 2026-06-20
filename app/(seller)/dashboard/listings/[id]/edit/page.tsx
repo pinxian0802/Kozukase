@@ -113,7 +113,7 @@ export default function EditListingPage() {
               <div className="space-y-3">
                 <div>
                   <Label>商品</Label>
-                  <div className="mt-1 w-fit">
+                  <div className="mt-1 w-full max-w-sm">
                     {replacement ? (
                       <ProductCard
                         product={{
@@ -125,7 +125,7 @@ export default function EditListingPage() {
                         }}
                         linkToProduct={false}
                         variant="compact"
-                        className="w-fit"
+                        className="w-full"
                       />
                     ) : (
                       <div className="opacity-50">
@@ -142,7 +142,7 @@ export default function EditListingPage() {
                           }}
                           linkToProduct={false}
                           variant="compact"
-                          className="w-fit"
+                          className="w-full"
                         />
                       </div>
                     )}

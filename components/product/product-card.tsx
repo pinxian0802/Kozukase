@@ -41,7 +41,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
   const card = (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-none bg-white shadow-none md:rounded-2xl md:shadow-sm md:transition-shadow md:duration-200 md:hover:shadow-md',
+        '@container group relative overflow-hidden rounded-none bg-white shadow-none md:rounded-2xl md:shadow-sm md:transition-shadow md:duration-200 md:hover:shadow-md',
         variant === 'compact' ? 'flex items-center gap-4 p-5' : '',
         className
       )}
@@ -90,23 +90,23 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       {variant === 'compact' ? (
         <div className="min-w-0 flex-1">
           {brandLabel && (
-            <p className="truncate text-xs text-muted-foreground mb-1.5">{brandLabel}</p>
+            <p className="truncate text-[clamp(0.62rem,3cqi,0.75rem)] text-muted-foreground mb-1.5">{brandLabel}</p>
           )}
-          <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+          <p className="line-clamp-2 font-bold leading-snug text-foreground text-[clamp(0.8rem,4.3cqi,1rem)]" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
           {product.model_number && (
-            <p className="text-xs text-muted-foreground mt-0.5 break-all">{product.model_number}</p>
+            <p className="text-[clamp(0.62rem,3cqi,0.75rem)] text-muted-foreground mt-0.5 break-all">{product.model_number}</p>
           )}
         </div>
       ) : (
         <>
           {/* 佔位:在 flex flow 撐出 name 區高度,卡片總高 = 圖片 + 此佔位 */}
           {/* Mobile: simple inline text */}
-          <div className="px-1.5 py-1.5 md:hidden">
-            <p className="line-clamp-2 min-h-[2lh] text-[10px] leading-tight text-foreground" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+          <div className="px-2 py-2 md:hidden">
+            <p className="line-clamp-2 min-h-[2lh] text-[13px] leading-snug text-foreground" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
           </div>
           {/* Desktop: absolute overlay with hover expand */}
           <div aria-hidden className="invisible bg-white px-4 pb-3 pt-4 hidden md:block">
-            <p className="line-clamp-2 min-h-[2.75rem] font-bold leading-snug text-base">.</p>
+            <p className="line-clamp-2 min-h-[2.75rem] font-bold leading-snug text-[clamp(0.72rem,7cqi,1rem)]">.</p>
           </div>
           <div className="absolute bottom-0 left-0 right-0 min-h-[4.5rem] bg-white px-4 pb-3 pt-4 hidden md:block">
             {brandLabel && (
@@ -116,7 +116,7 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
                 </div>
               </div>
             )}
-            <p className="line-clamp-2 font-bold leading-snug text-foreground text-base" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+            <p className="line-clamp-2 font-bold leading-snug text-foreground text-[clamp(0.72rem,7cqi,1rem)]" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
             {product.model_number && (
               <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
                 <div className="overflow-hidden">

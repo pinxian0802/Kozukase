@@ -77,7 +77,7 @@ export default function NewListingPage() {
               <>
                 <div>
                   <Label>商品</Label>
-                  <div className="mt-1 w-fit">
+                  <div className="mt-1 w-full max-w-sm">
                     <ProductCard
                       product={{
                         id: product.id ?? 'draft-product',
@@ -88,7 +88,7 @@ export default function NewListingPage() {
                       }}
                       linkToProduct={false}
                       variant="compact"
-                      className="w-fit"
+                      className="w-full"
                     />
                   </div>
                 </div>

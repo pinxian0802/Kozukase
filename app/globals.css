@@ -297,29 +297,30 @@ button {
  * 詳見 docs/design-system/tokens.md
  * ─────────────────────────────────────────────────────────────── */
 @layer components {
+  /* 標題級距為手機優先：base = 手機尺寸，≥768px 於下方 @media 升回桌機尺寸 */
   .t-display {
     font-family: var(--font-heading), var(--font-sans);
-    font-size: 2.5rem;
-    line-height: 1.1;
+    font-size: 1.5625rem; /* 手機 25px */
+    line-height: 1.18;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
   .t-h1 {
     font-family: var(--font-heading), var(--font-sans);
-    font-size: 1.875rem;
-    line-height: 1.2;
+    font-size: 1.25rem; /* 手機 20px */
+    line-height: 1.28;
     font-weight: 700;
     letter-spacing: -0.01em;
   }
   .t-h2 {
-    font-size: 1.5rem;
-    line-height: 1.35;
+    font-size: 1.0625rem; /* 手機 17px */
+    line-height: 1.38;
     font-weight: 600;
     letter-spacing: -0.005em;
   }
   .t-h3 {
-    font-size: 1.125rem;
-    line-height: 1.4;
+    font-size: 0.9375rem; /* 手機 15px */
+    line-height: 1.42;
     font-weight: 600;
   }
   .t-body {
@@ -338,6 +339,14 @@ button {
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--text-faint);
+  }
+
+  /* ≥768px：標題升回桌機尺寸（t-body / t-caption / t-overline 不分螢幕） */
+  @media (min-width: 768px) {
+    .t-display { font-size: 2.5rem; line-height: 1.1; }   /* 40px */
+    .t-h1      { font-size: 1.875rem; line-height: 1.2; } /* 30px */
+    .t-h2      { font-size: 1.5rem; line-height: 1.35; }  /* 24px */
+    .t-h3      { font-size: 1.125rem; line-height: 1.4; } /* 18px */
   }
 }
 

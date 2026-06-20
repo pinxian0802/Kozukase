@@ -102,9 +102,12 @@ export function WishForm({ onBack, onSubmit, isSubmitting }: WishFormProps) {
       <div className="space-y-6 md:space-y-8">
         {/* ── 商品資訊 ── */}
         <FormSection title="商品資訊">
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            先填寫你想許願的商品資訊（名稱、品牌、圖片等）。若平台已有相同商品，搜尋時請直接選用，避免重複建立。
+          </p>
           <div>
             <Label>商品圖片</Label>
-            <p className="text-[11px] text-muted-foreground mt-0.5">建議 800×800 px 以上，正方形</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">請上傳與商品直接相關的圖片（商品本體照或官方圖），建議 800×800 px 以上、正方形</p>
             <div className="mt-1.5">
               <SingleImageUpload
                 purpose="product"

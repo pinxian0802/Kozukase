@@ -138,15 +138,17 @@ JS 物件裡直接用 CSS var：
 
 定義在 `globals.css` `@layer components`。直接當 className 用。
 
-| Class | 樣式 | 用途 |
-|---|---|---|
-| `t-display` | 40px / 1.1 / bold / heading font | 首頁 hero |
-| `t-h1` | 30px / 1.2 / bold / heading font | 頁面標題 |
-| `t-h2` | 24px / 1.35 / semibold | 區段標題 |
-| `t-h3` | 18px / 1.4 / semibold | 卡片標題 |
-| `t-body` | 14px / 1.65 | 正文 |
-| `t-caption` | 12px / 1.5 / muted | 輔助說明 |
-| `t-overline` | 11px / uppercase / faint | 小標 / 標籤 |
+標題級距為**手機優先**：base 為手機尺寸，`@media (min-width: 768px)` 升回桌機尺寸。`t-body / t-caption / t-overline` 不分螢幕。
+
+| Class | 手機 (<768px) | 桌機 (≥768px) | 字重 / 字體 | 用途 |
+|---|---|---|---|---|
+| `t-display` | 25px / 1.18 | 40px / 1.1 | bold / heading | 首頁 hero |
+| `t-h1` | 20px / 1.28 | 30px / 1.2 | bold / heading | 頁面標題 |
+| `t-h2` | 17px / 1.38 | 24px / 1.35 | semibold | 區段標題 |
+| `t-h3` | 15px / 1.42 | 18px / 1.4 | semibold | 卡片標題 |
+| `t-body` | 14px / 1.65 | 14px / 1.65 | — | 正文 |
+| `t-caption` | 12px / 1.5 | 12px / 1.5 | muted | 輔助說明 |
+| `t-overline` | 11px / uppercase | 11px / uppercase | faint | 小標 / 標籤 |
 
 範例：
 ```tsx
