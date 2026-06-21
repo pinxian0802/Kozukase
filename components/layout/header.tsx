@@ -221,7 +221,8 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
       </div>
 
       {/* Desktop Sub Nav(navbar 下方第二排,靠左對齊 banner) */}
-      {showSubNav && (
+      {/* 訊息頁是滿版聊天介面,不顯示這條次選單(也讓 100vh - 4rem 的高度計算正確) */}
+      {showSubNav && pathname !== '/messages' && (
       <nav className="hidden md:block border-t">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5 md:px-4">
           <Link href="/search?tab=listings" className={buttonVariants({ variant: 'ghost', size: 'sm', className: '-ml-3' })}>

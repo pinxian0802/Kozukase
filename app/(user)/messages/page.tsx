@@ -137,7 +137,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="md:px-6 md:pt-4 md:pb-6" style={{ height: 'calc(100dvh - 4rem)', display: 'flex', overflow: 'hidden', background: 'var(--surface-page)' }}>
+    <div className="h-[calc(100svh-2.75rem)] md:h-[calc(100vh-4rem)] md:px-6 md:pt-4 md:pb-6" style={{ display: 'flex', overflow: 'hidden', background: 'var(--surface-page)' }}>
       <div
         className="rounded-none border-0 shadow-none md:rounded-[18px] md:border md:shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
         style={{
