@@ -490,7 +490,7 @@ export const adminRouter = router({
         .select(`
           *,
           brand:brands(name),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order),
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
@@ -547,7 +547,7 @@ export const adminRouter = router({
         .eq('id', input.id)
         .select(`
           *,
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order),
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
         `)
         .single()
@@ -691,7 +691,7 @@ export const adminRouter = router({
         .select(`
           *,
           brand:brands(name),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order),
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key)
         `)
         .gte('created_at', todayStart)

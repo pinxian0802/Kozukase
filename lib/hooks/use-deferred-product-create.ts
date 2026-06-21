@@ -17,7 +17,7 @@ export function useDeferredProductCreate() {
   // Stores the product form data until createProductForListing reads it.
   const draftProductRef = useRef<ProductFormData | null>(null)
 
-  const confirmProductImage = trpc.upload.confirmProductImage.useMutation()
+  const confirmProductImages = trpc.upload.confirmProductImages.useMutation()
   const createProduct = trpc.product.create.useMutation()
   const createBrand = trpc.brand.create.useMutation()
   const deleteObjects = trpc.upload.deleteObjects.useMutation()
@@ -57,24 +57,24 @@ export function useDeferredProductCreate() {
     // Persist the id immediately after DB creation so retries are safe.
     createdProductIdRef.current = product.id
 
-    if (draft.pendingFile) {
-      const uploaded = await uploadImageFiles('product', [draft.pendingFile], getPresignedUrl.mutateAsync)
-      if (uploaded[0]) {
-        try {
-          await confirmProductImage.mutateAsync({
-            product_id: product.id,
-            r2_key: uploaded[0].r2Key,
-            url: uploaded[0].url,
-            thumbnail_r2_key: uploaded[0].thumbnailR2Key ?? uploaded[0].r2Key,
-            thumbnail_url: uploaded[0].thumbnailUrl ?? uploaded[0].url,
-          })
-        } catch (err) {
-          // confirmProductImage failed: clean up the orphan R2 object.
-          await deleteObjects.mutateAsync({
-            r2Keys: [uploaded[0].r2Key, uploaded[0].thumbnailR2Key].filter(Boolean) as string[],
-          }).catch(() => {})
-          throw err
-        }
+    if (draft.pendingFiles.length > 0) {
+      const uploaded = await uploadImageFiles('product', draft.pendingFiles, getPresignedUrl.mutateAsync)
+      const uploadedKeys = uploaded.flatMap((img) => [img.r2Key, img.thumbnailR2Key].filter(Boolean) as string[])
+      try {
+        await confirmProductImages.mutateAsync({
+          product_id: product.id,
+          images: uploaded.map((img, i) => ({
+            r2_key: img.r2Key,
+            url: img.url,
+            thumbnail_r2_key: img.thumbnailR2Key ?? img.r2Key,
+            thumbnail_url: img.thumbnailUrl ?? img.url,
+            sort_order: i,
+          })),
+        })
+      } catch (err) {
+        // confirmProductImages failed: clean up the orphan R2 objects.
+        await deleteObjects.mutateAsync({ r2Keys: uploadedKeys }).catch(() => {})
+        throw err
       }
     }
 

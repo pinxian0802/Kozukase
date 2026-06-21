@@ -50,6 +50,8 @@ export default function WishDetailPage({ params }: { params: Promise<{ id: strin
     ...(catalogImage ? [{ url: catalogImage.url, alt: product.name }] : []),
     ...((product.product_images ?? []) as any[])
       .filter((image) => image.id !== catalogImage?.id)
+      .slice()
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       .map((image) => ({ url: image.url, alt: product.name })),
   ]
 

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SearchableSelect } from '@/components/ui/searchable-select'
-import { SingleImageUpload } from '@/components/shared/single-image-upload'
+import { ImageUpload } from '@/components/shared/image-upload'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { FormSection, OptionalTag } from '@/components/shared/form-section'
 import { BrandSelect } from '@/components/shared/brand-select'
@@ -22,7 +22,7 @@ export interface ProductFormData {
   modelNumber: string
   category: ProductCategory | ''
   regionId: string
-  pendingFile: File | null
+  pendingFiles: File[]
 }
 
 interface ProductFormProps {
@@ -38,7 +38,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
   const [modelNumber, setModelNumber] = useState('')
   const [category, setCategory] = useState<ProductCategory | ''>('')
   const [regionId, setRegionId] = useState('')
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [nameError, setNameError] = useState('')
   const [imageError, setImageError] = useState('')
 
@@ -56,7 +56,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
       setNameError('')
     }
 
-    if (!pendingFile) {
+    if (pendingFiles.length === 0) {
       setImageError('商品圖片為必填')
       hasError = true
     } else {
@@ -74,7 +74,7 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
       modelNumber,
       category,
       regionId,
-      pendingFile,
+      pendingFiles,
     })
   }
 
@@ -95,17 +95,22 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
         {/* ── 基本資訊 ── */}
         <FormSection title="基本資訊">
           <div>
-            <Label>商品圖片</Label>
-            <p className="text-[11px] text-muted-foreground mt-0.5">請上傳與商品直接相關的圖片（商品本體照或官方圖），建議 800×800 px 以上、正方形</p>
+            <Label>
+              商品圖片
+              <span className="ml-1.5 text-xs font-normal text-muted-foreground">{pendingFiles.length} / 5</span>
+            </Label>
+            <p className="text-[11px] text-muted-foreground mt-0.5">第一張為封面。請上傳與商品直接相關的圖片（商品本體照或官方圖），建議 800×800 px 以上、正方形</p>
             <div className="mt-1.5">
-              <SingleImageUpload
+              <ImageUpload
                 purpose="product"
-                value={null}
+                maxImages={5}
+                reorderable
+                images={[]}
                 onChange={() => {}}
-                pendingFile={pendingFile}
-                onPendingFileChange={(file) => {
-                  setPendingFile(file)
-                  if (file && imageError) setImageError('')
+                pendingFiles={pendingFiles}
+                onPendingFilesChange={(files) => {
+                  setPendingFiles(files)
+                  if (files.length > 0 && imageError) setImageError('')
                 }}
                 invalid={!!imageError}
               />

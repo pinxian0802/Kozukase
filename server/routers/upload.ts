@@ -122,6 +122,63 @@ export const uploadRouter = router({
       return data
     }),
 
+  confirmProductImages: protectedProcedure
+    .input(z.object({
+      product_id: z.string().uuid(),
+      images: z.array(z.object({
+        r2_key: z.string().min(1).max(500),
+        url: z.string().url(),
+        thumbnail_r2_key: z.string().min(1).max(500),
+        thumbnail_url: z.string().url(),
+        sort_order: z.number().min(0).max(4),
+      })).min(1).max(5),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      for (const img of input.images) {
+        assertOwnedR2Key(img.r2_key, 'product', ctx.user.id)
+        assertOwnedR2Key(img.thumbnail_r2_key, 'product', ctx.user.id)
+        assertUrlMatchesKey(img.url, img.r2_key)
+        assertUrlMatchesKey(img.thumbnail_url, img.thumbnail_r2_key)
+      }
+
+      const { data: product } = await ctx.db
+        .from('products')
+        .select('created_by, catalog_image_id')
+        .eq('id', input.product_id)
+        .single()
+
+      if (!product) throw new TRPCError({ code: 'NOT_FOUND' })
+      if (product.created_by !== ctx.user.id) throw new TRPCError({ code: 'FORBIDDEN' })
+
+      const { data: inserted, error } = await ctx.db
+        .from('product_images')
+        .insert(input.images.map((img) => ({
+          product_id: input.product_id,
+          r2_key: img.r2_key,
+          url: img.url,
+          thumbnail_r2_key: img.thumbnail_r2_key,
+          thumbnail_url: img.thumbnail_url,
+          sort_order: img.sort_order,
+          uploaded_by: ctx.user.id,
+        })))
+        .select('id, sort_order')
+
+      if (error) throw error
+
+      // 封面未設定時(全新商品),把 sort_order = 0 那張設為 catalog_image。
+      if (!product.catalog_image_id) {
+        const cover = inserted?.find((row) => row.sort_order === 0) ?? inserted?.[0]
+        if (cover) {
+          await ctx.db
+            .from('products')
+            .update({ catalog_image_id: cover.id })
+            .eq('id', input.product_id)
+        }
+      }
+
+      return { success: true }
+    }),
+
   // deleteObjects: permanently removes R2 files during compensating rollback.
   // Only keys that belong to the calling user (by path prefix) are accepted.
   deleteObjects: protectedProcedure

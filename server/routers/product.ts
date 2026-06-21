@@ -53,7 +53,7 @@ export const productRouter = router({
         .select(`
           id, name, brand:brands(name), model_number, category, wish_count, created_at,
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order),
           listings!inner(price, shipping_date, status, seller_id, seller:sellers!inner(is_social_verified, can_provide_proof))
         `, { count: 'exact' })
         .eq('is_removed', false)
@@ -153,7 +153,7 @@ export const productRouter = router({
           *,
           brand:brands(name),
           catalog_image:product_images!fk_catalog_image(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
-          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key),
+          product_images:product_images!product_images_product_id_fkey(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order),
           listings(
             id, title, price, is_price_on_request, is_in_stock, specs, note, post_url,
             shipping_date, expires_at, status, created_at,

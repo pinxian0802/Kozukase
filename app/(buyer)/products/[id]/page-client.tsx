@@ -184,6 +184,8 @@ export default function ProductPageClient({ params }: { params: Promise<{ id: st
     ...(product.catalog_image ? [{ url: product.catalog_image.url, alt: product.name }] : []),
     ...(product.product_images ?? [])
       .filter((image: any) => image.id !== product.catalog_image?.id)
+      .slice()
+      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       .map((image: any) => ({ url: image.url, alt: product.name })),
   ]
 

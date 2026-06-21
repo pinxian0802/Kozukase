@@ -19,6 +19,7 @@ type AdminProductImage = {
   id: string
   url: string
   r2_key: string
+  sort_order?: number
 }
 
 export type AdminEditableProduct = {
@@ -61,9 +62,12 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
   const [aliases, setAliases] = useState<string[]>(() => product?.aliases ?? [])
   const [aliasInput, setAliasInput] = useState('')
   const [nameError, setNameError] = useState('')
+  const sortedImages = (product?.product_images ?? [])
+    .slice()
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
   const imageLabelById = new Map([
     ['none', '不指定'],
-    ...((product?.product_images ?? []).map((image, index) => [image.id, `圖片 ${index + 1}`] as const)),
+    ...sortedImages.map((image, index) => [image.id, `圖片 ${index + 1}`] as const),
   ])
 
   const addAlias = () => {
@@ -166,7 +170,7 @@ export function ProductEditDialog({ product, open, onOpenChange, onSave, isPendi
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">不指定</SelectItem>
-                    {(product.product_images ?? []).map((image, index) => (
+                    {sortedImages.map((image, index) => (
                       <SelectItem key={image.id} value={image.id}>
                         圖片 {index + 1}
                       </SelectItem>

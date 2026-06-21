@@ -134,7 +134,7 @@ export const wishRouter = router({
           product:products(
             id, name, brand:brands(name), model_number, category, wish_count,
             catalog_image:product_images!fk_catalog_image(id, url, thumbnail_url),
-            product_images:product_images!product_images_product_id_fkey(id, url, thumbnail_url)
+            product_images:product_images!product_images_product_id_fkey(id, url, thumbnail_url, sort_order)
           ),
           profile:profiles(display_name, avatar_url)
         `)

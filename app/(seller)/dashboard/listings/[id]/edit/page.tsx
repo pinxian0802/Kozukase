@@ -57,7 +57,7 @@ export default function EditListingPage() {
       brand_id: data.brand_id || null,
       brand_name: brandName,
       model_number: data.modelNumber.trim() || null,
-      catalog_image_url: data.pendingFile ? URL.createObjectURL(data.pendingFile) : null,
+      catalog_image_url: data.pendingFiles[0] ? URL.createObjectURL(data.pendingFiles[0]) : null,
     })
     setReselecting(false)
   }
