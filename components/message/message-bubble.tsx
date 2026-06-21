@@ -46,13 +46,17 @@ export function MessageBubble({ message, isOwn, prevMessage, localImageUrl, uplo
   const isUploading = uploadProgress !== undefined && uploadProgress < 100
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: isOwn ? 'flex-end' : 'flex-start',
-      padding: `${message.context_type ? 12 : grouped ? 2 : 8}px 24px`,
-      gap: 4,
-    }}>
+    <div
+      className="px-3 md:px-6"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: isOwn ? 'flex-end' : 'flex-start',
+        paddingTop: message.context_type ? 12 : grouped ? 2 : 8,
+        paddingBottom: message.context_type ? 12 : grouped ? 2 : 8,
+        gap: 4,
+      }}
+    >
       {message.context_type && message.context_id && message.context_label && (
         <div style={{ width: '100%', maxWidth: 460, marginBottom: 6 }}>
           <ContextCard

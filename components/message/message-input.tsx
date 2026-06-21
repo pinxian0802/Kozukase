@@ -110,7 +110,7 @@ export function MessageInput({
   const canSend = (body.trim().length > 0 || !!file) && !isSending && !processing
 
   return (
-    <div style={{ borderTop: '1px solid var(--border-soft)', background: 'var(--surface-card)', padding: '12px 20px 16px', flexShrink: 0 }}>
+    <div className="px-3 pt-2.5 pb-3 md:px-5 md:pt-3 md:pb-4" style={{ borderTop: '1px solid var(--border-soft)', background: 'var(--surface-card)', flexShrink: 0 }}>
       {/* Context card */}
       {!contextSent && contextType && contextId && (
         <div style={{ marginBottom: 10 }}>
@@ -186,7 +186,6 @@ export function MessageInput({
             el.style.height = Math.min(140, el.scrollHeight) + 'px'
           }}
           onKeyDown={handleKeyDown}
-          placeholder="輸入訊息… 按 Enter 送出，Shift+Enter 換行"
           style={{
             flex: 1, resize: 'none', border: 'none', outline: 'none',
             background: 'transparent', fontSize: 14, lineHeight: 1.5,

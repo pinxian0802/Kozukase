@@ -2,8 +2,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { ConversationList } from '@/components/message/conversation-list'
 import { ConversationPanel } from '@/components/message/conversation-panel'
 import { trpc } from '@/lib/trpc/client'
@@ -139,14 +137,16 @@ export default function MessagesPage() {
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 4rem)', display: 'flex', overflow: 'hidden', padding: '16px 24px 24px', background: 'var(--surface-page)' }}>
-      <div style={{
-        flex: 1, display: 'flex', minHeight: 0, background: 'var(--surface-card)',
-        border: '1px solid var(--border-soft)', borderRadius: 18, overflow: 'hidden',
-        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-      }}>
+    <div className="md:px-6 md:pt-4 md:pb-6" style={{ height: 'calc(100dvh - 4rem)', display: 'flex', overflow: 'hidden', background: 'var(--surface-page)' }}>
+      <div
+        className="rounded-none border-0 shadow-none md:rounded-[18px] md:border md:shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
+        style={{
+          flex: 1, display: 'flex', minHeight: 0, background: 'var(--surface-card)',
+          borderColor: 'var(--border-soft)', overflow: 'hidden',
+        }}
+      >
         {/* Left: Conversation List */}
-        <div className={`flex-col ${mobileView === 'panel' ? 'hidden' : 'flex'} md:flex`} style={{ flexShrink: 0, height: '100%' }}>
+        <div className={`w-full md:w-auto flex-col ${mobileView === 'panel' ? 'hidden' : 'flex'} md:flex`} style={{ flexShrink: 0, height: '100%' }}>
           <ConversationList
             selectedId={selectedConversationId}
             onSelect={handleSelectConversation}
@@ -157,17 +157,6 @@ export default function MessagesPage() {
         <div
           className={`flex flex-1 flex-col min-w-0 ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}`}
         >
-          {/* Mobile back button */}
-          <div className="flex items-center border-b px-3 py-2 md:hidden" style={{ borderColor: 'var(--border-soft)' }}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileView('list')}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </div>
-
           {selectedConversationId ? (
             <ConversationPanel
               key={selectedConversationId}
@@ -176,6 +165,7 @@ export default function MessagesPage() {
               otherAvatar={effectiveOther?.avatar ?? null}
               otherLastSeenAt={effectiveOther?.lastSeenAt ?? null}
               otherPageUrl={otherPageUrl}
+              onBack={() => setMobileView('list')}
               pendingContext={pendingContext}
               pendingContextImage={pendingContext.contextImage}
             />

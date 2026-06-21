@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatLastSeen } from '@/lib/utils/format'
 import { format } from 'date-fns'
@@ -25,6 +26,7 @@ type Props = {
   otherAvatar: string | null
   otherLastSeenAt: string | null
   otherPageUrl: string | null
+  onBack?: () => void
   pendingContext?: {
     contextType?: 'listing' | 'connection'
     contextId?: string
@@ -73,7 +75,7 @@ function uploadWithProgress(
   })
 }
 
-export function ConversationPanel({ conversationId, otherName, otherAvatar, otherLastSeenAt, otherPageUrl, pendingContext, pendingContextImage }: Props) {
+export function ConversationPanel({ conversationId, otherName, otherAvatar, otherLastSeenAt, otherPageUrl, onBack, pendingContext, pendingContextImage }: Props) {
   const router = useRouter()
   const session = useSession()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -262,14 +264,32 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
   return (
     <section style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--surface-page)', overflow: 'hidden' }}>
       {/* Chat Header */}
-      <div style={{
-        height: 68, borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-card)',
-        padding: '0 20px', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0,
-      }}>
+      <div
+        className="h-[52px] md:h-[68px] px-2 md:px-5 gap-2 md:gap-3.5"
+        style={{
+          borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-card)',
+          display: 'flex', alignItems: 'center', flexShrink: 0,
+        }}
+      >
+        {onBack && (
+          <button
+            onClick={onBack}
+            aria-label="返回"
+            className="md:hidden"
+            style={{
+              width: 38, height: 38, marginLeft: -4, borderRadius: 8, border: 'none', background: 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              color: 'var(--text-strong)', flexShrink: 0,
+            }}
+          >
+            <ArrowLeft style={{ width: 22, height: 22 }} />
+          </button>
+        )}
         <div
           onClick={() => otherPageUrl && router.push(otherPageUrl)}
+          className="gap-2.5 md:gap-3.5"
           style={{
-            display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0,
+            display: 'flex', alignItems: 'center', flex: 1, minWidth: 0,
             cursor: otherPageUrl ? 'pointer' : 'default',
             borderRadius: 8, padding: '4px 6px', margin: '-4px -6px',
             transition: 'background .12s',
@@ -277,14 +297,14 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
           onMouseEnter={e => { if (otherPageUrl) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-muted)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
         >
-          <Avatar style={{ width: 40, height: 40, flexShrink: 0 }}>
+          <Avatar className="h-[34px] w-[34px] md:h-10 md:w-10 shrink-0">
             <AvatarImage src={otherAvatar ?? undefined} />
             <AvatarFallback style={{ background: 'linear-gradient(135deg, #2d3a5e, #0f1a36)', color: 'var(--surface-card)', fontFamily: 'Rubik, sans-serif', fontWeight: 700 }}>
               {otherName?.[0] ?? '?'}
             </AvatarFallback>
           </Avatar>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div className="text-[14px] md:text-[15px]" style={{ fontWeight: 600, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {otherName ?? '對話'}
             </div>
             {(() => {
