@@ -337,6 +337,14 @@ active ◄──── pending_approval
 
 ## 四、主要操作流程
 
+### 登入 / 登出 / 身分切換
+
+- Session 由 root layout（`app/layout.tsx`）的 `getServerSession()` 在伺服器端讀取一次，透過 React Context（`SessionProvider`）傳給所有 Client Component（Header、Sidebar 等不再各自打 API）。
+- **身分邊界一律使用整頁導向**（`window.location.assign`），而非 client-side 的 `router.push` + `router.refresh()`：
+  - 涵蓋 Email 密碼登入成功、登出、Onboarding 完成等情境。
+  - 原因：root layout 為共用 segment，client-side 導航時不會重跑 `getServerSession()`，加上 push/refresh 競態，會導致換帳號後 Header/Sidebar 殘留舊帳號、需手動重新整理。整頁導向會帶最新 cookie 重跑 middleware 與所有 Server Component，從根本排除殘留。
+  - Google 登入走 `app/(auth)/callback/route.ts` 的 `NextResponse.redirect`，本身即整頁導向，無此問題。
+
 ### 新使用者入職
 
 1. 使用 Email / Google 登入
