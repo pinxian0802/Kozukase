@@ -233,7 +233,7 @@ export default function ConnectionsPage() {
                   commitLocation(locationInput)
                 }
               }}
-              placeholder="例如：稻荷神社（按 Enter 搜尋）"
+              placeholder="例如：稻荷神社"
               className="pl-9"
             />
           </div>
@@ -337,33 +337,111 @@ export default function ConnectionsPage() {
         <div className="min-w-0 flex-1">
           {/* Mobile compact header */}
           <div className="mb-2 md:hidden">
-            <div className="flex items-center justify-between">
-              <h1 className="text-[13px] font-bold text-text-strong">
-                {q ? `「${q}」` : '連線代購'} {listLoading ? '' : `${total} 筆`}
-              </h1>
-              <Sheet>
-                <SheetTrigger
-                  render={
-                    <button className="relative flex h-7 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2.5 text-[11px] text-neutral-600 shadow-sm">
-                      <SlidersHorizontal className="h-3 w-3" />
-                      篩選
-                      {activeFilterCount > 0 && (
-                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
-                          {activeFilterCount}
-                        </span>
-                      )}
+            <div className="rounded-xl border border-border-soft bg-surface-card p-3 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
+              <div className="flex items-center justify-between">
+                <h1 className="text-[16px] font-bold text-text-strong">
+                  {q ? `「${q}」的搜尋結果` : '連線代購'}，共 {listLoading ? '' : total} 筆
+                </h1>
+                <Sheet>
+                  <SheetTrigger
+                    render={
+                      <button className="relative flex h-8 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-3 text-[14px] text-neutral-600 shadow-sm">
+                        <SlidersHorizontal className="h-3.5 w-3.5" />
+                        篩選
+                        {activeFilterCount > 0 && (
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+                            {activeFilterCount}
+                          </span>
+                        )}
+                      </button>
+                    }
+                  />
+                  <SheetContent side="left" className="data-[side=left]:w-full data-[side=left]:max-w-full data-[side=left]:sm:max-w-full border-r border-border-soft bg-surface-page p-0 gap-0">
+                    <div className="h-full overflow-y-auto px-5 py-5 [scrollbar-width:thin]">
+                      <SheetHeader className="px-0 py-0">
+                        <SheetTitle>篩選條件</SheetTitle>
+                      </SheetHeader>
+                      <div className="mt-4">{FilterContent()}</div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+
+              {/* 已選篩選條件（手機版也顯示，可點 X 移除） */}
+              {activeFilterCount > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {regionLabel && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={() => setFilter({ region: null })}
+                    >
+                      {regionLabel}
+                      <X className="h-3 w-3" />
                     </button>
-                  }
-                />
-                <SheetContent side="left" className="border-r border-border-soft bg-surface-page p-0 gap-0">
-                  <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin]">
-                    <SheetHeader className="px-0 py-0">
-                      <SheetTitle>篩選條件</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-4">{FilterContent()}</div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+                  )}
+                  {activeDateLabel && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={() => setFilter({ dateStart: '', dateEnd: '' })}
+                    >
+                      {activeDateLabel}
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                  {locationText && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={() => commitLocation('')}
+                    >
+                      地點：{locationText}
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                  {brandLabel && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={() => setFilter({ brand: null })}
+                    >
+                      {brandLabel}
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                  {canWish && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={() => setFilter({ canWish: false })}
+                    >
+                      可許願
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                  {socialVerifiedOnly && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={() => setFilter({ social: false })}
+                    >
+                      社群驗證
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                  {hasBillingMethod && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={() => setFilter({ billing: false })}
+                    >
+                      提供付款方式
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
