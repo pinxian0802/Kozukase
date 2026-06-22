@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/footer'
 import { ProductCard } from '@/components/product/product-card'
 import { ConnectionCard } from '@/components/connection/connection-card'
 import { createServerCaller } from '@/lib/trpc/server'
+import { getServerSession } from '@/lib/supabase/get-session'
 import { HomeHero } from './_home/home-hero'
 import { SectionCarousel } from './_home/section-carousel'
 import { SellerCtaBanner } from './_home/seller-cta-banner'
@@ -25,10 +26,11 @@ export default async function HomePage() {
   const trpc = await createServerCaller()
   const today = format(new Date(), 'yyyy-MM-dd')
 
-  const [popularProducts, connectionsResult, banners] = await Promise.all([
+  const [popularProducts, connectionsResult, banners, session] = await Promise.all([
     trpc.product.popular({ limit: 12 }),
     trpc.connection.browse({ active_during: { start: today }, page: 1, limit: 10 }),
     trpc.banner.listActive(),
+    getServerSession(),
   ])
   const upcomingConnections = connectionsResult.items
   const heroSlides = banners.map((b) => ({ id: b.id, src: b.image_url, href: b.link_url, alt: '' }))
@@ -41,8 +43,8 @@ export default async function HomePage() {
         <HomeHero slides={heroSlides} />
 
         {/* Categories */}
-        <section className="mx-auto max-w-6xl px-3 py-2 md:px-4 md:py-10">
-          <h2 className="font-heading text-[16px] font-bold mb-2 text-foreground md:text-2xl md:mb-5">商品分類</h2>
+        <section className="mx-auto max-w-6xl px-3 py-5 md:px-4 md:py-10">
+          <h2 className="font-heading text-[17px] font-bold mb-3 text-foreground md:text-2xl md:mb-5">商品分類</h2>
           {/* Mobile: horizontal scroll */}
           <div className="flex gap-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
             {categories.map((cat) => (
@@ -78,15 +80,13 @@ export default async function HomePage() {
 
         {/* 熱門商品 */}
         {popularProducts.length > 0 && (
-          <div className="bg-surface-muted/40">
-            <SectionCarousel title="熱門商品" viewAllHref="/search">
-              {popularProducts.map((p) => (
-                <div key={p.id} className="w-full md:w-[calc((100%-64px)/5)] md:shrink-0 md:snap-start">
-                  <ProductCard product={p} imageAspect="1/1" />
-                </div>
-              ))}
-            </SectionCarousel>
-          </div>
+          <SectionCarousel title="熱門商品" viewAllHref="/search">
+            {popularProducts.map((p) => (
+              <div key={p.id} className="w-full md:w-[calc((100%-64px)/5)] md:shrink-0 md:snap-start">
+                <ProductCard product={p} imageAspect="1/1" />
+              </div>
+            ))}
+          </SectionCarousel>
         )}
 
         {/* 即將出發的連線代購 */}
@@ -100,8 +100,9 @@ export default async function HomePage() {
           </SectionCarousel>
         )}
 
-        {/* CTA — 成為賣家（Mountain Vista 旅遊主題 banner，見 _home/seller-cta-banner） */}
-        <SellerCtaBanner />
+        {/* CTA — 賣家 banner（Mountain Vista 旅遊主題，見 _home/seller-cta-banner）
+            未成為賣家：招募文案 → /become-seller；已是賣家：後台入口 → /dashboard */}
+        <SellerCtaBanner isSeller={!!session?.isSeller} />
       </main>
       <Footer />
     </>

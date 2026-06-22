@@ -8,14 +8,38 @@ import Link from 'next/link'
  * 以設計稿原始座標（1072×240）繪製，外層用容器查詢單位整塊等比縮放，
  * 各裝置比例完全一致。動畫與 hover 樣式定義於 globals.css（.seller-banner-*）。
  */
-export function SellerCtaBanner() {
+export function SellerCtaBanner({ isSeller = false }: { isSeller?: boolean }) {
+  // 依身份切換文案與連結；視覺（漸層、山脈、動畫）兩種狀態完全共用。
+  const copy = isSeller
+    ? {
+        badge: '賣家中心',
+        sub: '查看連線、上架商品，掌握每一筆訂單',
+        cta: '前往賣家後台',
+        href: '/dashboard',
+      }
+    : {
+        badge: '招募中',
+        sub: '讓更多買家找到你的代購服務',
+        cta: '立即上架',
+        href: '/become-seller',
+      }
+  // 主標：賣家版純文字；招募版桌機把 Kozukase 做不同字重
+  const headingMobile = isSeller ? '管理你的代購服務' : '成為 Kozukase 賣家'
+  const headingDesktop = isSeller ? (
+    '管理你的代購服務'
+  ) : (
+    <>
+      成為 <span style={{ fontWeight: 800 }}>Kozukase</span> 賣家
+    </>
+  )
+
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12 md:py-20">
+    <section className="mx-auto max-w-6xl px-4 pt-2 pb-8 md:pt-10 md:pb-20">
       {/* === 手機版（< md）：精簡可讀卡片 ===
           桌機那張 1072×240 藝術 banner 若整塊 transform:scale 縮到手機寬，
           會被壓成 ~361×81px 的細條、文字縮到 ~12px 不可讀，故手機另做正常比例卡片。 */}
       <Link
-        href="/become-seller"
+        href={copy.href}
         className="seller-banner-card md:hidden block relative overflow-hidden no-underline"
         style={{
           borderRadius: '18px',
@@ -58,7 +82,7 @@ export function SellerCtaBanner() {
               className="seller-banner-dot"
               style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFE082', flexShrink: 0 }}
             />
-            招募中
+            {copy.badge}
           </span>
           <div
             style={{
@@ -70,7 +94,7 @@ export function SellerCtaBanner() {
               lineHeight: 1.3,
             }}
           >
-            成為 Kozukase 賣家
+            {headingMobile}
           </div>
           <div
             style={{
@@ -80,7 +104,7 @@ export function SellerCtaBanner() {
               lineHeight: 1.5,
             }}
           >
-            讓更多買家找到你的代購服務
+            {copy.sub}
           </div>
           <span
             style={{
@@ -98,7 +122,7 @@ export function SellerCtaBanner() {
               fontWeight: 700,
             }}
           >
-            立即上架
+            {copy.cta}
             <span style={{ fontSize: '17px' }}>→</span>
           </span>
         </div>
@@ -452,7 +476,7 @@ export function SellerCtaBanner() {
                   className="seller-banner-dot"
                   style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#FFE082', flexShrink: 0 }}
                 />
-                招募中
+                {copy.badge}
               </span>
               <div
                 style={{
@@ -464,7 +488,7 @@ export function SellerCtaBanner() {
                   textShadow: '0 1px 0 rgba(255,255,255,0.12), 0 3px 16px rgba(13,33,90,0.30)',
                 }}
               >
-                成為 <span style={{ fontWeight: 800 }}>Kozukase</span> 賣家
+                {headingDesktop}
               </div>
               <div
                 style={{
@@ -474,14 +498,14 @@ export function SellerCtaBanner() {
                   textShadow: '0 1px 6px rgba(13,33,90,0.28)',
                 }}
               >
-                讓更多買家找到你的代購服務
+                {copy.sub}
               </div>
             </div>
 
             {/* === CTA === */}
             <div style={{ position: 'relative', zIndex: 2 }}>
               <Link
-                href="/become-seller"
+                href={copy.href}
                 className="seller-banner-cta"
                 style={{
                   display: 'inline-flex',
@@ -498,7 +522,7 @@ export function SellerCtaBanner() {
                   boxShadow: '0 4px 18px rgba(0,0,0,0.08)',
                 }}
               >
-                立即上架
+                {copy.cta}
                 <span className="seller-banner-arrow" style={{ fontSize: '18px', marginLeft: '2px', display: 'inline-block' }}>→</span>
               </Link>
             </div>
