@@ -27,18 +27,19 @@ export interface ProductFormData {
 
 interface ProductFormProps {
   initialName: string
+  initialData?: ProductFormData
   onBack: () => void
   onContinue: (data: ProductFormData) => void
   isSubmitting?: boolean
 }
 
-export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: ProductFormProps) {
-  const [name, setName] = useState(initialName)
-  const [brandId, setBrandId] = useState('none')
-  const [modelNumber, setModelNumber] = useState('')
-  const [category, setCategory] = useState<ProductCategory | ''>('')
-  const [regionId, setRegionId] = useState('')
-  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+export function ProductForm({ initialName, initialData, onBack, onContinue, isSubmitting }: ProductFormProps) {
+  const [name, setName] = useState(initialData?.name ?? initialName)
+  const [brandId, setBrandId] = useState(initialData?.brand_id ?? 'none')
+  const [modelNumber, setModelNumber] = useState(initialData?.modelNumber ?? '')
+  const [category, setCategory] = useState<ProductCategory | ''>(initialData?.category ?? '')
+  const [regionId, setRegionId] = useState(initialData?.regionId ?? '')
+  const [pendingFiles, setPendingFiles] = useState<File[]>(initialData?.pendingFiles ?? [])
   const [nameError, setNameError] = useState('')
   const [imageError, setImageError] = useState('')
 
@@ -80,16 +81,17 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
-      <div className="flex items-center gap-3">
-        <Button type="button" variant="ghost" size="icon-sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-[17px] font-bold font-heading md:text-2xl">新增商品</h1>
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-3 md:block md:relative">
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onBack} className="md:absolute md:right-full md:inset-y-0 md:my-auto md:mr-1">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-[17px] font-bold font-heading md:text-2xl">新增商品</h1>
+        </div>
+        <p className="text-[13px] leading-relaxed text-muted-foreground">
+          商品圖片建議優先採用官方網站的圖片，讓買家能更清楚地確認這正是他想購買的商品。
+        </p>
       </div>
-
-      <p className="text-[13px] leading-relaxed text-muted-foreground">
-        這一步是建立一筆「商品檔案」，記錄商品本身的資訊（名稱、品牌、圖片等）。建立後，下一步才會填寫你的代購內容。若清單中已有相同商品，請直接選用，避免重複建立。
-      </p>
 
       <div className="space-y-6 md:space-y-8">
         {/* ── 基本資訊 ── */}
@@ -163,10 +165,10 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>分類<OptionalTag /></Label>
-              <Select value={category} onValueChange={(v) => setCategory(v as ProductCategory)}>
+              <Select value={category || null} onValueChange={(v) => setCategory(v as ProductCategory)}>
                 <SelectTrigger>
                   <SelectValue placeholder="選擇分類">
-                    {(value: string) => value ? (PRODUCT_CATEGORY_LABELS[value] ?? value) : undefined}
+                    {(value: string | null) => value ? (PRODUCT_CATEGORY_LABELS[value] ?? value) : '選擇分類'}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -192,9 +194,6 @@ export function ProductForm({ initialName, onBack, onContinue, isSubmitting }: P
         </FormSection>
 
         <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" size="sm" onClick={onBack}>
-            取消
-          </Button>
           <Button type="button" size="sm" onClick={handleContinue} disabled={isSubmitting}>
             {isSubmitting ? '處理中...' : '下一步'}
           </Button>

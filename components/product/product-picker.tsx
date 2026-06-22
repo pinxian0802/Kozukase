@@ -17,6 +17,7 @@ export type SelectedProduct = {
 
 interface ProductPickerProps {
   title: string
+  description?: string
   onSelectExisting: (product: ProductSearchResult) => void
   onSubmitDraft: (data: ProductFormData) => void
   onCancel: () => void
@@ -26,7 +27,7 @@ interface ProductPickerProps {
  * Full-view product picker: search an existing product or create a new one.
  * Renders ProductForm (its own "新增商品" chrome) for the create sub-step.
  */
-export function ProductPicker({ title, onSelectExisting, onSubmitDraft, onCancel }: ProductPickerProps) {
+export function ProductPicker({ title, description, onSelectExisting, onSubmitDraft, onCancel }: ProductPickerProps) {
   const [creatingName, setCreatingName] = useState<string | null>(null)
 
   if (creatingName !== null) {
@@ -41,14 +42,19 @@ export function ProductPicker({ title, onSelectExisting, onSubmitDraft, onCancel
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
-      <div className="flex items-center gap-3">
-        <Button type="button" variant="ghost" size="icon-sm" onClick={onCancel}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-[17px] font-bold font-heading md:text-2xl">{title}</h1>
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-3 md:block md:relative">
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onCancel} className="md:absolute md:right-full md:inset-y-0 md:my-auto md:mr-1">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-[17px] font-bold font-heading md:text-2xl">{title}</h1>
+        </div>
+        {description && (
+          <p className="text-[13px] leading-relaxed text-muted-foreground">{description}</p>
+        )}
       </div>
       <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">搜尋或新增商品</p>
+        {!description && <p className="text-sm text-muted-foreground">搜尋或新增商品</p>}
         <ProductSearch
           onSelect={onSelectExisting}
           onCreateNew={(name) => setCreatingName(name)}

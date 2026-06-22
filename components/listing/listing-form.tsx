@@ -565,7 +565,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
           {/* In Stock */}
           <div>
             <Label>庫存<OptionalTag /></Label>
-            <div className="mt-1 flex h-10 items-center gap-2 rounded-md border border-input bg-background px-3.5">
+            <div className="mt-1 flex h-10 items-center gap-2">
               <Switch
                 id="is-in-stock"
                 checked={isInStock}
