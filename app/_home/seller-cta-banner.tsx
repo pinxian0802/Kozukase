@@ -10,7 +10,7 @@ import Link from 'next/link'
  */
 export function SellerCtaBanner() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 md:py-20">
+    <section className="mx-auto max-w-6xl px-4 py-12 md:py-20">
       {/* === 手機版（< md）：精簡可讀卡片 ===
           桌機那張 1072×240 藝術 banner 若整塊 transform:scale 縮到手機寬，
           會被壓成 ~361×81px 的細條、文字縮到 ~12px 不可讀，故手機另做正常比例卡片。 */}
