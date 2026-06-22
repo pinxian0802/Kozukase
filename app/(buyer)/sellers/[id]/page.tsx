@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import SellerPageClient from './page-client'
 import { JsonLd } from '@/lib/seo/jsonld'
 import { buildSellerJsonLd, buildBreadcrumbJsonLd } from '@/lib/seo/builders'
-import { SITE_URL, SITE_NAME } from '@/lib/seo/site'
+import { SITE_URL, SITE_NAME, SITE_TAGLINE } from '@/lib/seo/site'
 
 type SellerSeo = {
   name: string
@@ -30,7 +30,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { id } = await params
   const s = await getSellerSeo(id)
-  if (!s) return { title: `${SITE_NAME} - 代購比價平台` }
+  if (!s) return { title: `${SITE_NAME} - ${SITE_TAGLINE}` }
 
   const title = `${s.name}在 ${SITE_NAME} 的賣場`
   const description = `比較 ${s.name} 的代購商品、查看評價與服務條件。`

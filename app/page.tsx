@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { Header } from '@/components/layout/header'
@@ -14,6 +15,11 @@ import { JsonLd } from '@/lib/seo/jsonld'
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@/lib/seo/builders'
 
 const categories = Object.entries(PRODUCT_CATEGORY_LABELS).map(([key, label]) => ({ key, label }))
+
+// 首頁標準網址。canonical 只能設在這裡，不能放共用 layout（否則每頁都指向首頁）。
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+}
 
 export default async function HomePage() {
   const trpc = await createServerCaller()
@@ -36,7 +42,7 @@ export default async function HomePage() {
 
         {/* Categories */}
         <section className="mx-auto max-w-6xl px-3 py-2 md:px-4 md:py-10">
-          <h2 className="font-heading text-[13px] font-bold mb-1.5 text-foreground md:text-2xl md:mb-5 hidden md:block">商品分類</h2>
+          <h2 className="font-heading text-[16px] font-bold mb-2 text-foreground md:text-2xl md:mb-5">商品分類</h2>
           {/* Mobile: horizontal scroll */}
           <div className="flex gap-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
             {categories.map((cat) => (
@@ -44,10 +50,10 @@ export default async function HomePage() {
                 key={cat.key}
                 href={`/search?category=${cat.key}`}
                 className="flex flex-col items-center gap-1 shrink-0 px-1.5"
-                style={{ width: 56 }}
+                style={{ width: 64 }}
               >
-                <div className="flex h-9 w-9 items-center justify-center">
-                  <CategoryIcon categoryKey={cat.key} className="h-8 w-8" />
+                <div className="flex h-11 w-11 items-center justify-center">
+                  <CategoryIcon categoryKey={cat.key} className="h-10 w-10" />
                 </div>
                 <span className="text-[10px] text-center text-muted-foreground leading-tight whitespace-nowrap">{cat.label}</span>
               </Link>

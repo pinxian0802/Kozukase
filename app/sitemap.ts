@@ -21,12 +21,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.8,
     },
+    {
+      url: `${SITE_URL}/connections`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/wishes`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.5,
+    },
   ]
 
-  const [{ data: sellers }, { data: products }] = await Promise.all([
-    supabase.from('sellers').select('id, updated_at').eq('is_suspended', false),
-    supabase.from('products').select('id, updated_at'),
-  ])
+  const [{ data: sellers }, { data: products }, { data: connections }, { data: listings }] =
+    await Promise.all([
+      supabase.from('sellers').select('id, updated_at').eq('is_suspended', false),
+      supabase.from('products').select('id, updated_at'),
+      // 公開連線：進行中且賣家未停權（對齊 connection.browse 的條件）
+      supabase
+        .from('connections')
+        .select('id, updated_at, seller:sellers!inner(is_suspended)')
+        .eq('status', 'active')
+        .eq('seller.is_suspended', false),
+      // 公開代購：上架中且賣家未停權
+      supabase
+        .from('listings')
+        .select('id, updated_at, seller:sellers!inner(is_suspended)')
+        .eq('status', 'active')
+        .eq('seller.is_suspended', false),
+    ])
 
   const sellerRoutes: MetadataRoute.Sitemap = (sellers ?? []).map((s) => ({
     url: `${SITE_URL}/sellers/${s.id}`,
@@ -42,5 +67,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticRoutes, ...sellerRoutes, ...productRoutes]
+  const connectionRoutes: MetadataRoute.Sitemap = (connections ?? []).map((c) => ({
+    url: `${SITE_URL}/connections/${c.id}`,
+    lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }))
+
+  const listingRoutes: MetadataRoute.Sitemap = (listings ?? []).map((l) => ({
+    url: `${SITE_URL}/listings/${l.id}`,
+    lastModified: l.updated_at ? new Date(l.updated_at) : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.5,
+  }))
+
+  return [
+    ...staticRoutes,
+    ...sellerRoutes,
+    ...productRoutes,
+    ...connectionRoutes,
+    ...listingRoutes,
+  ]
 }

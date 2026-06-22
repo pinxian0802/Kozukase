@@ -7,7 +7,7 @@ import {
   buildProductJsonLd,
   buildBreadcrumbJsonLd,
 } from '@/lib/seo/builders'
-import { SITE_URL, SITE_NAME } from '@/lib/seo/site'
+import { SITE_URL, SITE_NAME, SITE_TAGLINE } from '@/lib/seo/site'
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/utils/format'
 
 type ProductSeo = {
@@ -68,7 +68,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { id } = await params
   const p = await getProductSeo(id)
-  if (!p) return { title: `${SITE_NAME} - 代購比價平台` }
+  if (!p) return { title: `${SITE_NAME} - ${SITE_TAGLINE}` }
 
   const title = buildProductTitle(p)
   const description = `在 ${SITE_NAME} 比較多位代購的 ${p.name} 價格、運費與現貨狀態。`

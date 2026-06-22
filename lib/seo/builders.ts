@@ -1,4 +1,4 @@
-import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from './site'
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_SOCIAL_LINKS } from './site'
 
 // 以空白串接非空字串（自動去除 null/undefined/空白），用於「品牌 商品名 型號」。
 export function joinParts(parts: (string | null | undefined)[]): string {
@@ -22,6 +22,7 @@ export function buildOrganizationJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
     description: SITE_DESCRIPTION,
+    sameAs: SITE_SOCIAL_LINKS.map((s) => s.url),
   }
 }
 

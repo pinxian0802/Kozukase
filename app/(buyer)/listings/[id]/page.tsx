@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import ListingPageClient from './page-client'
 import { joinParts } from '@/lib/seo/builders'
-import { SITE_URL, SITE_NAME } from '@/lib/seo/site'
+import { SITE_URL, SITE_NAME, SITE_TAGLINE } from '@/lib/seo/site'
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
@@ -15,7 +15,7 @@ export async function generateMetadata(
     .eq('id', id)
     .single()
 
-  if (!data) return { title: `${SITE_NAME} - 代購比價平台` }
+  if (!data) return { title: `${SITE_NAME} - ${SITE_TAGLINE}` }
 
   const product = data.product as unknown as
     | { name: string; model_number: string | null; brand: { name: string } | null }

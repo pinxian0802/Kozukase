@@ -15,6 +15,8 @@ export default function robots(): MetadataRoute.Robots {
         '/favorites',
         '/become-seller',
         '/onboarding',
+        '/login',
+        '/register',
         '/reset-password',
         '/forgot-password',
       ],
