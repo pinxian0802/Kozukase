@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Search, Menu, Bell, LogOut, Store, Heart, Settings } from 'lucide-react'
+import { Search, Menu, Bell, LogOut, Store, Heart, Settings, MessageCircle } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -189,7 +189,7 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
                       <Bell className="h-4 w-4" />通知
                     </Link>
                     <Link href="/messages" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
-                      <Settings className="h-4 w-4" />訊息
+                      <MessageCircle className="h-4 w-4" />訊息
                     </Link>
                     <Link href="/account" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                       <Settings className="h-4 w-4" />帳號設定

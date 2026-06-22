@@ -56,6 +56,8 @@ export default function SellerProfilePage() {
   const [thVerify, setThVerify] = useState<ThreadsVerifyState>({ step: 'idle' })
   const [thUsernameInput, setThUsernameInput] = useState('')
   const [thInputError, setThInputError] = useState('')
+  // 有一筆待審驗證時記住它的 id：按「返回」回到列表後，外層按鈕據此顯示「審核中」並可點回卡片
+  const [thPendingId, setThPendingId] = useState<string | null>(null)
   const threadsAdminHandle =
     process.env.NEXT_PUBLIC_THREADS_ADMIN_HANDLE ?? process.env.NEXT_PUBLIC_INSTAGRAM_ADMIN_HANDLE ?? ''
 
@@ -152,6 +154,7 @@ export default function SellerProfilePage() {
         })
       }
     }
+    setThPendingId(null)
     setThVerify({ step: 'idle' })
     setThUsernameInput('')
     setThInputError('')
@@ -163,7 +166,7 @@ export default function SellerProfilePage() {
       .then(r => r.json())
       .then((data: { id: string; status: string; reject_reason: string | null } | null) => {
         if (!data) return
-        if (data.status === 'pending') setThVerify({ step: 'reviewing', id: data.id })
+        if (data.status === 'pending') { setThPendingId(data.id); setThVerify({ step: 'reviewing', id: data.id }) }
         else if (data.status === 'rejected') setThVerify({ step: 'rejected', reason: data.reject_reason })
       })
       .catch(() => {})
@@ -466,7 +469,7 @@ export default function SellerProfilePage() {
                         </div>
                         <div className="flex flex-col gap-2">
                           <button
-                            onClick={() => setThVerify({ step: 'reviewing', id: thVerify.id })}
+                            onClick={() => { setThPendingId(thVerify.id); setThVerify({ step: 'reviewing', id: thVerify.id }) }}
                             className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
                           >
                             我已傳送
@@ -487,9 +490,17 @@ export default function SellerProfilePage() {
                           <p className="font-semibold text-[16px] text-text-strong">審核中</p>
                           <p className="text-[13px] text-text-muted leading-relaxed">我們已收到你的驗證,管理員審核通過後會以通知告知你。你可以先離開這個頁面。</p>
                         </div>
-                        <button onClick={cancelThVerify} className="h-10 px-10 rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
-                          取消申請
-                        </button>
+                        <div className="flex flex-col items-center gap-2">
+                          <button
+                            onClick={() => setThVerify({ step: 'idle' })}
+                            className="h-11 px-10 rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
+                          >
+                            返回
+                          </button>
+                          <button onClick={cancelThVerify} className="h-10 px-10 rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+                            取消申請
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -646,6 +657,15 @@ export default function SellerProfilePage() {
                         : <Link2Off className="mr-1 h-3 w-3" />
                       }
                       取消
+                    </Button>
+                  ) : thPendingId ? (
+                    <Button
+                      variant="cta-outline"
+                      size="sm"
+                      className="h-8 px-3.5 text-[13px] flex-shrink-0"
+                      onClick={() => setThVerify({ step: 'reviewing', id: thPendingId! })}
+                    >
+                      審核中
                     </Button>
                   ) : (
                     <Button
