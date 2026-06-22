@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -85,6 +86,9 @@ export default async function RootLayout({
           </TooltipProvider>
         </NuqsAdapter>
       </body>
+      {process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_GA_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+      )}
     </html>
   );
 }
