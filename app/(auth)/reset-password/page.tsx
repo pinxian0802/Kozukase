@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { KeyRound, Loader2 } from 'lucide-react'
@@ -101,13 +102,15 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-sm shadow-none">
-        <CardHeader className="space-y-1 text-center pb-4">
-          <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
-            Kozukase
+      <Card className="w-full max-w-sm shadow-none py-6">
+        <CardHeader className="space-y-4 text-center pb-8">
+          <Link href="/" className="mx-auto inline-block">
+            <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="mx-auto h-8 w-auto" priority />
           </Link>
-          <CardTitle className="text-base font-medium">重設密碼</CardTitle>
-          <CardDescription>請輸入新的密碼與確認密碼</CardDescription>
+          <div className="space-y-1.5">
+            <CardTitle className="text-base font-medium text-foreground">重設密碼</CardTitle>
+            <CardDescription className="text-sm">請輸入新的密碼與確認密碼</CardDescription>
+          </div>
         </CardHeader>
 
         <CardContent>

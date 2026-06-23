@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Loader2, KeyRound } from 'lucide-react'
+import { Loader2, KeyRound, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button'
@@ -130,18 +131,27 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-sm shadow-none py-6">
-        <CardHeader className="space-y-2 text-center pb-6">
-          <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
-            Kozukase
+      <Card className="relative w-full max-w-sm shadow-none py-6">
+        <Link
+          href="/"
+          aria-label="返回首頁"
+          className="absolute left-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <CardHeader className="space-y-4 text-center pb-8">
+          <Link href="/" className="mx-auto inline-block">
+            <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="mx-auto h-8 w-auto" priority />
           </Link>
-          <CardTitle className="text-base font-medium text-foreground">登入帳號</CardTitle>
-          <CardDescription className="text-sm">
-            還沒有帳號？
-            <Link href={`/register?next=${encodeURIComponent(safeNext)}`} className="ml-1 text-foreground underline underline-offset-4 hover:text-muted-foreground">
-              立即註冊
-            </Link>
-          </CardDescription>
+          <div className="space-y-1.5">
+            <CardTitle className="text-base font-medium text-foreground">登入帳號</CardTitle>
+            <CardDescription className="text-sm">
+              還沒有帳號？
+              <Link href={`/register?next=${encodeURIComponent(safeNext)}`} className="ml-1 text-foreground underline underline-offset-4 hover:text-muted-foreground">
+                立即註冊
+              </Link>
+            </CardDescription>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-6">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Loader2, Mail } from 'lucide-react'
 import { toast } from 'sonner'
@@ -49,12 +50,12 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-sm shadow-none">
-        <CardHeader className="space-y-1 text-center pb-4">
-          <Link href="/" className="font-heading text-2xl font-bold text-foreground tracking-tight">
-            Kozukase
+      <Card className="w-full max-w-sm shadow-none py-6">
+        <CardHeader className="space-y-4 text-center pb-8">
+          <Link href="/" className="mx-auto inline-block">
+            <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="mx-auto h-8 w-auto" priority />
           </Link>
-          <CardTitle className="text-base font-medium">忘記密碼</CardTitle>
+          <CardTitle className="text-base font-medium text-foreground">忘記密碼</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
