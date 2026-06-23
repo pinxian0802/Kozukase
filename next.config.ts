@@ -148,9 +148,9 @@ const nextConfig: NextConfig = {
 	},
 };
 
-// Sentry 只在 production build 時包進來。
-// dev 模式下跳過,避免 Sentry 的 webpack/turbopack instrumentation 拖慢編譯。
-export default process.env.NODE_ENV === 'production'
+// Sentry 只在 Vercel 正式 production build 時包進來(才上傳 source map)。
+// dev 與 preview 部署都跳過,避免 Sentry 的 webpack/turbopack instrumentation 拖慢編譯。
+export default process.env.VERCEL_ENV === 'production'
 	? withSentryConfig(nextConfig, {
 		// Sentry 組織 / 專案（source map 上傳目標）
 		org: "pinxian-chiang",

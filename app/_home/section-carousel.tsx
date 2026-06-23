@@ -38,10 +38,10 @@ export function SectionCarousel({
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-3 py-3 md:px-4 md:py-8">
-      <div className="mb-2 flex items-baseline justify-between md:mb-4">
-        <h2 className="font-heading text-[16px] font-bold text-foreground md:text-2xl">{title}</h2>
-        <Link href={viewAllHref} className="shrink-0 text-[11px] font-medium text-brand-700 hover:underline md:text-sm">
+    <section className="mx-auto max-w-6xl px-3 py-5 md:px-4 md:py-8">
+      <div className="mb-3 flex items-baseline justify-between md:mb-4">
+        <h2 className="font-heading text-[17px] font-bold text-foreground md:text-2xl">{title}</h2>
+        <Link href={viewAllHref} className="shrink-0 text-[16px] font-medium text-brand-700 hover:underline md:text-sm">
           看全部 →
         </Link>
       </div>

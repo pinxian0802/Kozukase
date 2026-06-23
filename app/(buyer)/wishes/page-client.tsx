@@ -162,62 +162,62 @@ export default function WishesPage() {
         <div className="min-w-0 flex-1">
           {/* Mobile compact header */}
           <div className="mb-2 md:hidden">
-            <div className="flex items-center justify-between gap-2">
-              <h1 className="text-[13px] font-bold text-text-strong">
-                許願榜 {listLoading ? '' : `${total} 筆`}
-              </h1>
-              <div className="flex items-center gap-1.5">
-                <Sheet>
-                  <SheetTrigger
-                    render={
-                      <button className="relative flex h-7 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2.5 text-[11px] text-neutral-600 shadow-sm">
-                        <SlidersHorizontal className="h-3 w-3" />
-                        篩選
-                        {activeFilters.length > 0 && (
-                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
-                            {activeFilters.length}
-                          </span>
-                        )}
-                      </button>
-                    }
-                  />
-                  <SheetContent side="left" className="border-r border-border-soft bg-surface-page p-0 gap-0">
-                    <div className="h-full overflow-y-auto p-4 [scrollbar-width:thin]">
-                      <SheetHeader className="px-0 py-0">
+            <div className="rounded-xl border border-border-soft bg-surface-card p-3 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
+              <div className="flex items-center justify-between gap-2">
+                <h1 className="text-[16px] font-bold text-text-strong">
+                  許願榜 {listLoading ? '' : `${total} 筆`}
+                </h1>
+                <div className="flex items-center gap-1.5">
+                  <Sheet>
+                    <SheetTrigger
+                      render={
+                        <button className="relative flex h-8 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-3 text-[14px] text-neutral-600 shadow-sm">
+                          <SlidersHorizontal className="h-3.5 w-3.5" />
+                          篩選
+                          {activeFilters.length > 0 && (
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+                              {activeFilters.length}
+                            </span>
+                          )}
+                        </button>
+                      }
+                    />
+                    <SheetContent side="left" className="data-[side=left]:w-full data-[side=left]:max-w-full data-[side=left]:sm:max-w-full">
+                      <SheetHeader className="px-5 pt-5 pb-2">
                         <SheetTitle>篩選條件</SheetTitle>
                       </SheetHeader>
-                      <div className="mt-4">{FilterPanel()}</div>
-                    </div>
-                  </SheetContent>
-                </Sheet>
-                {session && (
-                  <button
-                    type="button"
-                    onClick={() => router.push('/wishes/new')}
-                    className="flex h-7 cursor-pointer items-center gap-1 rounded-full bg-brand-500 px-2.5 text-[11px] font-medium text-white shadow-sm"
-                  >
-                    <Plus className="h-3 w-3" />
-                    新增
-                  </button>
-                )}
+                      <div className="flex-1 overflow-y-auto px-5 pb-6">{FilterPanel()}</div>
+                    </SheetContent>
+                  </Sheet>
+                  {session && (
+                    <button
+                      type="button"
+                      onClick={() => router.push('/wishes/new')}
+                      className="flex h-8 cursor-pointer items-center gap-1 rounded-full bg-brand-500 px-3 text-[14px] font-medium text-white shadow-sm"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      新增
+                    </button>
+                  )}
+                </div>
               </div>
+              {/* Mobile active filter chips */}
+              {activeFilters.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {activeFilters.map((f) => (
+                    <button
+                      key={f.key}
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={f.onRemove}
+                    >
+                      {f.label}
+                      <X className="h-3 w-3" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            {/* Mobile active filter chips */}
-            {activeFilters.length > 0 && (
-              <div className="mt-1.5 flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {activeFilters.map((f) => (
-                  <button
-                    key={f.key}
-                    type="button"
-                    className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2 py-0.5 text-[10px] font-medium text-text-muted"
-                    onClick={f.onRemove}
-                  >
-                    {f.label}
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Desktop title card */}

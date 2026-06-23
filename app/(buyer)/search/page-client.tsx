@@ -324,75 +324,77 @@ function SearchContent() {
           {/* Title card — mobile: compact inline; desktop: card */}
           {/* Mobile compact header */}
           <div className="mb-2 md:hidden">
-            <div className="flex items-center justify-between">
-              <h1 className="text-[13px] font-bold text-text-strong">
-                {tab === 'products'
-                  ? q ? `「${q}」 ${total} 件` : `商品 ${total} 件`
-                  : q ? `「${q}」 ${listingTotal} 筆` : `代購 ${listingTotal} 筆`
-                }
-              </h1>
-              <Sheet>
-                <SheetTrigger
-                  render={
-                    <button className="relative flex h-7 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2.5 text-[11px] text-neutral-600 shadow-sm">
-                      <SlidersHorizontal className="h-3 w-3" />
-                      篩選
-                      {activeFilters.length > 0 && (
-                        <span
-                          className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                          style={{ backgroundColor: KZ.teal }}
-                        >
-                          {activeFilters.length}
-                        </span>
-                      )}
-                    </button>
+            <div className="rounded-xl border border-border-soft bg-surface-card p-3 pb-0 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
+              <div className="flex items-center justify-between">
+                <h1 className="text-[16px] font-bold text-text-strong">
+                  {tab === 'products'
+                    ? q ? `「${q}」的搜尋結果，共 ${total} 件` : `瀏覽商品，共 ${total} 件`
+                    : q ? `「${q}」的代購，共 ${listingTotal} 筆` : `瀏覽代購，共 ${listingTotal} 筆`
                   }
-                />
-                <SheetContent side="left" className="w-80">
-                  <SheetHeader>
-                    <SheetTitle>篩選條件</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6 px-1">{FilterPanel()}</div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            {/* Mobile tab bar */}
-            <div className="flex gap-0 mt-1.5 border-b border-border-soft">
-              {(['listings', 'products'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => updateTab(t)}
-                  className={[
-                    'flex-1 py-1.5 text-[13px] font-semibold transition-colors text-center border-b-2',
-                    tab === t
-                      ? 'border-brand-500 text-brand-500'
-                      : 'border-transparent text-text-faint',
-                  ].join(' ')}
-                >
-                  {t === 'products' ? '商品' : '代購'}
-                  <span className="text-[11px] font-normal ml-0.5">
-                    {t === 'products' ? total : listingTotal}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {/* Mobile active filter chips */}
-            {activeFilters.length > 0 && (
-              <div className="flex gap-1 mt-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {activeFilters.map((f) => (
+                </h1>
+                <Sheet>
+                  <SheetTrigger
+                    render={
+                      <button className="relative flex h-8 cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-3 text-[14px] text-neutral-600 shadow-sm">
+                        <SlidersHorizontal className="h-3.5 w-3.5" />
+                        篩選
+                        {activeFilters.length > 0 && (
+                          <span
+                            className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                            style={{ backgroundColor: KZ.teal }}
+                          >
+                            {activeFilters.length}
+                          </span>
+                        )}
+                      </button>
+                    }
+                  />
+                  <SheetContent side="left" className="data-[side=left]:w-full data-[side=left]:max-w-full data-[side=left]:sm:max-w-full">
+                    <SheetHeader className="px-5 pt-5 pb-2">
+                      <SheetTitle>篩選條件</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto px-5 pb-6">{FilterPanel()}</div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+              {/* Mobile active filter chips */}
+              {activeFilters.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {activeFilters.map((f) => (
+                    <button
+                      key={f.key}
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-surface-card px-2.5 py-1 text-[12px] font-medium text-text-muted shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-colors hover:border-border-strong hover:bg-surface-muted"
+                      onClick={f.onRemove}
+                    >
+                      {f.label}
+                      <X className="h-3 w-3" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* Mobile tab bar */}
+              <div className="flex gap-0 mt-2 border-b border-border-soft">
+                {(['listings', 'products'] as const).map((t) => (
                   <button
-                    key={f.key}
+                    key={t}
                     type="button"
-                    className="shrink-0 inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-soft bg-white px-2 py-0.5 text-[10px] font-medium text-text-muted"
-                    onClick={f.onRemove}
+                    onClick={() => updateTab(t)}
+                    className={[
+                      'flex-1 py-1.5 text-[13px] font-semibold transition-colors text-center border-b-2',
+                      tab === t
+                        ? 'border-brand-500 text-brand-500'
+                        : 'border-transparent text-text-faint',
+                    ].join(' ')}
                   >
-                    {f.label}
-                    <X className="h-2.5 w-2.5" />
+                    {t === 'products' ? '商品' : '代購'}
+                    <span className="text-[11px] font-normal ml-0.5">
+                      {t === 'products' ? total : listingTotal}
+                    </span>
                   </button>
                 ))}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Desktop title card */}

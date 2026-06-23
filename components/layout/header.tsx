@@ -57,10 +57,10 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-11 max-w-6xl items-center gap-2 px-3 md:h-16 md:gap-4 md:px-4">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 md:h-16 md:gap-4 md:px-4">
         {/* Logo */}
         <Link href="/" className="shrink-0">
-          <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="h-6 w-auto md:h-9" priority />
+          <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="h-7 w-auto md:h-9" priority />
         </Link>
 
         {/* Desktop Search */}
@@ -81,11 +81,11 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
           {/* Mobile Search Toggle */}
           <Button
             variant="ghost"
-            size="icon"
-            className="md:hidden h-8 w-8"
+            size="icon-xl"
+            className="md:hidden"
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-6 w-6" />
           </Button>
 
           {/* 即時頻道監聽：不分裝置都掛載 */}
@@ -161,8 +161,8 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
             <SheetTrigger
               nativeButton={false}
               render={
-                <span className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'md:hidden' })}>
-                  <Menu className="h-5 w-5" />
+                <span className={buttonVariants({ variant: 'ghost', size: 'icon-xl', className: 'md:hidden' })}>
+                  <Menu className="h-7 w-7" />
                 </span>
               }
             />

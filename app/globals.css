@@ -363,8 +363,12 @@ button {
   aspect-ratio: 1072 / 240;
   /* scaler 子層為 1072px 寬、靠 transform 縮放；transform 不縮小其版面盒子，
      未裁切會把整頁撐到 ~1088px（手機水平溢出）。scaler 已縮到剛好等於容器寬，
-     故裁切不影響可見內容。 */
+     故裁切不影響可見內容。overflow 只裁子層（scaler/card），不會裁本層自己的 box-shadow。 */
   overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.seller-banner-wrap:hover {
+  transform: translateY(-4px);
 }
 .seller-banner-scaler {
   position: absolute;
@@ -373,13 +377,6 @@ button {
   width: 1072px;
   transform-origin: top left;
   transform: scale(calc(100cqw / 1072));
-}
-.seller-banner-card {
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-.seller-banner-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 24px 56px rgba(21, 101, 192, 0.24);
 }
 .seller-banner-cta {
   transition: all 0.25s ease;
