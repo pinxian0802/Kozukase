@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -31,7 +32,6 @@ export default function OnboardingPage() {
   const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [avatarImage, setAvatarImage] = useState<{ url: string; r2Key: string } | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
 
   const [submitting, setSubmitting] = useState(false)
@@ -127,7 +127,7 @@ export default function OnboardingPage() {
         }
       }
 
-      let finalAvatarUrl = avatarImage?.url
+      let finalAvatarUrl: string | undefined
       if (pendingFile) {
         const [uploaded] = await uploadImageFiles('avatar', [pendingFile], getPresignedUrl.mutateAsync)
         finalAvatarUrl = uploaded.url
@@ -165,9 +165,20 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
-      <Card className="w-full max-w-sm shadow-none">
-        <CardHeader className="space-y-1 text-center pb-4">
-          <CardTitle className="text-base font-medium">設定個人資料</CardTitle>
+      <Card className="w-full max-w-sm shadow-none py-6">
+        <CardHeader className="space-y-4 text-center pb-6">
+          <Image
+            src="/logo-navbar.png"
+            alt="Kozukase"
+            width={502}
+            height={177}
+            className="mx-auto h-8 w-auto"
+            priority
+          />
+          <div className="space-y-1.5">
+            <CardTitle className="text-base font-medium text-foreground">設定個人資料</CardTitle>
+            <CardDescription className="text-sm">再一步就完成，建立你的個人檔案</CardDescription>
+          </div>
         </CardHeader>
 
         <CardContent>
@@ -175,11 +186,11 @@ export default function OnboardingPage() {
             <div>
               <Label>頭貼</Label>
               <AvatarUpload
-                value={avatarImage}
-                onChange={setAvatarImage}
+                value={null}
+                onChange={() => {}}
                 pendingFile={pendingFile}
                 onPendingFileChange={setPendingFile}
-                className="mt-1"
+                className="mt-1 flex-col text-center"
               />
             </div>
 
@@ -195,7 +206,7 @@ export default function OnboardingPage() {
                     setErrors(prev => { const n = { ...prev }; delete n.username; return n })
                   }}
                   onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                  placeholder="a-z 0-9，3–20 字元"
+                  placeholder="英文數字 3到20字元"
                   aria-invalid={!!errors.username}
                   className="pl-7 pr-16"
                 />
