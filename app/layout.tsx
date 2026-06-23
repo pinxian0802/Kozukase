@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Rubik, Inter, Noto_Sans_TC } from "next/font/google";
+import { Rubik, Inter } from "next/font/google";
 import { SITE_URL, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/seo/site";
 import { TRPCProvider } from "@/lib/trpc/provider";
 import { SessionProvider } from "@/lib/context/session-context";
@@ -21,13 +21,6 @@ const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-});
-
-const notoSansTC = Noto_Sans_TC({
-  variable: "--font-sans-tc",
-  weight: ["400", "500", "700"],
-  display: "swap",
-  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -71,7 +64,7 @@ export default async function RootLayout({
   return (
     <html
       lang="zh-TW"
-      className={`${rubik.variable} ${inter.variable} ${notoSansTC.variable} h-full antialiased`}
+      className={`${rubik.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <NextTopLoader color="var(--brand-500)" height={2} showSpinner={false} />

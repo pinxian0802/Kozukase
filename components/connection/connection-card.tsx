@@ -48,7 +48,7 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
         <CardContent className="flex flex-1 flex-col px-2.5 py-2.5 min-h-0 md:p-4">
           {/* Mobile: minimal */}
           <span className="hidden text-text-muted md:block md:text-xs">{formatDate(connection.start_date)} ~ {formatDate(connection.end_date)}</span>
-          <h3 className="mt-0.5 text-[14px] font-medium leading-snug line-clamp-2 min-h-[2lh] md:mt-0 md:text-base md:font-bold md:leading-snug md:line-clamp-1 md:min-h-0" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>{connection.title ?? ' '}</h3>
+          <h3 className="mt-0.5 text-[14px] font-medium leading-snug line-clamp-2 min-h-[2lh] md:mt-0 md:text-base md:font-bold md:leading-snug md:line-clamp-1 md:min-h-0" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>{connection.title ?? ' '}</h3>
           {/* Location — mobile: inline simple; desktop: chips */}
           <div className="flex items-center gap-0.5 mt-1 md:flex-wrap md:gap-1 md:mt-1.5">
             {connection.region?.name && (

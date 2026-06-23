@@ -60,7 +60,7 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 md:h-16 md:gap-4 md:px-4">
         {/* Logo */}
         <Link href="/" className="shrink-0">
-          <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} className="h-7 w-auto md:h-9" priority />
+          <Image src="/logo-navbar.png" alt="Kozukase" width={502} height={177} sizes="120px" className="h-7 w-auto md:h-9" priority />
         </Link>
 
         {/* Desktop Search */}

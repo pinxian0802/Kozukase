@@ -230,7 +230,7 @@ button {
     @apply bg-background text-foreground;
   }
   html {
-    font-family: var(--font-sans), var(--font-sans-tc), 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
+    font-family: var(--font-sans), 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
     line-height: 1.6;
   }
 }

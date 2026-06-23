@@ -72,7 +72,7 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
           </div>
 
           <CardContent className="flex flex-1 flex-col px-1.5 py-1.5 md:p-3">
-            <h3 className="line-clamp-2 min-h-[2lh] text-[13px] font-medium leading-snug md:line-clamp-2 md:text-base md:font-bold md:leading-snug" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>
+            <h3 className="line-clamp-2 min-h-[2lh] text-[13px] font-medium leading-snug md:line-clamp-2 md:text-base md:font-bold md:leading-snug" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>
               {listing.title ?? ' '}
             </h3>
 

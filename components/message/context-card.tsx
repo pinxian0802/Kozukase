@@ -134,7 +134,7 @@ function ConnectionContextCard({ contextId, contextLabel, imageUrl }: { contextI
                 {formatDate(data.start_date)} ~ {formatDate(data.end_date)}
               </span>
             )}
-            <h3 className="text-base font-bold leading-snug line-clamp-1" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>
+            <h3 className="text-base font-bold leading-snug line-clamp-1" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>
               {contextLabel}
             </h3>
             {data && (data.region?.name || (data.locations && data.locations.length > 0)) && (
@@ -166,7 +166,7 @@ function ConnectionContextCard({ contextId, contextLabel, imageUrl }: { contextI
       <MobileShell href={href}>
         <MobileImage src={displayImage} alt={contextLabel} gradient={gradient} />
         <div className="flex flex-1 flex-col justify-center px-3 py-2 min-w-0">
-          <h3 className="text-sm font-bold leading-snug line-clamp-1" style={{ fontFamily: 'var(--font-sans-tc), "微软雅黑", "Microsoft YaHei", sans-serif' }}>
+          <h3 className="text-sm font-bold leading-snug line-clamp-1" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>
             {contextLabel}
           </h3>
           {data && (data.region?.name || (data.locations && data.locations.length > 0)) && (
