@@ -233,7 +233,7 @@ export default function ConnectionsPage() {
                   commitLocation(locationInput)
                 }
               }}
-              placeholder="例如：稻荷神社"
+              placeholder="例如：東京"
               className="pl-9"
             />
           </div>
