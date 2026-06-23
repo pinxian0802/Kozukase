@@ -34,12 +34,11 @@ interface FormSectionProps {
   title: string
   hint: string
   done: boolean
-  required?: boolean
   meta?: string | null
   children: React.ReactNode
 }
 
-function FormSection({ index, accent, title, hint, done, required = true, meta, children }: FormSectionProps) {
+function FormSection({ index, accent, title, hint, done, meta, children }: FormSectionProps) {
   return (
     <section className="flex gap-[18px] items-start">
       <div className="flex flex-col items-center pt-0.5">
@@ -62,7 +61,6 @@ function FormSection({ index, accent, title, hint, done, required = true, meta, 
         <div className="flex items-baseline gap-2.5 mb-1">
           <h2 className="font-semibold text-[17px] text-text-strong" style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}>
             {title}
-            {required && <span className="text-foreground font-bold"> *</span>}
           </h2>
           {meta && <span className="text-[11.5px] text-text-muted tabular-nums">{meta}</span>}
         </div>
@@ -343,7 +341,7 @@ export default function BecomeSellerPage() {
                 </div>
               </FormSection>
 
-              <FormSection index={5} accent={KZ.green} title="購買證明" hint="是否能提供購買證明？會顯示在你的賣家頁面，增加買家信任度。" done={canProvideProof !== null} required={false}>
+              <FormSection index={5} accent={KZ.green} title="購買證明" hint="是否能提供購買證明？會顯示在你的賣家頁面，增加買家信任度。" done={canProvideProof !== null}>
                 <div className="flex flex-col gap-2.5">
                   <label className="flex items-center gap-2.5 cursor-pointer">
                     <button type="button" onClick={() => setCanProvideProof(true)}
