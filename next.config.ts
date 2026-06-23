@@ -11,7 +11,10 @@ const nextConfig: NextConfig = {
 		// 遠端圖床、Supabase Realtime wss、Sentry ingest）。
 		const csp = [
 			"default-src 'self'",
-			"script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+			// Google Analytics (GA4) 的 gtag.js 由 googletagmanager.com 載入，
+			// 不加會被 CSP 擋掉，腳本不執行、追蹤完全失效。
+			// 回傳資料走 img-src / connect-src，已放寬到 https: 故無需另列。
+			"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
 			// 保留 blob: worker:部分函式庫(含影像/WASM 相關)會用
 			// new Worker(URL.createObjectURL(blob)) 建 worker;移除會出現空的「Worker error: {}」
 			"worker-src 'self' blob:",
