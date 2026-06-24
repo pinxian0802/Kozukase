@@ -265,20 +265,20 @@ export default function BecomeSellerPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '48px 24px 100px' }}>
+      <div className="mx-auto max-w-[1180px] px-4 pt-6 pb-20 md:px-6 md:pt-12 md:pb-[100px]">
 
         {/* Breadcrumb */}
         <PageBreadcrumb items={[{ label: '成為賣家' }]} />
 
         {/* Outer grid: left (hero + form) | right (sticky sidebar) */}
-        <div className={submitted ? 'max-w-2xl mx-auto' : 'grid gap-12'} style={submitted ? {} : { gridTemplateColumns: '1fr 320px', alignItems: 'flex-start' }}>
+        <div className={submitted ? 'max-w-2xl mx-auto' : 'grid items-start gap-8 md:gap-12 md:grid-cols-[1fr_320px]'}>
 
           {/* LEFT: hero + form */}
           <div>
             {/* Hero */}
             <section className={`mb-9${submitted ? ' text-center' : ''}`}>
               <h1
-                className="text-[38px] font-bold leading-[1.15] tracking-[-0.02em]"
+                className="text-[27px] md:text-[38px] font-bold leading-[1.15] tracking-[-0.02em]"
                 style={{ fontFamily: 'Rubik, "Noto Sans TC", sans-serif' }}
               >
                 {submitted ? '恭喜成為' : '成為'}{' '}
@@ -297,9 +297,31 @@ export default function BecomeSellerPage() {
               </p>
             </section>
 
+          {/* 手機版固定進度條（桌機由右側 sidebar 取代） */}
+          {!submitted && (
+            <div className="md:hidden sticky top-14 z-20 -mx-4 mb-6 px-4 py-2.5 bg-white/95 backdrop-blur-sm border-b border-border-soft">
+              <div className="flex justify-between items-baseline mb-1.5">
+                <span className="text-[11px] font-medium text-text-muted uppercase tracking-[.05em]">完成度</span>
+                <span className="text-[13px] font-bold" style={{ fontFamily: 'Rubik, sans-serif' }}>
+                  {filledCount}<span className="text-text-faint"> / {filled.length}</span>
+                </span>
+              </div>
+              <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${pct}%`,
+                    background: `linear-gradient(90deg, ${KZ.teal}, ${KZ.purple}, ${KZ.pink}, ${KZ.orange})`,
+                    transition: 'width .35s ease',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* 申請表單 */}
           {!submitted && (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-7">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6 md:gap-7">
               <FormSection index={1} accent={KZ.pink} title="賣家頭貼" hint="建議用清楚、有辨識度的照片或 logo。" done={!!(avatarImage || pendingFile)}>
                 <AvatarUpload value={avatarImage} onChange={setAvatarImage} pendingFile={pendingFile} onPendingFileChange={setPendingFile} />
               </FormSection>
@@ -381,7 +403,7 @@ export default function BecomeSellerPage() {
                 <button
                   type="submit"
                   disabled={isPending || !agree || !filled.every(Boolean)}
-                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center gap-2 transition-[background,transform] hover:bg-brand-700 active:translate-y-px disabled:bg-border-strong disabled:cursor-not-allowed w-fit"
+                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition-[background,transform] hover:bg-brand-700 active:translate-y-px disabled:bg-border-strong disabled:cursor-not-allowed w-full md:w-fit"
                 >
                   {isPending ? '送出中…' : '送出申請'}
                 </button>
@@ -532,10 +554,10 @@ export default function BecomeSellerPage() {
               ) : (
 
                 /* ── 雙欄卡片 ── */
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
 
                   {/* Instagram Card */}
-                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex flex-col justify-between min-h-[175px]">
+                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-4 md:p-6 flex flex-row items-center justify-between gap-3 md:flex-col md:items-stretch md:justify-between md:min-h-[175px]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_10px_rgba(221,42,123,0.12)]">
                         <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
@@ -548,14 +570,14 @@ export default function BecomeSellerPage() {
                     {igVm.pendingId ? (
                       <button
                         onClick={() => igVm.setState({ step: 'reviewing', id: igVm.pendingId! })}
-                        className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
+                        className="h-9 w-auto px-5 shrink-0 md:w-full md:px-0 rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                       >
                         審核中
                       </button>
                     ) : (
                       <button
                         onClick={() => igVm.setState({ step: 'entering_username' })}
-                        className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
+                        className="h-9 w-auto px-5 shrink-0 md:w-full md:px-0 rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                       >
                         驗證
                       </button>
@@ -563,7 +585,7 @@ export default function BecomeSellerPage() {
                   </div>
 
                   {/* Threads Card */}
-                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-6 flex flex-col justify-between min-h-[175px]">
+                  <div className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-4 md:p-6 flex flex-row items-center justify-between gap-3 md:flex-col md:items-stretch md:justify-between md:min-h-[175px]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
                         <Image src="/images/threads.png" alt="Threads" width={40} height={40} />
@@ -592,17 +614,34 @@ export default function BecomeSellerPage() {
                     if (!igVm.pendingId) void igVm.cancel()
                     router.push('/dashboard')
                   }}
-                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center gap-2 hover:bg-brand-700 active:translate-y-px transition-[background,transform]"
+                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-brand-700 active:translate-y-px transition-[background,transform] w-full md:w-auto"
                 >
                   先暫時跳過
                 </button>
               </div>
             </div>
           )}
+          {/* 手機版權益區 + 客服（桌機由右側 sidebar 取代） */}
+          {!submitted && (
+            <div className="md:hidden mt-8 flex flex-col gap-4">
+              <div className="border border-border-soft rounded-[14px] p-5">
+                <div className="text-[11px] font-medium text-text-muted uppercase tracking-[.05em] mb-3.5">賣家可以做什麼</div>
+                <div className="flex flex-col gap-3.5">
+                  <Perk body={PERK_ICONS.listing} title="上架代購商品" desc="發布商品圖、價格、出貨時間等等資訊" />
+                  <Perk body={PERK_ICONS.trip} title="發布連線代購" desc="公告出國代購連線行程，集中收單。" />
+                  <Perk body={PERK_ICONS.verified} title="獲得驗證徽章" desc="完成審核後，賣家頁面顯示已驗證標記。" />
+                </div>
+              </div>
+              <div className="text-[11.5px] text-text-muted leading-relaxed px-1">
+                有問題？{' '}
+                <a href="mailto:contact@kozukase.com" className="text-text-strong underline underline-offset-2">聯絡客服</a>
+              </div>
+            </div>
+          )}
           </div>{/* end left column */}
 
           {/* RIGHT: sticky sidebar */}
-          {!submitted && <aside className="flex flex-col gap-4 self-start sticky top-24 md:top-[136px]">
+          {!submitted && <aside className="hidden md:flex flex-col gap-4 self-start sticky top-24 md:top-[136px]">
 
             {/* Progress */}
             <div className="border border-border-soft rounded-[14px] p-5 bg-white">
