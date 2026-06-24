@@ -133,7 +133,7 @@ function ReviewCard({
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
-          className={cn('h-9 text-xs', review.hasLiked && 'text-primary')}
+          className={cn('text-xs', review.hasLiked && 'text-primary')}
           onClick={() => likeMutation.mutate({ review_id: review.id })}
           disabled={likeMutation.isPending}
         >
@@ -143,7 +143,7 @@ function ReviewCard({
         {canReply && (
           <Button
             variant="ghost"
-            className="h-9 text-xs"
+            className="text-xs"
             onClick={() => {
               setReplyText(review.seller_reply ?? '')
               setReplyOpen((v) => !v)

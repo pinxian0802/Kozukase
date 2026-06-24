@@ -190,14 +190,10 @@ export default function WishesPage() {
                     </SheetContent>
                   </Sheet>
                   {session && (
-                    <button
-                      type="button"
-                      onClick={() => router.push('/wishes/new')}
-                      className="flex h-8 cursor-pointer items-center gap-1 rounded-full bg-brand-500 px-3 text-[14px] font-medium text-white shadow-sm"
-                    >
+                    <Button variant="cta-outline" size="sm" onClick={() => router.push('/wishes/new')}>
                       <Plus className="h-3.5 w-3.5" />
                       新增
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -244,8 +240,8 @@ export default function WishesPage() {
                 )}
               </div>
               {session && (
-                <Button onClick={() => router.push('/wishes/new')} className="shrink-0 gap-2">
-                  <Plus className="h-4 w-4" />
+                <Button variant="cta-outline" size="sm" onClick={() => router.push('/wishes/new')} className="shrink-0">
+                  <Plus className="h-3.5 w-3.5" />
                   新增許願
                 </Button>
               )}

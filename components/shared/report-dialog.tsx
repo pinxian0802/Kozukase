@@ -112,13 +112,12 @@ export function ReportDialog({ iconOnly, triggerClassName, open: openProp, onOpe
           </div>
 
           <div className="flex items-center justify-end gap-2">
-            <DialogClose render={<Button variant="outline-soft" size="lg" className="rounded-[12px]" />}>
+            <DialogClose render={<Button variant="outline-soft" className="rounded-[12px]" />}>
               取消
             </DialogClose>
             <Button
               type="submit"
               variant="destructive"
-              size="lg"
               className="rounded-[12px]"
               disabled={report.isPending}
             >

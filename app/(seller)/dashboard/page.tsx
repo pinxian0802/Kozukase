@@ -66,11 +66,11 @@ export default function SellerDashboardPage() {
           <p className="text-[11px] text-muted-foreground mt-0.5 md:text-sm">{today}</p>
         </div>
         <div className="flex gap-1.5 shrink-0 md:gap-2">
-          <Button variant="cta-outline" size="xs" className="md:h-8 md:gap-1.5 md:px-3 md:text-sm" render={<Link href="/dashboard/listings/new" />}>
-            <Plus className="mr-0.5 h-2.5 w-2.5 md:mr-1 md:h-4 md:w-4" /><span><span className="hidden md:inline">新增</span>代購</span>
+          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/listings/new" />}>
+            <Plus className="h-3.5 w-3.5" /><span><span className="hidden md:inline">新增</span>代購</span>
           </Button>
-          <Button variant="cta-outline" size="xs" className="md:h-8 md:gap-1.5 md:px-3 md:text-sm" render={<Link href="/dashboard/connections/new" />}>
-            <Plus className="mr-0.5 h-2.5 w-2.5 md:mr-1 md:h-4 md:w-4" /><span><span className="hidden md:inline">新增</span>連線</span>
+          <Button variant="cta-outline" size="sm" render={<Link href="/dashboard/connections/new" />}>
+            <Plus className="h-3.5 w-3.5" /><span><span className="hidden md:inline">新增</span>連線</span>
           </Button>
         </div>
       </div>

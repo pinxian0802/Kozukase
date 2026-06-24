@@ -338,7 +338,7 @@ export function ImageUpload({
                   variant="secondary"
                   size="icon-sm"
                   onClick={() => removeImage(index)}
-                  className="absolute right-2 top-2 rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background"
+                  className="absolute right-2 top-2 bg-background/90 text-foreground shadow-sm hover:bg-background"
                 >
                   <X className="h-3 w-3" />
                   <span className="sr-only">移除圖片</span>
@@ -349,11 +349,11 @@ export function ImageUpload({
                       <span className="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground shadow-sm">封面</span>
                     )}
                     <div className="absolute bottom-2 left-2 flex gap-1">
-                      <Button type="button" variant="secondary" size="icon-sm" disabled={index === 0} onClick={() => moveImage(index, -1)} className="rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
+                      <Button type="button" variant="secondary" size="icon-sm" disabled={index === 0} onClick={() => moveImage(index, -1)} className="bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
                         <ChevronUp className="h-3 w-3" />
                         <span className="sr-only">上移</span>
                       </Button>
-                      <Button type="button" variant="secondary" size="icon-sm" disabled={index === images.length - 1} onClick={() => moveImage(index, 1)} className="rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
+                      <Button type="button" variant="secondary" size="icon-sm" disabled={index === images.length - 1} onClick={() => moveImage(index, 1)} className="bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
                         <ChevronDown className="h-3 w-3" />
                         <span className="sr-only">下移</span>
                       </Button>
@@ -381,7 +381,7 @@ export function ImageUpload({
                     variant="secondary"
                     size="icon-sm"
                     onClick={() => removePendingFile(index)}
-                    className="absolute right-2 top-2 rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background"
+                    className="absolute right-2 top-2 bg-background/90 text-foreground shadow-sm hover:bg-background"
                   >
                     <X className="h-3 w-3" />
                     <span className="sr-only">移除待上傳圖片</span>
@@ -392,11 +392,11 @@ export function ImageUpload({
                         <span className="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground shadow-sm">封面</span>
                       )}
                       <div className="absolute bottom-2 left-2 flex gap-1">
-                        <Button type="button" variant="secondary" size="icon-sm" disabled={index === 0} onClick={() => movePending(index, -1)} className="rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
+                        <Button type="button" variant="secondary" size="icon-sm" disabled={index === 0} onClick={() => movePending(index, -1)} className="bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
                           <ChevronUp className="h-3 w-3" />
                           <span className="sr-only">上移</span>
                         </Button>
-                        <Button type="button" variant="secondary" size="icon-sm" disabled={index === (pendingFiles?.length ?? 0) - 1} onClick={() => movePending(index, 1)} className="rounded-full bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
+                        <Button type="button" variant="secondary" size="icon-sm" disabled={index === (pendingFiles?.length ?? 0) - 1} onClick={() => movePending(index, 1)} className="bg-background/90 text-foreground shadow-sm hover:bg-background disabled:opacity-40">
                           <ChevronDown className="h-3 w-3" />
                           <span className="sr-only">下移</span>
                         </Button>

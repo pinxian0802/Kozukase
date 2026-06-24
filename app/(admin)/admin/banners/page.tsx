@@ -179,7 +179,7 @@ export default function AdminBannersPage() {
               <div className="flex shrink-0 flex-col">
                 <Button
                   variant="ghost"
-                  size="icon-xs"
+                  size="icon-sm"
                   aria-label="上移"
                   disabled={i === 0}
                   onClick={() => move(i, -1)}
@@ -188,7 +188,7 @@ export default function AdminBannersPage() {
                 </Button>
                 <Button
                   variant="ghost"
-                  size="icon-xs"
+                  size="icon-sm"
                   aria-label="下移"
                   disabled={i === items.length - 1}
                   onClick={() => move(i, 1)}
@@ -198,7 +198,7 @@ export default function AdminBannersPage() {
               </div>
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 aria-label="刪除"
                 onClick={() => {
                   if (confirm('確定刪除這張 banner?')) removeMut.mutate({ id: b.id })

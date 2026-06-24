@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Store, Check, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { AvatarUpload } from '@/components/shared/avatar-upload'
@@ -162,11 +163,9 @@ export default function BecomeSellerPage() {
               你已經是賣家了
             </h2>
             <p className="text-[14px] text-text-muted mb-4">前往賣家後台管理你的上架商品</p>
-            <Link href="/dashboard">
-              <button className="h-11 px-5 rounded-xl bg-brand-500 text-cta-foreground text-[14px] font-semibold flex items-center gap-2 hover:bg-brand-700 transition-colors">
-                <Store size={16} />前往賣家後台
-              </button>
-            </Link>
+            <Button render={<Link href="/dashboard" />}>
+              <Store size={16} />前往賣家後台
+            </Button>
           </div>
         </div>
       </div>
@@ -400,13 +399,14 @@ export default function BecomeSellerPage() {
                     <Link href="/seller-terms" target="_blank" className="text-text-strong underline underline-offset-2">賣家服務條款</Link>
                   </span>
                 </label>
-                <button
+                <Button
                   type="submit"
+                  size="xl"
                   disabled={isPending || !agree || !filled.every(Boolean)}
-                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition-[background,transform] hover:bg-brand-700 active:translate-y-px disabled:bg-border-strong disabled:cursor-not-allowed w-full md:w-fit"
+                  className="w-full px-7 md:w-fit"
                 >
                   {isPending ? '送出中…' : '送出申請'}
-                </button>
+                </Button>
               </div>
             </form>
           )}
@@ -444,15 +444,12 @@ export default function BecomeSellerPage() {
                         <FormFieldError message={thInputError} />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => void handleThVerifyStart()}
-                          className="h-11 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[14px] font-semibold hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                        >
+                        <Button variant="cta-outline" className="w-full" onClick={() => void handleThVerifyStart()}>
                           取得驗證碼
-                        </button>
-                        <button onClick={cancelThVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+                        </Button>
+                        <Button variant="ghost" className="w-full" onClick={cancelThVerify}>
                           取消
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -486,15 +483,12 @@ export default function BecomeSellerPage() {
                         ))}
                       </div>
                       <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => setThVerify({ step: 'reviewing', id: thVerify.id })}
-                          className="h-11 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[14px] font-semibold hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                        >
+                        <Button variant="cta-outline" className="w-full" onClick={() => setThVerify({ step: 'reviewing', id: thVerify.id })}>
                           我已傳送
-                        </button>
-                        <button onClick={cancelThVerify} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+                        </Button>
+                        <Button variant="ghost" className="w-full" onClick={cancelThVerify}>
                           取消
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -508,9 +502,9 @@ export default function BecomeSellerPage() {
                         <p className="font-semibold text-[16px] text-text-strong">審核中</p>
                         <p className="text-[13px] text-text-muted leading-relaxed">我們已收到你的驗證，管理員審核通過後會以通知告知你。你可以先離開這個頁面。</p>
                       </div>
-                      <button onClick={cancelThVerify} className="h-10 px-10 rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+                      <Button variant="ghost" className="px-10" onClick={cancelThVerify}>
                         取消申請
-                      </button>
+                      </Button>
                     </div>
                   )}
 
@@ -528,12 +522,9 @@ export default function BecomeSellerPage() {
                         <p className="font-semibold text-[16px] text-text-strong">驗證未通過</p>
                         <p className="text-[13px] text-text-muted">{thVerify.reason || '管理員未通過這次驗證，請確認已把驗證碼私訊給正確帳號後重試'}</p>
                       </div>
-                      <button
-                        onClick={() => { setThVerify({ step: 'entering_username' }); setThUsernameInput('') }}
-                        className="h-11 px-10 rounded-xl bg-white text-brand-500 border border-brand-500 text-[14px] font-semibold hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                      >
+                      <Button variant="cta-outline" className="px-10" onClick={() => { setThVerify({ step: 'entering_username' }); setThUsernameInput('') }}>
                         重新驗證
-                      </button>
+                      </Button>
                     </div>
                   )}
 
@@ -568,19 +559,13 @@ export default function BecomeSellerPage() {
                       </div>
                     </div>
                     {igVm.pendingId ? (
-                      <button
-                        onClick={() => igVm.setState({ step: 'reviewing', id: igVm.pendingId! })}
-                        className="h-9 w-auto px-5 shrink-0 md:w-full md:px-0 rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                      >
+                      <Button variant="cta-outline" size="sm" className="w-auto shrink-0 px-5 md:w-full md:px-0" onClick={() => igVm.setState({ step: 'reviewing', id: igVm.pendingId! })}>
                         審核中
-                      </button>
+                      </Button>
                     ) : (
-                      <button
-                        onClick={() => igVm.setState({ step: 'entering_username' })}
-                        className="h-9 w-auto px-5 shrink-0 md:w-full md:px-0 rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                      >
+                      <Button variant="cta-outline" size="sm" className="w-auto shrink-0 px-5 md:w-full md:px-0" onClick={() => igVm.setState({ step: 'entering_username' })}>
                         驗證
-                      </button>
+                      </Button>
                     )}
                   </div>
 
@@ -595,12 +580,9 @@ export default function BecomeSellerPage() {
                         <p className="text-[11.5px] text-text-faint">尚未連結</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => setThVerify({ step: 'entering_username' })}
-                      className="h-9 w-auto px-5 shrink-0 md:w-full md:px-0 rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
-                    >
+                    <Button variant="cta-outline" size="sm" className="w-auto shrink-0 px-5 md:w-full md:px-0" onClick={() => setThVerify({ step: 'entering_username' })}>
                       驗證
-                    </button>
+                    </Button>
                   </div>
 
                 </div>
@@ -608,16 +590,17 @@ export default function BecomeSellerPage() {
               )}
 
               <div className="max-w-[500px] mx-auto w-full flex justify-end">
-                <button
+                <Button
+                  size="xl"
+                  className="w-full px-7 md:w-auto"
                   onClick={() => {
                     // 只清掉「還沒送出」的草稿驗證碼；已送出待審的(有 pendingId)要保留，不可刪
                     if (!igVm.pendingId) void igVm.cancel()
                     router.push('/dashboard')
                   }}
-                  className="h-[52px] px-7 rounded-xl bg-brand-500 text-cta-foreground text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-brand-700 active:translate-y-px transition-[background,transform] w-full md:w-auto"
                 >
                   先暫時跳過
-                </button>
+                </Button>
               </div>
             </div>
           )}

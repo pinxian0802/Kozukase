@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { FormFieldError } from '@/components/shared/form-field-error'
+import { Button } from '@/components/ui/button'
 import { useIgVerification } from '@/lib/hooks/use-ig-verification'
 
 type Props = {
@@ -42,18 +43,12 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
             <FormFieldError message={inputError} />
           </div>
           <div className="flex flex-col gap-2">
-            <button
-              onClick={() => void start()}
-              className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
-            >
+            <Button variant="cta-outline" className="w-full" onClick={() => void start()}>
               取得驗證碼
-            </button>
-            <button
-              onClick={cancel}
-              className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors"
-            >
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={cancel}>
               取消
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -88,15 +83,12 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
           </div>
           <span className="text-[12px] font-mono text-text-faint tabular-nums text-center">剩餘時間 {countdown}</span>
           <div className="flex flex-col gap-2">
-            <button
-              onClick={() => void confirmSent(state.id)}
-              className="h-11 w-full rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
-            >
+            <Button variant="cta-outline" className="w-full" onClick={() => void confirmSent(state.id)}>
               我已傳送
-            </button>
-            <button onClick={cancel} className="h-10 w-full rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={cancel}>
               取消
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -111,15 +103,12 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
             <p className="text-[13px] text-text-muted leading-relaxed">我們已收到你的驗證,管理員審核通過後會以通知告知你。</p>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <button
-              onClick={() => setState({ step: 'idle' })}
-              className="h-11 px-10 rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
-            >
+            <Button variant="cta-outline" className="px-10" onClick={() => setState({ step: 'idle' })}>
               返回
-            </button>
-            <button onClick={cancel} className="h-10 px-10 rounded-xl text-[13px] text-text-muted hover:text-text-strong transition-colors">
+            </Button>
+            <Button variant="ghost" className="px-10" onClick={cancel}>
               取消
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -138,12 +127,9 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
             <p className="font-semibold text-[16px] text-text-strong">驗證未通過</p>
             <p className="text-[13px] text-text-muted">{state.reason || '管理員未通過這次驗證,請確認已把驗證碼私訊給正確帳號後重試'}</p>
           </div>
-          <button
-            onClick={() => { setState({ step: 'entering_username' }); setUsernameInput('') }}
-            className="h-11 px-10 rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
-          >
+          <Button variant="cta-outline" className="px-10" onClick={() => { setState({ step: 'entering_username' }); setUsernameInput('') }}>
             重新驗證
-          </button>
+          </Button>
         </div>
       )}
 
@@ -161,12 +147,9 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
             <p className="font-semibold text-[16px] text-text-strong">驗證完成</p>
             <p className="text-[13px] text-text-muted">@{usernameInput} 已成功連結至賣家頁面</p>
           </div>
-          <button
-            onClick={() => setState({ step: 'idle' })}
-            className="h-11 px-10 rounded-xl border border-brand-500 bg-surface-card text-brand-700 text-[14px] font-semibold hover:bg-brand-500 hover:text-cta-foreground active:translate-y-px transition-[background,color,transform]"
-          >
+          <Button variant="cta-outline" className="px-10" onClick={() => setState({ step: 'idle' })}>
             完成
-          </button>
+          </Button>
         </div>
       )}
     </>

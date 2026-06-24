@@ -25,10 +25,10 @@ export function HomeSearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜尋商品名稱或品牌..."
-          className="h-11 pl-10 text-base"
+          className="h-11 max-md:h-10 pl-10 text-base"
         />
       </div>
-      <Button type="submit" className="h-11 px-6">
+      <Button type="submit" size="xl" className="px-6">
         搜尋
       </Button>
     </form>

@@ -518,7 +518,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         </div>
       </FormSection>
 
-      <button type="submit" disabled={isPending} className={buttonVariants({ size: 'sm', className: 'w-full' })}>
+      <button type="submit" disabled={isPending} className={buttonVariants({ className: 'w-full' })}>
         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {mode === 'create' ? '建立連線公告' : isEnded ? (isAdminEnded ? '重新送出審核' : '重新上架') : '更新連線公告'}
       </button>
