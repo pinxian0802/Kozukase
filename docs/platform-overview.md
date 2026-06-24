@@ -345,6 +345,24 @@ active ◄──── pending_approval
   - 原因：root layout 為共用 segment，client-side 導航時不會重跑 `getServerSession()`，加上 push/refresh 競態，會導致換帳號後 Header/Sidebar 殘留舊帳號、需手動重新整理。整頁導向會帶最新 cookie 重跑 proxy（前身為 middleware，Next 16 慣例已改名）與所有 Server Component，從根本排除殘留。
   - Google 登入走 `app/(auth)/callback/route.ts` 的 `NextResponse.redirect`，本身即整頁導向，無此問題。
 
+### Email 驗證連結（token_hash）與 Google OAuth（PKCE）
+
+所有 email / OAuth 連結最後都回到 `app/(auth)/callback/route.ts`，該路由同時支援兩種：
+
+- **Email 連結**（註冊 Magic Link、忘記密碼）帶 `token_hash`，走 `verifyOtp`。**不需要 code_verifier，因此不綁定發起的瀏覽器**——使用者在 A 裝置申請、B 裝置 / 別的瀏覽器開信點連結也能成功。
+- **Google OAuth** 帶 `code`，走 `exchangeCodeForSession`（PKCE）。整個流程在同一個瀏覽器內完成，PKCE 仍是正確選擇，維持不變。
+- 登入成功後的初始化（建立 `profiles`、更新 `last_seen_at`、判斷導向 onboarding 或 `/reset-password`）抽在 `lib/supabase/post-auth.ts`，兩條路共用，避免不同步。
+
+> **外部依賴（Supabase 後台，不在程式碼）：** email 連結要能跨瀏覽器，**信件範本必須改用 token_hash 連結**，不能用預設的 `{{ .ConfirmationURL }}`（那是 PKCE `?code=`，換瀏覽器會驗證失敗）。三封信件範本的連結格式為 `{{ .SiteURL }}/callback?token_hash={{ .TokenHash }}&type=<TYPE>&next=/`，各自的 `<TYPE>`：
+>
+> | 範本 | type | 觸發時機 |
+> | --- | --- | --- |
+> | Magic Link | `email` | `signInWithOtp` 註冊，實際每日使用 |
+> | Confirm signup | `signup` | 舊密碼註冊（`signUp`）用，現已幾乎不觸發，保留作保險 |
+> | Reset Password | `recovery` | 忘記密碼（`/reset-password` 由 callback 強制導向，無需帶 next） |
+>
+> 另需確認後台 **Site URL** 為正式網址、**Redirect URLs** 允許清單含 `/callback`。
+
 ### 新使用者入職
 
 1. 使用 Email / Google 登入
