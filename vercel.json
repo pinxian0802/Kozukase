@@ -2,12 +2,8 @@
   "regions": ["icn1"],
   "crons": [
     {
-      "path": "/api/cron/expire-listings",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/expire-connections",
-      "schedule": "0 0 * * *"
+      "path": "/api/cron/expire-daily",
+      "schedule": "0 16 * * *"
     }
   ]
 }
