@@ -167,7 +167,7 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
               }
             />
             <SheetContent side="right" className="w-72">
-              <nav className="flex flex-col gap-2 pt-8">
+              <nav className="flex flex-col gap-2 px-3 pt-8 pb-4">
                 <Link href="/search" onClick={() => setMobileMenuOpen(false)} className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}>
                   搜尋商品
                 </Link>
