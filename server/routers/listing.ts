@@ -7,6 +7,7 @@ import { createListingInput, updateListingInput, browseListingsInput } from '@/l
 import { decodeCursor, paginateResults } from '@/lib/utils/pagination'
 import { checkUrlSafety } from '@/lib/utils/safe-browsing'
 import { normalizeSearchText } from '@/lib/utils/search'
+import { deleteR2Objects } from '@/lib/r2'
 
 export const listingRouter = router({
   browse: publicProcedure
@@ -237,8 +238,19 @@ export const listingRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: '只能刪除草稿或已下架的代購' })
       }
 
+      const { data: imgs } = await ctx.db
+        .from('listing_images')
+        .select('r2_key, thumbnail_r2_key')
+        .eq('listing_id', input.id)
+
       await ctx.db.from('listing_images').delete().eq('listing_id', input.id)
       await ctx.db.from('listings').delete().eq('id', input.id)
+
+      const keys = (imgs ?? []).flatMap((i) =>
+        [i.r2_key, i.thumbnail_r2_key].filter((k): k is string => !!k),
+      )
+      if (keys.length > 0) await deleteR2Objects(keys) // best-effort
+
       return { success: true }
     }),
 

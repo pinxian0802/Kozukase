@@ -33,6 +33,8 @@ export default defineConfig({
     actionTimeout: 30000,
   },
   projects: [
+    // 純邏輯單元測試:不需登入、不依賴 setup(可單獨 npx playwright test --project=unit)
+    { name: 'unit', testMatch: /\.unit\.spec\.ts/ },
     // Single setup project (all three logins) so the cleanup teardown runs
     // exactly once, at the very end — never mid-suite.
     { name: 'setup', testMatch: /setup\/.+\.setup\.ts/, teardown: 'cleanup' },
@@ -51,7 +53,7 @@ export default defineConfig({
     },
     {
       name: 'cross-role',
-      testMatch: /(cross-role|messages|report-takedown|threads-verification|admin-reports|admin-listings|admin-connections|seller-create|seo)\.spec\.ts/,
+      testMatch: /(cross-role|messages|report-takedown|threads-verification|admin-reports|admin-listings|admin-connections|seller-create|seo|storage)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },

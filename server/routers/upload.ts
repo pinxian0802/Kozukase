@@ -4,7 +4,7 @@ import { TRPCError } from '@trpc/server'
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { router, protectedProcedure } from '../trpc'
-import { s3Client } from '@/lib/r2'
+import { s3Client, deleteR2Objects } from '@/lib/r2'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -250,6 +250,12 @@ export const uploadRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
+      // 換圖前記下舊 key
+      const { data: oldImgs } = await ctx.db
+        .from('listing_images')
+        .select('r2_key, thumbnail_r2_key')
+        .eq('listing_id', input.listing_id)
+
       // Atomic replace via PostgreSQL function (migration 00005):
       // DELETE + INSERT run as one transaction — insert failure automatically
       // rolls back the delete, so existing images are never lost.
@@ -259,6 +265,14 @@ export const uploadRouter = router({
       })
 
       if (error) throw error
+
+      // 算出被移除的 key(舊 − 新)並刪
+      const newKeys = new Set(input.images.flatMap((i) => [i.r2_key, i.thumbnail_r2_key]))
+      const removed = (oldImgs ?? [])
+        .flatMap((i) => [i.r2_key, i.thumbnail_r2_key])
+        .filter((k): k is string => !!k && !newKeys.has(k))
+      if (removed.length > 0) await deleteR2Objects(removed) // best-effort
+
       return { success: true }
     }),
 
@@ -301,6 +315,12 @@ export const uploadRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
+      // 換圖前記下舊 key
+      const { data: oldImgs } = await ctx.db
+        .from('connection_images')
+        .select('r2_key, thumbnail_r2_key')
+        .eq('connection_id', input.connection_id)
+
       // Atomic replace via PostgreSQL function (migration 00005)
       const { error } = await ctx.db.rpc('replace_connection_images', {
         p_connection_id: input.connection_id,
@@ -308,6 +328,14 @@ export const uploadRouter = router({
       })
 
       if (error) throw error
+
+      // 算出被移除的 key(舊 − 新)並刪
+      const newKeys = new Set(input.images.flatMap((i) => [i.r2_key, i.thumbnail_r2_key]))
+      const removed = (oldImgs ?? [])
+        .flatMap((i) => [i.r2_key, i.thumbnail_r2_key])
+        .filter((k): k is string => !!k && !newKeys.has(k))
+      if (removed.length > 0) await deleteR2Objects(removed) // best-effort
+
       return { success: true }
     }),
 })

@@ -11,7 +11,7 @@
 | 路徑 | 對外可達 | 防禦機制 |
 |------|----------|----------|
 | `/api/trpc/[trpc]` | ✅ 公開 | 每個 procedure 透過 tRPC middleware 守門（見下） |
-| `/api/cron/expire-listings`、`/api/cron/expire-connections` | ✅ 公開 | `Authorization: Bearer <CRON_SECRET>`，constant-time 比對 |
+| `/api/cron/expire-daily` | ✅ 公開 | `Authorization: Bearer <CRON_SECRET>`，constant-time 比對 |
 | `/api/auth/instagram/{connect,callback}` | ✅ 公開 | OAuth state cookie + 二次 `getUser()` 驗證 |
 | `/api/auth/threads/{connect,callback}` | ✅ 公開 | 同上 |
 | Supabase REST/Realtime（`*.supabase.co`） | ✅ 公開（anon key） | RLS policy（`00008` + `00009`） |
@@ -27,6 +27,8 @@
 - `adminProcedure` — 檢查 JWT 的 `app_metadata.role === 'admin'`；`app_metadata` 只有 service role 寫得到
 
 身分驗證來源是 `supabase.auth.getUser()`，會打 Supabase 後端驗 JWT 簽章，**偽造 cookie 會被丟棄**。
+
+孤兒圖片清理的兩支程序皆為 `adminProcedure`：`storage.scanOrphanImages`（唯讀掃描）與 `storage.deleteOrphanImages`（刪除前以 service-role 重新比對取交集，避免競態誤刪）。
 
 ### Supabase RLS
 

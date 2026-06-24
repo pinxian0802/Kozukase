@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users, CalendarDays, Images, FlaskConical } from 'lucide-react'
+import { LayoutDashboard, Package, Globe, UserCog, Shield, Flag, Tags, Users, CalendarDays, Images, FlaskConical, Trash2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +34,7 @@ const adminLinks = [
   { href: '/admin/social-verification', label: '社群驗證', icon: UserCog },
   { href: '/admin/categories', label: '分類管理', icon: Tags },
   { href: '/admin/banners', label: '輪播管理', icon: Images },
+  { href: '/admin/storage', label: '儲存空間清理', icon: Trash2 },
   { href: '/admin/toast-test', label: 'Toast 測試', icon: FlaskConical },
 ]
 

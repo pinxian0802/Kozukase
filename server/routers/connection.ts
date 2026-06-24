@@ -4,6 +4,7 @@ import { router, publicProcedure, sellerProcedure } from '../trpc'
 import { httpUrl } from '@/lib/validators/common'
 import { createConnectionInput, updateConnectionInput } from '@/lib/validators/connection'
 import { checkUrlSafety } from '@/lib/utils/safe-browsing'
+import { deleteR2Objects } from '@/lib/r2'
 
 export const connectionRouter = router({
   checkPostLink: sellerProcedure
@@ -149,12 +150,23 @@ export const connectionRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' })
       }
 
+      const { data: imgs } = await ctx.db
+        .from('connection_images')
+        .select('r2_key, thumbnail_r2_key')
+        .eq('connection_id', input.id)
+
       const { error } = await ctx.db
         .from('connections')
         .delete()
         .eq('id', input.id)
 
       if (error) throw error
+
+      const keys = (imgs ?? []).flatMap((i) =>
+        [i.r2_key, i.thumbnail_r2_key].filter((k): k is string => !!k),
+      )
+      if (keys.length > 0) await deleteR2Objects(keys) // best-effort
+
       return { success: true }
     }),
 

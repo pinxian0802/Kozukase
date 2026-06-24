@@ -21,3 +21,21 @@ export async function trpcMutate<T = unknown>(
   const data = result.result?.data
   return (data?.json !== undefined ? data.json : data) as T
 }
+
+// Calls a tRPC query through an authenticated Playwright request context.
+export async function trpcQuery<T = unknown>(
+  request: APIRequestContext,
+  procedure: string,
+  input: unknown,
+): Promise<T> {
+  const encoded = encodeURIComponent(JSON.stringify({ '0': { json: input } }))
+  const res = await request.get(`/api/trpc/${procedure}?batch=1&input=${encoded}`)
+  const json = await res.json()
+  const result = Array.isArray(json) ? json[0] : json
+  if (result.error) {
+    const err = result.error?.json ?? result.error
+    throw new Error(err?.message ?? JSON.stringify(err))
+  }
+  const data = result.result?.data
+  return (data?.json !== undefined ? data.json : data) as T
+}
