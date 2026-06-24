@@ -597,7 +597,7 @@ export default function BecomeSellerPage() {
                     </div>
                     <button
                       onClick={() => setThVerify({ step: 'entering_username' })}
-                      className="h-9 w-full rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
+                      className="h-9 w-auto px-5 shrink-0 md:w-full md:px-0 rounded-xl bg-white text-brand-500 border border-brand-500 text-[13px] font-medium hover:bg-brand-50 active:translate-y-px transition-[background,transform]"
                     >
                       驗證
                     </button>
