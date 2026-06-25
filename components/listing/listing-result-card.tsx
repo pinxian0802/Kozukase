@@ -71,16 +71,16 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
             )}
           </div>
 
-          <CardContent className="flex flex-1 flex-col px-1.5 py-1.5 md:p-3">
-            <h3 className="line-clamp-2 min-h-[2lh] text-[13px] font-medium leading-snug md:line-clamp-2 md:text-base md:font-bold md:leading-snug" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>
+          <CardContent className="flex flex-1 flex-col px-1.5 py-1.5 md:px-3 md:py-2">
+            <h3 className="line-clamp-2 text-[13px] font-medium leading-snug md:line-clamp-2 md:text-base md:font-bold md:leading-snug" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>
               {listing.title ?? ' '}
             </h3>
 
             {/* Specs — hidden on mobile */}
-            <div className="mt-2.5 hidden min-h-[26px] flex-wrap items-center gap-1 md:flex">
+            <div className="hidden min-h-[26px] flex-wrap items-center gap-1 md:flex">
               {listing.specs && listing.specs.slice(0, 4).map((spec: any, i: number) => (
                 <div key={i} className="group/spec relative">
-                  <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground cursor-default">
+                  <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground cursor-default">
                     {spec.type}
                   </span>
                   {!spec.is_all && spec.options?.length > 0 && (
@@ -97,14 +97,14 @@ export function ListingResultCard({ listing, showSeller = true }: ListingResultC
               )}
             </div>
 
-            <div className="mt-auto pt-1 md:pt-3">
+            <div className="mt-auto pt-1 md:pt-1.5">
               <span className="text-[15px] font-extrabold leading-tight md:text-lg md:font-semibold" style={{ color: 'var(--brand-700)' }}>
                 {formatPrice(listing.price, listing.is_price_on_request)}
               </span>
             </div>
 
             {showSeller && listing.seller && (
-              <div className="flex items-center gap-1.5 mt-2 md:gap-2 md:pt-1.5">
+              <div className="flex items-center gap-1.5 mt-1.5 md:gap-2">
                 <Avatar className="h-5 w-5 shrink-0 md:h-6 md:w-6">
                   <AvatarImage src={listing.seller.avatar_url ?? undefined} />
                   <AvatarFallback className="text-[10px] md:text-xs">{listing.seller.name[0]}</AvatarFallback>
