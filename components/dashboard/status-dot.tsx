@@ -11,15 +11,15 @@ export type DashboardStatusDotProps = {
 
 export function DashboardStatusDot({ label, dotClassName, className, warning }: DashboardStatusDotProps) {
   const icon = warning ? (
-    <AlertTriangle className="h-3 w-3 shrink-0 text-red-500 md:h-3.5 md:w-3.5" />
+    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-red-500" />
   ) : (
-    <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400 md:h-2 md:w-2', dotClassName)} />
+    <span className={cn('h-2 w-2 shrink-0 rounded-full bg-gray-400', dotClassName)} />
   )
 
   const inner = (
     <span
       className={cn(
-        'inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.08em] text-muted-foreground md:gap-1.5 md:text-xs md:tracking-[0.16em]',
+        'inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.1em] text-muted-foreground md:tracking-[0.16em]',
         className,
       )}
     >
