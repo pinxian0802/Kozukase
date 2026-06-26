@@ -90,41 +90,31 @@ export function ProductCard({ product, href, linkToProduct = true, onClick, clas
       {variant === 'compact' ? (
         <div className="min-w-0 flex-1">
           {brandLabel && (
-            <p className="truncate text-[clamp(0.62rem,3cqi,0.75rem)] text-muted-foreground mb-1.5">{brandLabel}</p>
+            <p className="truncate text-[clamp(0.62rem,3cqi,0.75rem)] text-muted-foreground mb-1">{brandLabel}</p>
           )}
           <p className="line-clamp-2 font-bold leading-snug text-foreground text-[clamp(0.8rem,4.3cqi,1rem)]" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
-          {product.model_number && (
-            <p className="text-[clamp(0.62rem,3cqi,0.75rem)] text-muted-foreground mt-0.5 break-all">{product.model_number}</p>
-          )}
         </div>
       ) : (
         <>
           {/* 佔位:在 flex flow 撐出 name 區高度,卡片總高 = 圖片 + 此佔位 */}
           {/* Mobile: simple inline text */}
-          <div className="px-2.5 py-2.5 md:hidden">
+          <div className="flex min-h-[4.5rem] flex-col justify-end px-3 py-2.5 md:hidden">
             {brandLabel && <p className="mb-0.5 truncate text-[11px] text-text-muted">{brandLabel}</p>}
-            <p className="line-clamp-2 min-h-[2lh] text-[14px] font-medium leading-snug text-foreground" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
+            <p className="line-clamp-2 text-[14px] font-medium leading-snug text-foreground" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
           </div>
           {/* Desktop: absolute overlay with hover expand */}
-          <div aria-hidden className="invisible bg-white px-4 pb-3 pt-4 hidden md:block">
+          <div aria-hidden className="invisible bg-white px-4 py-3 hidden md:block">
             <p className="line-clamp-2 min-h-[2.75rem] font-bold leading-snug text-[clamp(0.72rem,7cqi,1rem)]">.</p>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 min-h-[4.5rem] bg-white px-4 pb-3 pt-4 hidden md:block">
+          <div className="absolute bottom-0 left-0 right-0 hidden min-h-[4.25rem] flex-col justify-end bg-white px-4 py-3 md:flex">
             {brandLabel && (
               <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
                 <div className="overflow-hidden">
-                  <p className="truncate text-xs text-muted-foreground pb-0.5">{brandLabel}</p>
+                  <p className="truncate text-xs text-muted-foreground pb-1">{brandLabel}</p>
                 </div>
               </div>
             )}
             <p className="line-clamp-2 font-bold leading-snug text-foreground text-[clamp(0.72rem,7cqi,1rem)]" style={{ fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif' }}>{product.name}</p>
-            {product.model_number && (
-              <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-200">
-                <div className="overflow-hidden">
-                  <p className="truncate text-xs leading-tight text-muted-foreground">{product.model_number}</p>
-                </div>
-              </div>
-            )}
           </div>
         </>
       )}
