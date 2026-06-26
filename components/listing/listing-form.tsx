@@ -488,7 +488,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
               }}
               linkToProduct={false}
               variant="compact"
-              className="mt-1 w-fit"
+              className="mt-1 w-full max-w-sm"
             />
           </div>
         )}
