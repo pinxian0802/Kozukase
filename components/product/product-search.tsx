@@ -19,9 +19,10 @@ export interface ProductSearchResult {
 interface ProductSearchProps {
   onSelect: (product: ProductSearchResult) => void
   onCreateNew: (name: string) => void
+  createButtonLabel?: string
 }
 
-export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
+export function ProductSearch({ onSelect, onCreateNew, createButtonLabel }: ProductSearchProps) {
   const [query, setQuery] = useState('')
 
   const { data: results, isLoading, isFetching } = trpc.product.search.useQuery(
@@ -100,7 +101,7 @@ export function ProductSearch({ onSelect, onCreateNew }: ProductSearchProps) {
               onClick={() => onCreateNew(query.trim())}
             >
               <Plus className="h-4 w-4" />
-              新增商品「{query.trim()}」
+              {createButtonLabel ?? `新增商品「${query.trim()}」`}
             </Button>
           )}
         </div>

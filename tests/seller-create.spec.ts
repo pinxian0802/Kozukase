@@ -24,67 +24,66 @@ test('賣家透過 UI 新增代購（含新增商品）→ 直接上架為 activ
   await sellerPage.goto('/dashboard/listings/new')
   await sellerPage.waitForTimeout(1000)
 
-  // ── Step 1：搜尋框輸入商品名，點「新增商品」──
+  // ── 搜尋 → 點「沒有我的商品」直接進代購表單 ──
   await sellerPage.getByPlaceholder('搜尋商品名稱...').fill(productName)
   await sellerPage.waitForTimeout(1000)
-  await sellerPage.getByText(`新增商品「${productName}」`).click()
-  await sellerPage.waitForTimeout(1000)
+  await sellerPage.getByRole('button', { name: '沒有我的商品' }).click()
 
-  // ── Step 2：商品表單 ──
-  await expect(sellerPage.getByPlaceholder('輸入商品名稱')).toBeVisible({ timeout: 10000 })
-  // 圖片（必填）
-  await sellerPage.locator('input[type="file"]').setInputFiles(TEST_IMAGE)
-  await sellerPage.waitForTimeout(1000)
-  // 商品名稱（必填，已由搜尋預填，再次確認）
-  await sellerPage.getByPlaceholder('輸入商品名稱').fill(productName)
-  await sellerPage.waitForTimeout(1000)
-  // 品牌（選填）
-  await sellerPage.getByRole('button', { name: /選擇.*品牌/ }).click()
-  await sellerPage.getByPlaceholder('搜尋或輸入品牌名稱...').fill('[E2E] 品牌')
-  await sellerPage.waitForTimeout(500)
-  await sellerPage.getByRole('option', { name: /新增品牌/ }).click()
-  await sellerPage.waitForTimeout(1000)
-  // 型號（選填）
-  await sellerPage.getByPlaceholder('輸入型號').fill('E2E-001')
-  await sellerPage.waitForTimeout(1000)
-  // 分類（選填）
-  await sellerPage.getByRole('combobox').click()
-  await sellerPage.getByRole('option', { name: '美妝保養' }).click()
-  await sellerPage.waitForTimeout(1000)
-  // 商品國家（選填）
-  await sellerPage.getByRole('button', { name: '選擇國家' }).click()
-  await sellerPage.getByRole('option').first().click()
-  await sellerPage.waitForTimeout(1000)
-  await sellerPage.getByRole('button', { name: '下一步' }).click()
-  await sellerPage.waitForTimeout(1000)
-
-  // ── Step 3：填寫代購資料 ──
+  // ── 單一代購表單 ──
   await expect(sellerPage.getByPlaceholder('輸入標題')).toBeVisible({ timeout: 15000 })
-  // 標題（必填）
+  // 代購標題（必填）
   await sellerPage.getByPlaceholder('輸入標題').fill(listingTitle)
-  await sellerPage.waitForTimeout(1000)
-  // 代購圖片（必填，至少一張）
+  // 代購圖片（必填，整頁唯一的上傳處）
   await sellerPage.locator('input[type="file"]').setInputFiles(TEST_IMAGE)
   await sellerPage.waitForTimeout(1000)
   // 價格（必填）
   await sellerPage.getByPlaceholder('輸入價格').fill('888')
-  await sellerPage.waitForTimeout(1000)
-  // 預計出貨日期（必填）
+
+  // ── 商品資訊（位於價格與規格之間）──
+  // 商品名稱（必填，已由搜尋預填，再次確認）
+  await sellerPage.getByPlaceholder('輸入商品名稱').fill(productName)
+  // 品牌（選填，即時新增）
+  await sellerPage.getByRole('button', { name: /選擇.*品牌/ }).click()
+  await sellerPage.getByPlaceholder('搜尋或輸入品牌名稱...').fill('[E2E] 品牌')
+  await sellerPage.waitForTimeout(500)
+  await sellerPage.getByRole('option', { name: /新增品牌/ }).click()
+  await sellerPage.waitForTimeout(500)
+  // 型號（選填）
+  await sellerPage.getByPlaceholder('輸入型號').fill('E2E-001')
+  // 分類（選填）
+  await sellerPage.getByRole('combobox').click()
+  await sellerPage.getByRole('option', { name: '美妝保養' }).click()
+  // 商品國家（選填）
+  await sellerPage.getByRole('button', { name: '選擇國家' }).click()
+  await sellerPage.getByRole('option').first().click()
+
+  // ── 出貨/連結/說明 ──
   await pickDate(sellerPage, '選擇預計出貨日期', 25)
-  await sellerPage.waitForTimeout(1000)
-  // 說明（選填）
   await sellerPage.getByPlaceholder('補充說明...').fill('[E2E] 測試代購說明')
-  await sellerPage.waitForTimeout(1000)
-  // 貼文連結（必填）
   await sellerPage.getByPlaceholder(/instagram/).fill('https://www.instagram.com/p/e2e-test')
-  // 等待所有非同步處理完成（圖片壓縮、URL 安全檢查等）
+  // 等待非同步處理（圖片壓縮、URL 安全檢查）
   await sellerPage.waitForTimeout(10000)
   await sellerPage.getByRole('button', { name: '直接上架' }).click()
 
-  // ── 驗證：等待重導向後前往搜尋頁確認代購已出現 ──
+  // ── 驗證：代購已上架並可被搜尋到 ──
   await sellerPage.waitForURL('**/dashboard/listings', { timeout: 30000 })
   await sellerPage.goto(`/search?q=${encodeURIComponent(listingTitle)}`)
   await expect(sellerPage.getByText(listingTitle)).toBeVisible({ timeout: 20000 })
+
+  // ── 驗證：商品已建立且有代表圖（catalog_image_id 已回填）──
+  await expect
+    .poll(
+      async () => {
+        const { data } = await dbAdmin()
+          .from('products')
+          .select('catalog_image_id')
+          .like('name', `${productName}%`)
+          .maybeSingle()
+        return data?.catalog_image_id
+      },
+      { timeout: 20000 },
+    )
+    .not.toBeNull()
 })
 
 // ─────────────────────────────────────────────────────────────────────────────

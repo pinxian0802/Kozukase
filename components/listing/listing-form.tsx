@@ -114,7 +114,7 @@ interface ListingFormProps {
   productId?: string
   mode: 'create' | 'edit'
   initialData?: any
-  onCreateProduct?: () => Promise<string>
+  onCreateProduct?: (coverFile: File | null) => Promise<string>
   /** True when the listing's original product was removed by an admin. */
   productRemoved?: boolean
   /**
@@ -122,9 +122,11 @@ interface ListingFormProps {
    * 讓建立 / 編輯各情境的商品顯示位置一致。未提供時，編輯模式會顯示內建商品卡。
    */
   productSlot?: ReactNode
+  /** 「商品資訊」分組內容（卡片或可填欄位），渲染於價格與庫存與規格之間。 */
+  productInfoSlot?: ReactNode
 }
 
-export function ListingForm({ productId, mode, initialData, onCreateProduct, productRemoved = false, productSlot }: ListingFormProps) {
+export function ListingForm({ productId, mode, initialData, onCreateProduct, productRemoved = false, productSlot, productInfoSlot }: ListingFormProps) {
   const router = useRouter()
   const utils = trpc.useUtils()
   const selectedProductImageUrl = initialData?.product?.catalog_image?.thumbnail_url
@@ -337,7 +339,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
         if (!onCreateProduct) {
           throw new Error('\u7f3a\u5c11\u5546\u54c1\u5efa\u7acb\u6d41\u7a0b')
         }
-        resolvedProductId = await onCreateProduct()
+        resolvedProductId = await onCreateProduct(pendingFiles[0] ?? null)
         if (!resolvedProductId) {
           throw new Error('\u5546\u54c1\u5efa\u7acb\u5931\u6557')
         }
@@ -393,7 +395,9 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
         if (productRemoved && hasReplacement) {
           replacementProductId = productId
           if (!replacementProductId && onCreateProduct) {
-            replacementProductId = await onCreateProduct()
+            // 編輯（商品被移除後重選）流程的商品建立沿用原本各自帶圖的路徑，
+            // 不從代購圖帶封面，故傳 null。
+            replacementProductId = await onCreateProduct(null)
           }
         }
         if (productRemoved && status === 'active' && !replacementProductId) {
@@ -443,6 +447,8 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
       }
       router.push('/dashboard/listings')
     } catch (err: any) {
+      // 把完整錯誤印到 console，dev 會被 Next 收進 .next/dev/logs，方便事後查。
+      console.error('[listing submit failed]', err?.message, err)
       // ── Compensating rollback (create mode only) ─────────────────────────
       // Clean up any R2 objects that were successfully uploaded before the
       // failure, then delete the draft listing if it was inserted.
@@ -489,7 +495,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
 
         {/* Title */}
         <div>
-          <Label htmlFor="listing-title">標題</Label>
+          <Label htmlFor="listing-title">代購標題</Label>
           <Input
             id="listing-title"
             value={title}
@@ -498,7 +504,7 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
               if (errors.title) clearError('title')
             }}
             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-            placeholder="輸入標題"
+            placeholder="輸入代購標題"
             maxLength={100}
             className="mt-1"
             aria-invalid={!!errors.title}
@@ -576,6 +582,13 @@ export function ListingForm({ productId, mode, initialData, onCreateProduct, pro
           </div>
         </div>
       </FormSection>
+
+      {/* ── 商品資訊 ── */}
+      {productInfoSlot && (
+        <FormSection title="商品資訊">
+          {productInfoSlot}
+        </FormSection>
+      )}
 
       {/* ── 規格 ── */}
       <FormSection title="規格" optional>
