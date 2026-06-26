@@ -81,7 +81,7 @@ export default function WishNewPage() {
     return (
       <div className="px-4 py-6">
         <ProductPicker
-          title="選擇或新增商品"
+          title="選擇您要代購的商品"
           description="先搜尋你想許願的商品。若平台已有相同商品，請直接選用，避免重複建立；若還沒有，再自行新增即可。"
           onSelectExisting={handleSelectExisting}
           onSubmitDraft={handleSubmitDraft}

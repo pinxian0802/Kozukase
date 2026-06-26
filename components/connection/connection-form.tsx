@@ -295,7 +295,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
       {/* ── 基本資訊 ── */}
       <FormSection title="基本資訊">
         <div className="space-y-1">
-          <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">標題</Label>
+          <Label htmlFor="connection-title" className="text-sm font-medium text-foreground">連線標題</Label>
           <Input
             id="connection-title"
             value={title}
@@ -304,7 +304,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
               if (errors.title) clearError('title')
             }}
             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-            placeholder="輸入標題"
+            placeholder="輸入連線標題"
             maxLength={100}
             aria-invalid={!!errors.title}
           />

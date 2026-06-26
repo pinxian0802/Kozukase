@@ -262,7 +262,7 @@ export default function SellerDashboardPage() {
                   className="mt-1"
                   render={<Link href="/dashboard/connections/new" />}
                 >
-                  <Plus className="mr-1 h-3.5 w-3.5" />新增連線
+                  <Plus className="mr-1 h-3.5 w-3.5" />新增第一筆連線
                 </Button>
               </div>
             )}
