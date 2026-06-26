@@ -25,9 +25,12 @@ const handler = async (req: Request) => {
     createContext: createTRPCContext,
     onError({ error, path }) {
       const code = (error as TRPCError).code
+      // 預期內的使用者 / 流程錯誤不記錄、不送 Sentry。
       if (code && EXPECTED_TRPC_CODES.has(code)) {
         return
       }
+      // 非預期錯誤：印到 console（dev 進終端機 / production 進 Vercel function logs），並送 Sentry。
+      console.error(`[tRPC] ${path ?? 'unknown'} [${code ?? 'UNKNOWN'}]`, error)
       Sentry.captureException(error, {
         tags: { trpcPath: path ?? 'unknown' },
       })
