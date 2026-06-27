@@ -11,7 +11,7 @@ export const bookmarkRouter = router({
         .select('id')
         .eq('user_id', ctx.user.id)
         .eq('product_id', input.product_id)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         await ctx.db.from('product_bookmarks').delete().eq('id', existing.id)
@@ -33,7 +33,7 @@ export const bookmarkRouter = router({
         .select('id')
         .eq('user_id', ctx.user.id)
         .eq('listing_id', input.listing_id)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         await ctx.db.from('listing_bookmarks').delete().eq('id', existing.id)
@@ -97,7 +97,7 @@ export const bookmarkRouter = router({
         .select('id')
         .eq('user_id', ctx.user.id)
         .eq('connection_id', input.connection_id)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         await ctx.db.from('connection_bookmarks').delete().eq('id', existing.id)

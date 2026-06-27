@@ -241,19 +241,22 @@ export const reviewRouter = router({
   getDistribution: publicProcedure
     .input(z.object({ seller_id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const stars = [1, 2, 3, 4, 5] as const
-      const counts = await Promise.all(
-        stars.map(async (rating) => {
-          const { count } = await ctx.db
-            .from('reviews')
-            .select('id', { count: 'exact', head: true })
-            .eq('seller_id', input.seller_id)
-            .eq('status', 'visible')
-            .eq('rating', rating)
-          return { stars: rating, count: count ?? 0 }
-        })
-      )
-      return counts
+      // 一次撈回該賣家所有「顯示中」評價的 rating 欄位，於記憶體分組，
+      // 取代原本逐星等 5 支 count 查詢。
+      const { data, error } = await ctx.db
+        .from('reviews')
+        .select('rating')
+        .eq('seller_id', input.seller_id)
+        .eq('status', 'visible')
+
+      if (error) throw error
+
+      const tally = new Map<number, number>([[1, 0], [2, 0], [3, 0], [4, 0], [5, 0]])
+      for (const row of data ?? []) {
+        if (tally.has(row.rating)) tally.set(row.rating, tally.get(row.rating)! + 1)
+      }
+
+      return [1, 2, 3, 4, 5].map((stars) => ({ stars, count: tally.get(stars) ?? 0 }))
     }),
 
   // 目前登入者對某賣家留的評價（沒有則回 null），用於決定顯示「撰寫」或「你的評價」

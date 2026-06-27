@@ -242,6 +242,8 @@ export const connectionRouter = router({
       limit: z.number().min(1).max(50).default(20),
     }))
     .query(async ({ ctx, input }) => {
+      // 主查詢用 { count: 'exact' } 一次取回資料 + 總數，不再另跑 countQuery
+      // （與 product.browse / listing.browse 一致，省一次 round-trip 及重複 filter）。
       let query = ctx.db
         .from('connections')
         .select(`
@@ -252,16 +254,10 @@ export const connectionRouter = router({
             profile:profiles(display_name, avatar_url)
           ),
           connection_images(id, url, r2_key, thumbnail_url, thumbnail_r2_key, sort_order)
-        `)
+        `, { count: 'exact' })
         .eq('status', 'active')
         .eq('seller.is_suspended', false)
         .order('start_date', { ascending: true })
-
-      let countQuery = ctx.db
-        .from('connections')
-        .select('id, seller:sellers!inner(is_suspended)', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .eq('seller.is_suspended', false)
 
       if (input.title_query) {
         // PostgREST `.or()` 用逗號分隔條件、括號包子查詢；q 內若含這些字元會破壞 filter 語法。
@@ -271,33 +267,27 @@ export const connectionRouter = router({
           const pattern = `%${safeQ}%`
           const orClause = `title.ilike.${pattern},description.ilike.${pattern},locations_text.ilike.${pattern}`
           query = query.or(orClause)
-          countQuery = countQuery.or(orClause)
         }
       }
 
       if (input.region_id) {
         query = query.eq('region_id', input.region_id)
-        countQuery = countQuery.eq('region_id', input.region_id)
       }
 
       if (input.location_query) {
         query = query.ilike('locations_text', `%${input.location_query}%`)
-        countQuery = countQuery.ilike('locations_text', `%${input.location_query}%`)
       }
 
       if (input.active_during?.end) {
         query = query.lte('start_date', input.active_during.end)
-        countQuery = countQuery.lte('start_date', input.active_during.end)
       }
 
       if (input.active_during?.start) {
         query = query.gte('end_date', input.active_during.start)
-        countQuery = countQuery.gte('end_date', input.active_during.start)
       }
 
       if (input.has_billing_method) {
         query = query.not('billing_method', 'is', null).neq('billing_method', '')
-        countQuery = countQuery.not('billing_method', 'is', null).neq('billing_method', '')
       }
 
       if (input.brand_id) {
@@ -308,12 +298,10 @@ export const connectionRouter = router({
         const ids = (brandConnections ?? []).map((r) => r.connection_id)
         const safeIds = ids.length ? ids : ['00000000-0000-0000-0000-000000000000']
         query = query.in('id', safeIds)
-        countQuery = countQuery.in('id', safeIds)
       }
 
       if (input.can_wish) {
         query = query.eq('can_wish', true)
-        countQuery = countQuery.eq('can_wish', true)
       }
 
       if (input.social_verified_only) {
@@ -324,17 +312,13 @@ export const connectionRouter = router({
         const ids = (verifiedSellers ?? []).map((r) => r.id)
         const safeIds = ids.length ? ids : ['00000000-0000-0000-0000-000000000000']
         query = query.in('seller_id', safeIds)
-        countQuery = countQuery.in('seller_id', safeIds)
       }
 
       const from = (input.page - 1) * input.limit
       const to = input.page * input.limit - 1
       query = query.range(from, to)
 
-      const [{ data, error }, { count }] = await Promise.all([
-        query,
-        countQuery,
-      ])
+      const { data, error, count } = await query
       if (error) throw error
       return {
         items: data ?? [],

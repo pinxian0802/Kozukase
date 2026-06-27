@@ -393,37 +393,28 @@ export const listingRouter = router({
     }),
 
   // Count for seller - how many listings total
+  // 每位賣家上限 25 筆，故一次撈回 status 欄位在記憶體分組，取代原本 5 支 count 查詢。
   myListingCount: sellerProcedure.query(async ({ ctx }) => {
-    const { count: total } = await ctx.db
+    const { data, error } = await ctx.db
       .from('listings')
-      .select('id', { count: 'exact', head: true })
+      .select('status')
       .eq('seller_id', ctx.seller.id)
 
-    const { count: active } = await ctx.db
-      .from('listings')
-      .select('id', { count: 'exact', head: true })
-      .eq('seller_id', ctx.seller.id)
-      .eq('status', 'active')
+    if (error) throw error
 
-    const { count: draft } = await ctx.db
-      .from('listings')
-      .select('id', { count: 'exact', head: true })
-      .eq('seller_id', ctx.seller.id)
-      .eq('status', 'draft')
+    const counts = { active: 0, draft: 0, pending_approval: 0, inactive: 0 }
+    for (const row of data ?? []) {
+      if (row.status in counts) counts[row.status as keyof typeof counts]++
+    }
 
-    const { count: pending_approval } = await ctx.db
-      .from('listings')
-      .select('id', { count: 'exact', head: true })
-      .eq('seller_id', ctx.seller.id)
-      .eq('status', 'pending_approval')
-
-    const { count: inactive } = await ctx.db
-      .from('listings')
-      .select('id', { count: 'exact', head: true })
-      .eq('seller_id', ctx.seller.id)
-      .eq('status', 'inactive')
-
-    return { total: total ?? 0, active: active ?? 0, draft: draft ?? 0, pending_approval: pending_approval ?? 0, inactive: inactive ?? 0, max: 25 }
+    return {
+      total: data?.length ?? 0,
+      active: counts.active,
+      draft: counts.draft,
+      pending_approval: counts.pending_approval,
+      inactive: counts.inactive,
+      max: 25,
+    }
   }),
 })
 

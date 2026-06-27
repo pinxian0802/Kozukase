@@ -291,6 +291,10 @@ active ◄──── pending_approval
 
 每份檢舉只能指向一個對象（資料庫 CHECK 約束）。
 
+**防濫用（後端 `report.create`）：**
+- 同一檢舉人對同一對象若已有 `pending` 檢舉，不可重複送出（回友善訊息）
+- 每位使用者每日最多送出 20 份檢舉（`TOO_MANY_REQUESTS`）
+
 **狀態流程：** `pending` → `resolved` / `dismissed`
 
 管理員可附加備註，系統記錄解決者與解決時間。
@@ -582,7 +586,7 @@ active ◄──── pending_approval
 | `profile_views` | 開啟 `/sellers/[id]` 時（非本人、同 session 去重） | 賣家後台「主頁訪客」 |
 | `social_link_clicks` | 點擊 IG / Threads 連結時 | 賣家後台「IG / Threads 點擊」 |
 
-賣家後台 `/dashboard` 數據總覽以 `analytics.getSellerStats` 聚合上列計數，提供 7 / 30 / 90 天視窗與環比趨勢。
+賣家後台 `/dashboard` 數據總覽以 `analytics.getSellerStats` 聚合上列計數，提供 7 / 30 / 90 天視窗與環比趨勢。實際計數由單一 SQL function `seller_dashboard_stats(p_seller_id, p_cur_start, p_prev_start)` 一次回傳（取代原本 22 支 count 查詢）；視窗邊界由 tRPC 端傳入（current = `>= cur_start`、previous = `prev_start <= x < cur_start`），趨勢仍在 TS 以 `calcTrend` 計算。
 
 ---
 

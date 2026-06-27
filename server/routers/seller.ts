@@ -141,10 +141,14 @@ export const sellerRouter = router({
   getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      // 明列欄位：public 端點不可回傳 phone_number / ig_user_id / suspended_at 等
+      // 內部或 PII 欄位（select('*') 會連同這些一起送到瀏覽器）。
       const { data, error } = await ctx.db
         .from('sellers')
         .select(`
-          *,
+          id, name, bio, avatar_url, ig_handle, threads_handle,
+          is_social_verified, avg_rating, review_count, follow_count,
+          can_provide_proof, created_at,
           profile:profiles(display_name, avatar_url),
           seller_regions(region:regions(id, name))
         `)

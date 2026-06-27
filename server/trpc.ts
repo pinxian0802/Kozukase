@@ -76,9 +76,10 @@ const isSeller = t.middleware(async ({ ctx, next }) => {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: '請先登入' })
   }
 
+  // 只取守衛與下游需要的欄位（ctx.seller 全站僅用到 id；is_suspended 供此處判斷）
   const { data: seller } = await ctx.db
     .from('sellers')
-    .select('*')
+    .select('id, is_suspended')
     .eq('id', ctx.user.id)
     .single()
 

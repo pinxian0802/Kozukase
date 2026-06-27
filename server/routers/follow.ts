@@ -16,7 +16,7 @@ export const followRouter = router({
         .select('id')
         .eq('follower_id', ctx.user.id)
         .eq('seller_id', input.seller_id)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         await ctx.db.from('follows').delete().eq('id', existing.id)

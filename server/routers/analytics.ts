@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { SupabaseClient } from '@supabase/supabase-js'
 import { router, publicProcedure, sellerProcedure } from '../trpc'
 
 function calcTrend(current: number, previous: number): number {
@@ -7,26 +6,19 @@ function calcTrend(current: number, previous: number): number {
   return Math.round(((current - previous) / previous) * 100)
 }
 
-type CountFilter = { field: string; value: string | string[] }
-
-async function countInPeriod(
-  db: SupabaseClient,
-  table: string,
-  filters: CountFilter[],
-  dateField: string,
-  from: string,
-  to?: string
-): Promise<number> {
-  if (filters.some(f => Array.isArray(f.value) && f.value.length === 0)) return 0
-
-  let q = db.from(table).select('id', { count: 'exact', head: true })
-  for (const { field, value } of filters) {
-    q = Array.isArray(value) ? q.in(field, value) : q.eq(field, value)
-  }
-  q = q.gte(dateField, from)
-  if (to) q = q.lt(dateField, to)
-  const { count } = await q
-  return count ?? 0
+// seller_dashboard_stats RPC（migration add_seller_dashboard_stats_fn）的回傳列。
+// 不在產生的 Supabase 型別內，故手動定義；所有計數以字串/數字回傳，統一轉 Number。
+type SellerStatsRow = {
+  listing_views_cur: number; listing_views_prev: number
+  profile_views_cur: number; profile_views_prev: number
+  ig_clicks_cur: number; ig_clicks_prev: number
+  threads_clicks_cur: number; threads_clicks_prev: number
+  inquiries_cur: number; inquiries_prev: number
+  bookmarks_cur: number; bookmarks_prev: number
+  followers_cur: number; followers_prev: number
+  wish_matches_cur: number; wish_matches_prev: number
+  product_views_cur: number; product_views_prev: number
+  connection_views_cur: number; connection_views_prev: number
 }
 
 export const analyticsRouter = router({
@@ -84,81 +76,37 @@ export const analyticsRouter = router({
       days: z.union([z.literal(7), z.literal(30), z.literal(90)]).default(30),
     }))
     .query(async ({ ctx, input }) => {
-      const now = new Date()
-      const curStart = new Date(now.getTime() - input.days * 86_400_000).toISOString()
-      const prevStart = new Date(now.getTime() - input.days * 86_400_000 * 2).toISOString()
+      const now = Date.now()
+      const curStart = new Date(now - input.days * 86_400_000).toISOString()
+      const prevStart = new Date(now - input.days * 86_400_000 * 2).toISOString()
 
-      const { data: myListings } = await ctx.db
-        .from('listings')
-        .select('id, product_id')
-        .eq('seller_id', ctx.user.id)
-      const listingIds = (myListings ?? []).map((l: any) => l.id)
-      const productIds = [
-        ...new Set((myListings ?? []).map((l: any) => l.product_id).filter(Boolean)),
-      ] as string[]
+      // 單一聚合 RPC 取代原本 22 支 count 查詢；視窗邊界由此處傳入，語義不變。
+      const { data, error } = await ctx.db.rpc('seller_dashboard_stats', {
+        p_seller_id: ctx.user.id,
+        p_cur_start: curStart,
+        p_prev_start: prevStart,
+      })
+      if (error) throw error
 
-      const sellerId = ctx.user.id
-
-      const { data: myConnections } = await ctx.db
-        .from('connections')
-        .select('id')
-        .eq('seller_id', sellerId)
-      const connectionIds = (myConnections ?? []).map((c: any) => c.id)
-
-      const [
-        listingViewsCur, listingViewsPrev,
-        profileViewsCur, profileViewsPrev,
-        igClicksCur, igClicksPrev,
-        threadsClicksCur, threadsClicksPrev,
-        inquiriesCur, inquiriesPrev,
-        bookmarksCur, bookmarksPrev,
-        followersCur, followersPrev,
-        wishMatchesCur, wishMatchesPrev,
-        productViewsCur, productViewsPrev,
-        connectionViewsCur, connectionViewsPrev,
-      ] = await Promise.all([
-        countInPeriod(ctx.db, 'listing_views', [{ field: 'listing_id', value: listingIds }], 'viewed_at', curStart),
-        countInPeriod(ctx.db, 'listing_views', [{ field: 'listing_id', value: listingIds }], 'viewed_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'profile_views', [{ field: 'seller_id', value: sellerId }], 'viewed_at', curStart),
-        countInPeriod(ctx.db, 'profile_views', [{ field: 'seller_id', value: sellerId }], 'viewed_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'social_link_clicks', [{ field: 'seller_id', value: sellerId }, { field: 'platform', value: 'ig' }], 'clicked_at', curStart),
-        countInPeriod(ctx.db, 'social_link_clicks', [{ field: 'seller_id', value: sellerId }, { field: 'platform', value: 'ig' }], 'clicked_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'social_link_clicks', [{ field: 'seller_id', value: sellerId }, { field: 'platform', value: 'threads' }], 'clicked_at', curStart),
-        countInPeriod(ctx.db, 'social_link_clicks', [{ field: 'seller_id', value: sellerId }, { field: 'platform', value: 'threads' }], 'clicked_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'conversations', [{ field: 'seller_id', value: sellerId }], 'created_at', curStart),
-        countInPeriod(ctx.db, 'conversations', [{ field: 'seller_id', value: sellerId }], 'created_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'listing_bookmarks', [{ field: 'listing_id', value: listingIds }], 'created_at', curStart),
-        countInPeriod(ctx.db, 'listing_bookmarks', [{ field: 'listing_id', value: listingIds }], 'created_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'follows', [{ field: 'seller_id', value: sellerId }], 'created_at', curStart),
-        countInPeriod(ctx.db, 'follows', [{ field: 'seller_id', value: sellerId }], 'created_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'wishes', [{ field: 'product_id', value: productIds }], 'created_at', curStart),
-        countInPeriod(ctx.db, 'wishes', [{ field: 'product_id', value: productIds }], 'created_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'product_views', [{ field: 'product_id', value: productIds }], 'viewed_at', curStart),
-        countInPeriod(ctx.db, 'product_views', [{ field: 'product_id', value: productIds }], 'viewed_at', prevStart, curStart),
-
-        countInPeriod(ctx.db, 'connection_views', [{ field: 'connection_id', value: connectionIds }], 'viewed_at', curStart),
-        countInPeriod(ctx.db, 'connection_views', [{ field: 'connection_id', value: connectionIds }], 'viewed_at', prevStart, curStart),
-      ])
+      const row = (Array.isArray(data) ? data[0] : data) as SellerStatsRow | undefined
+      const n = (v: number | undefined) => Number(v ?? 0)
+      const stat = (cur: number | undefined, prev: number | undefined) => {
+        const c = n(cur)
+        const p = n(prev)
+        return { current: c, trend: calcTrend(c, p) }
+      }
 
       return {
-        listingViews:  { current: listingViewsCur,  trend: calcTrend(listingViewsCur,  listingViewsPrev) },
-        profileViews:  { current: profileViewsCur,  trend: calcTrend(profileViewsCur,  profileViewsPrev) },
-        igClicks:      { current: igClicksCur,      trend: calcTrend(igClicksCur,      igClicksPrev) },
-        threadsClicks: { current: threadsClicksCur, trend: calcTrend(threadsClicksCur, threadsClicksPrev) },
-        inquiries:     { current: inquiriesCur,     trend: calcTrend(inquiriesCur,     inquiriesPrev) },
-        bookmarks:     { current: bookmarksCur,     trend: calcTrend(bookmarksCur,     bookmarksPrev) },
-        newFollowers:  { current: followersCur,     trend: calcTrend(followersCur,     followersPrev) },
-        wishMatches:   { current: wishMatchesCur,   trend: calcTrend(wishMatchesCur,   wishMatchesPrev) },
-        productViews:    { current: productViewsCur,    trend: calcTrend(productViewsCur,    productViewsPrev) },
-        connectionViews: { current: connectionViewsCur, trend: calcTrend(connectionViewsCur, connectionViewsPrev) },
+        listingViews:    stat(row?.listing_views_cur,    row?.listing_views_prev),
+        profileViews:    stat(row?.profile_views_cur,    row?.profile_views_prev),
+        igClicks:        stat(row?.ig_clicks_cur,        row?.ig_clicks_prev),
+        threadsClicks:   stat(row?.threads_clicks_cur,   row?.threads_clicks_prev),
+        inquiries:       stat(row?.inquiries_cur,        row?.inquiries_prev),
+        bookmarks:       stat(row?.bookmarks_cur,        row?.bookmarks_prev),
+        newFollowers:    stat(row?.followers_cur,        row?.followers_prev),
+        wishMatches:     stat(row?.wish_matches_cur,     row?.wish_matches_prev),
+        productViews:    stat(row?.product_views_cur,    row?.product_views_prev),
+        connectionViews: stat(row?.connection_views_cur, row?.connection_views_prev),
       }
     }),
 })

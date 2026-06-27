@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import ProductPageClient from './page-client'
 import { JsonLd } from '@/lib/seo/jsonld'
@@ -18,7 +19,8 @@ type ProductSeo = {
   brand: { name: string } | null
 }
 
-async function getProductSeo(id: string) {
+// cache(): 同一請求內 generateMetadata 與 Page 都呼叫此函式，包 cache 後只查一次 DB。
+const getProductSeo = cache(async (id: string) => {
   const supabase = await createSupabaseServerClient()
   const { data } = await supabase
     .from('products')
@@ -61,7 +63,7 @@ async function getProductSeo(id: string) {
     imageUrl,
     offers,
   }
-}
+})
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
