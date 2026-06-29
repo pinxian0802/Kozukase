@@ -1,10 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { seedListing, dbAdmin } from './helpers/db'
-
-// A listing card on the management page (unique rounded-[28px] container).
-function listingCard(page: import('@playwright/test').Page, title: string) {
-  return page.locator('div[class*="rounded-["]').filter({ hasText: title })
-}
+import { listingRow } from './helpers/locators'
 
 test.describe('賣家後台', () => {
   test('側欄與快捷操作渲染', async ({ page }) => {
@@ -37,9 +33,11 @@ test.describe('Listing 生命週期', () => {
     const s = await seedListing(process.env.E2E_SELLER_EMAIL!, 'draft')
     await page.goto('/dashboard/listings')
     await page.getByRole('tab', { name: /草稿/ }).click()
-    await expect(page.getByText(s.title)).toBeVisible({ timeout: 20000 })
+    await expect(page.getByText(s.title).first()).toBeVisible({ timeout: 20000 })
 
-    await listingCard(page, s.title).getByRole('button', { name: '刪除' }).click()
+    // 操作已移進「更多操作」下拉選單,先開選單再點刪除
+    await listingRow(page, s.listingId).getByRole('button', { name: '更多操作' }).click()
+    await page.getByRole('menuitem', { name: '刪除' }).click()
 
     await expect
       .poll(async () => {
@@ -56,9 +54,10 @@ test.describe('Listing 生命週期', () => {
     const s = await seedListing(process.env.E2E_SELLER_EMAIL!, 'active')
     await page.goto('/dashboard/listings')
     await page.getByRole('tab', { name: /上架中/ }).click()
-    await expect(page.getByText(s.title)).toBeVisible({ timeout: 20000 })
+    await expect(page.getByText(s.title).first()).toBeVisible({ timeout: 20000 })
 
-    await listingCard(page, s.title).getByRole('button', { name: '下架' }).click()
+    await listingRow(page, s.listingId).getByRole('button', { name: '更多操作' }).click()
+    await page.getByRole('menuitem', { name: '下架' }).click()
 
     await expect
       .poll(async () => {

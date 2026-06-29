@@ -128,24 +128,35 @@ export function ConversationPanel({ conversationId, otherName, otherAvatar, othe
     // 與舊的 postgres_changes 相比,訊息路由改由「頻道名稱」決定,
     // 不再對每筆 INSERT 跑全表的 RLS 比對。
     // 注意:private: true 是必要的,否則 realtime.messages 的權限規則不會套用。
+    // 重要:private 頻道授權靠 RLS(auth.uid()),訂閱前必須先把使用者 JWT 交給 Realtime
+    // (realtime.setAuth),否則會以匿名身分被擋下(CHANNEL_ERROR: Unauthorized)而收不到廣播。
     const supabase = createSupabaseBrowserClient()
-    const channel = supabase
-      .channel(`conversation:${conversationId}`, { config: { private: true } })
-      .on('broadcast', { event: 'new_message' }, (payload) => {
-        const newMsg = payload.payload as Message
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === newMsg.id)) return prev
-          return [...prev, newMsg]
+    let channel: ReturnType<typeof supabase.channel> | null = null
+    let cancelled = false
+
+    ;(async () => {
+      const { data } = await supabase.auth.getSession()
+      await supabase.realtime.setAuth(data.session?.access_token)
+      if (cancelled) return
+      channel = supabase
+        .channel(`conversation:${conversationId}`, { config: { private: true } })
+        .on('broadcast', { event: 'new_message' }, (payload) => {
+          const newMsg = payload.payload as Message
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev
+            return [...prev, newMsg]
+          })
+          if (isAtBottom.current) scrollToBottom()
+          if (newMsg.sender_id !== session?.user?.id) {
+            markRead.mutate({ conversation_id: conversationId })
+          }
         })
-        if (isAtBottom.current) scrollToBottom()
-        if (newMsg.sender_id !== session?.user?.id) {
-          markRead.mutate({ conversation_id: conversationId })
-        }
-      })
-      .subscribe()
+        .subscribe()
+    })()
 
     return () => {
-      supabase.removeChannel(channel)
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId])

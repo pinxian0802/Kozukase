@@ -27,7 +27,9 @@ if (!url || !key) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_
 
 const db = createClient(url, key, { auth: { persistSession: false } })
 
-const PASSWORD = 'e2e-Test-0525!'
+// Single source of truth: use the same password the Playwright setup logs in with.
+const PASSWORD = env.E2E_PASSWORD
+if (!PASSWORD) throw new Error('Missing E2E_PASSWORD in .env.local')
 const ACCOUNTS = [
   { role: 'buyer', email: 'e2e-buyer@kozukase.test', display: 'E2E Buyer' },
   { role: 'seller', email: 'e2e-seller@kozukase.test', display: 'E2E Seller' },
@@ -68,9 +70,11 @@ for (const acc of ACCOUNTS) {
   }
 
   // profile (auth trigger may already create one; upsert is conflict-safe)
+  // username 必填(否則登入後會被導向 /onboarding,setup 卡住)。
+  // 須符合 ^[a-z0-9]{3,20}$ 且全平台唯一。
   await check(`profile ${acc.email}`, await db
     .from('profiles')
-    .upsert({ id: user.id, display_name: acc.display }, { onConflict: 'id' }))
+    .upsert({ id: user.id, username: `e2e${acc.role}`, display_name: acc.display }, { onConflict: 'id' }))
 
   if (acc.role === 'seller') {
     await check(`seller ${acc.email}`, await db

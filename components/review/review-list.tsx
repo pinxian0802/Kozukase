@@ -85,7 +85,7 @@ function ReviewCard({
   }
 
   return (
-    <div className="rounded-[14px] border border-border-soft p-4 space-y-3">
+    <div data-testid="review-item" data-id={review.id} className="rounded-[14px] border border-border-soft p-4 space-y-3">
       {/* Reviewer */}
       <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8">

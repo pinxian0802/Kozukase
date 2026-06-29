@@ -179,6 +179,8 @@ export function MessageInput({
           ref={textareaRef}
           value={body}
           rows={1}
+          placeholder="輸入訊息…"
+          aria-label="輸入訊息"
           onChange={e => {
             setBody(e.target.value)
             const el = e.target

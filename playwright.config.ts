@@ -41,19 +41,20 @@ export default defineConfig({
     { name: 'cleanup', testMatch: /global\.teardown\.ts/ },
     {
       name: 'buyer',
-      testMatch: /buyer\.spec\.ts/,
+      testMatch: /\/buyer\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'], storageState: 'tests/.auth/buyer.json' },
       dependencies: ['setup'],
     },
     {
       name: 'seller',
-      testMatch: /seller\.spec\.ts/,
+      // 路徑錨定:只配 tests/seller.spec.ts,避免 substring 誤抓 become-seller.spec.ts
+      testMatch: /\/seller\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'], storageState: 'tests/.auth/seller.json' },
       dependencies: ['setup'],
     },
     {
       name: 'cross-role',
-      testMatch: /(cross-role|messages|report-takedown|threads-verification|admin-reports|admin-listings|admin-connections|seller-create|seo|storage)\.spec\.ts/,
+      testMatch: /(cross-role|messages|report-takedown|threads-verification|admin-reports|admin-listings|admin-connections|seller-create|seo|storage|smoke|registration|password-reset|become-seller|admin-suspend|analytics|wishes|banner|cron-expire|ig-verification)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },

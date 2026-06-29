@@ -67,7 +67,7 @@ export default function AdminSellersPage() {
             </thead>
             <tbody>
               {data.items.map((seller: any) => (
-                <tr key={seller.id} className="border-b last:border-b-0">
+                <tr key={seller.id} data-testid="admin-row" data-id={seller.id} className="border-b last:border-b-0">
                   <td className="px-4 py-3 font-medium">{seller.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(seller.created_at)}</td>
                   <td className="px-4 py-3 text-muted-foreground">

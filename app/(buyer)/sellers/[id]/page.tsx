@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getDb } from '@/server/db/client'
 import SellerPageClient from './page-client'
 import { JsonLd } from '@/lib/seo/jsonld'
 import { buildSellerJsonLd, buildBreadcrumbJsonLd } from '@/lib/seo/builders'
@@ -15,7 +15,8 @@ type SellerSeo = {
 }
 
 async function getSellerSeo(id: string) {
-  const supabase = await createSupabaseServerClient()
+  // service-role(server-only):未登入也要讀得到;只挑安全欄位(無 phone_number / ig_user_id)。
+  const supabase = getDb()
   const { data } = await supabase
     .from('sellers')
     .select('name, avatar_url, ig_handle, threads_handle, avg_rating, review_count')

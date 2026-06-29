@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getDb } from '@/server/db/client'
 import ListingPageClient from './page-client'
 import { joinParts } from '@/lib/seo/builders'
 import { SITE_URL, SITE_NAME, SITE_TAGLINE } from '@/lib/seo/site'
@@ -8,7 +8,8 @@ export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createSupabaseServerClient()
+  // service-role(server-only):未登入也要讀得到 metadata
+  const supabase = getDb()
   const { data } = await supabase
     .from('listings')
     .select('product:products(name, model_number, brand:brands(name)), seller:sellers(name)')

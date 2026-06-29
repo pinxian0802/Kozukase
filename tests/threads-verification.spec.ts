@@ -8,10 +8,10 @@ function reqCard(page: Page, text: string) {
   return page.locator('tbody tr').filter({ hasText: text })
 }
 
-// The Threads row inside the seller profile 社群帳號 tab (the divider row that
-// mentions Threads but not Instagram).
+// The Threads row inside the seller profile 社群帳號 tab.
+// 用 data-testid 鎖定(舊的 div.px-5.py-4 class 已隨 RWD 改版失效)。
 function threadsRow(page: Page) {
-  return page.locator('div.px-5.py-4').filter({ hasText: 'Threads' }).filter({ hasNot: page.getByText('Instagram') })
+  return page.locator('[data-testid="social-row"][data-platform="threads"]')
 }
 
 // Shared E2E seller account — start each test from a clean, unverified state.
@@ -65,7 +65,8 @@ test.describe('Thread 驗證人工審核（全程點 UI）', () => {
         .toBe('pending')
 
       // ── 管理員端:在待審核分頁按「通過」 ──
-      await adminPage.goto('/admin/threads-verification')
+      await adminPage.goto('/admin/social-verification')
+      await adminPage.getByRole('tab', { name: 'Threads' }).click()
       await reqCard(adminPage, username).getByRole('button', { name: '通過' }).click()
 
       await expect
@@ -108,7 +109,8 @@ test.describe('Thread 驗證人工審核（全程點 UI）', () => {
       await sellerSubmitViaUI(sellerPage, username)
 
       // 管理員退回（在 UI 上填原因）
-      await adminPage.goto('/admin/threads-verification')
+      await adminPage.goto('/admin/social-verification')
+      await adminPage.getByRole('tab', { name: 'Threads' }).click()
       await reqCard(adminPage, username).getByRole('button', { name: '退回' }).click()
       await expect(adminPage.getByText('退回驗證申請')).toBeVisible({ timeout: 10000 })
       await adminPage.getByPlaceholder('例如:收件匣找不到這組驗證碼…').fill(reason)

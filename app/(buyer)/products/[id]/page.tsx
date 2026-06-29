@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { cache } from 'react'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getDb } from '@/server/db/client'
 import ProductPageClient from './page-client'
 import { JsonLd } from '@/lib/seo/jsonld'
 import {
@@ -21,7 +21,9 @@ type ProductSeo = {
 
 // cache(): 同一請求內 generateMetadata 與 Page 都呼叫此函式，包 cache 後只查一次 DB。
 const getProductSeo = cache(async (id: string) => {
-  const supabase = await createSupabaseServerClient()
+  // service-role(server-only):公開頁 SSR metadata 需在未登入時也讀得到。
+  // 僅挑安全欄位,輸出為 title/OG/JSON-LD 衍生字串,不回傳 PII 給瀏覽器。
+  const supabase = getDb()
   const { data } = await supabase
     .from('products')
     .select('name, model_number, category, catalog_image_id, brand:brands(name)')

@@ -1,12 +1,12 @@
 import type { MetadataRoute } from 'next'
-import { createClient } from '@supabase/supabase-js'
+import { getDb } from '@/server/db/client'
 import { SITE_URL } from '@/lib/seo/site'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  // service-role(server-only):公開瀏覽表的 RLS 只放行 authenticated,
+  // 用 anon key 會讀到空清單導致 sitemap 缺所有動態網址。service-role 繞過 RLS,
+  // 因此下方查詢必須自行帶齊「公開可見」過濾(is_removed / status / is_suspended)。
+  const supabase = getDb()
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [{ data: sellers }, { data: products }, { data: connections }, { data: listings }] =
     await Promise.all([
       supabase.from('sellers').select('id, updated_at').eq('is_suspended', false),
-      supabase.from('products').select('id, updated_at'),
+      supabase.from('products').select('id, updated_at').eq('is_removed', false),
       // 公開連線：進行中且賣家未停權（對齊 connection.browse 的條件）
       supabase
         .from('connections')

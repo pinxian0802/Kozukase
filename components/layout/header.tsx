@@ -101,7 +101,7 @@ export function Header({ showSubNav = true }: { showSubNav?: boolean } = {}) {
                 <DropdownMenuTrigger
                   nativeButton={false}
                   render={
-                    <span className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })}>
+                    <span data-testid="user-menu" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })}>
                       <Avatar className="h-7 w-7 md:h-8 md:w-8">
                         <AvatarImage src={session.profile.avatar_url ?? undefined} />
                         <AvatarFallback>{session.profile.display_name?.[0] ?? '?'}</AvatarFallback>

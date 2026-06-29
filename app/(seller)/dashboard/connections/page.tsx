@@ -126,6 +126,8 @@ export default function SellerConnectionsPage() {
               return (
                 <TableRow
                   key={conn.id}
+                  data-testid="connection-row"
+                  data-id={conn.id}
                   className="cursor-pointer"
                   onClick={() => router.push(`/dashboard/connections/${conn.id}/edit`)}
                 >
@@ -197,6 +199,8 @@ export default function SellerConnectionsPage() {
           return (
             <div
               key={conn.id}
+              data-testid="connection-row"
+              data-id={conn.id}
               className="rounded-lg border border-border-soft bg-white p-2.5 cursor-pointer"
               onClick={() => router.push(`/dashboard/connections/${conn.id}/edit`)}
             >

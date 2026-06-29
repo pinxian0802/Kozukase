@@ -10,7 +10,7 @@ test.describe('認證流程（未登入）', () => {
     await page.goto('/login')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(password)
-    await page.getByRole('button', { name: '使用密碼登入' }).click()
+    await page.getByRole('button', { name: '登入', exact: true }).click()
     await page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 30000 })
     expect(new URL(page.url()).pathname).not.toContain('/login')
   })
@@ -19,14 +19,14 @@ test.describe('認證流程（未登入）', () => {
     await page.goto('/login')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill('wrong-password-123')
-    await page.getByRole('button', { name: '使用密碼登入' }).click()
+    await page.getByRole('button', { name: '登入', exact: true }).click()
     await page.waitForTimeout(3000)
     expect(page.url()).toContain('/login')
   })
 
   test('空白送出應顯示欄位錯誤', async ({ page }) => {
     await page.goto('/login')
-    await page.getByRole('button', { name: '使用密碼登入' }).click()
+    await page.getByRole('button', { name: '登入', exact: true }).click()
     await expect(page.getByText('Email 為必填')).toBeVisible()
     await expect(page.getByText('密碼為必填')).toBeVisible()
   })
@@ -42,12 +42,12 @@ test.describe('已登入狀態（buyer）', () => {
   test('首頁顯示使用者頭像、登入連結消失', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('link', { name: '登入' })).not.toBeVisible({ timeout: 30000 })
-    await expect(page.locator('[data-slot="dropdown-menu-trigger"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('user-menu')).toBeVisible({ timeout: 15000 })
   })
 
   test('登出後登入連結重新出現', async ({ page }) => {
     await page.goto('/')
-    const trigger = page.locator('[data-slot="dropdown-menu-trigger"]')
+    const trigger = page.getByTestId('user-menu')
     await expect(trigger).toBeVisible({ timeout: 30000 })
     await trigger.click()
     await page.getByText('登出').first().click()

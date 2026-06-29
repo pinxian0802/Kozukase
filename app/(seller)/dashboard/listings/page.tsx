@@ -139,6 +139,8 @@ export default function SellerListingsPage() {
               return (
                 <TableRow
                   key={listing.id}
+                  data-testid="listing-row"
+                  data-id={listing.id}
                   className="cursor-pointer"
                   onClick={() => router.push(`/dashboard/listings/${listing.id}/edit`)}
                 >
@@ -221,6 +223,8 @@ export default function SellerListingsPage() {
           return (
             <div
               key={listing.id}
+              data-testid="listing-row"
+              data-id={listing.id}
               className="flex items-center gap-2.5 rounded-lg border border-border-soft bg-white p-2.5 cursor-pointer"
               onClick={() => router.push(`/dashboard/listings/${listing.id}/edit`)}
             >

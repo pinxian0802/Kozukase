@@ -550,7 +550,7 @@ export default function SellerProfilePage() {
               <CardContent className="p-0 divide-y divide-border">
 
                 {/* Instagram Row */}
-                <div className="flex items-center gap-2.5 px-3 py-3 md:gap-3.5 md:px-5 md:py-4">
+                <div data-testid="social-row" data-platform="instagram" className="flex items-center gap-2.5 px-3 py-3 md:gap-3.5 md:px-5 md:py-4">
                   <div className="relative flex-shrink-0">
                     <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.1)]">
                       <Image src="/images/instagram.png" alt="Instagram" width={40} height={40} />
@@ -617,7 +617,7 @@ export default function SellerProfilePage() {
                 </div>
 
                 {/* Threads Row */}
-                <div className="flex items-center gap-2.5 px-3 py-3 md:gap-3.5 md:px-5 md:py-4">
+                <div data-testid="social-row" data-platform="threads" className="flex items-center gap-2.5 px-3 py-3 md:gap-3.5 md:px-5 md:py-4">
                   <div className="relative flex-shrink-0">
                     <div className="w-10 h-10 rounded-[10px] overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.1)]">
                       <Image src="/images/threads.png" alt="Threads" width={40} height={40} />

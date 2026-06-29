@@ -10,21 +10,23 @@ type ScanResult = { orphans: Orphan[]; totalCount: number; totalBytes: number }
 // A：後台掃描 / 刪除
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('管理員掃描可找出孤兒並刪除', async ({ adminPage }) => {
+test('管理員掃描可找出孤兒；剛上傳的孤兒受 24h 安全門檻保護不會被刪', async ({ adminPage }) => {
   // 在 R2 塞一個沒有任何資料庫紀錄的孤兒物件
   const sellerId = await getSellerIdByEmail(process.env.E2E_SELLER_EMAIL!)
   const key = `images/listing/users/${sellerId}/e2e-orphan-${Date.now()}.webp`
   await putR2Object(key)
 
   try {
-    // minAgeHours: 0 才能納入剛上傳的物件
+    // minAgeHours: 0 才能納入剛上傳的物件 → scan 找得到
     const scan = await trpcQuery<ScanResult>(adminPage.request, 'storage.scanOrphanImages', { minAgeHours: 0 })
     expect(scan.orphans.map((o) => o.key)).toContain(key)
 
+    // deleteOrphanImages 內部重新以「固定 24h 門檻」再確認(server/routers/storage.ts:95),
+    // 故剛上傳(age 0)的孤兒「不會」被刪——這是防止誤刪剛上傳、可能馬上被引用之圖的安全設計。
+    // (無法在 e2e 製造 >24h 的 R2 物件,故這裡驗證的是安全門檻行為,而非實際刪除路徑。)
     const del = await trpcMutate<{ deleted: number }>(adminPage.request, 'storage.deleteOrphanImages', { keys: [key] })
-    expect(del.deleted).toBe(1)
-
-    expect(await r2ObjectExists(key)).toBe(false)
+    expect(del.deleted).toBe(0)
+    expect(await r2ObjectExists(key)).toBe(true)
   } finally {
     await deleteR2Object(key)
   }

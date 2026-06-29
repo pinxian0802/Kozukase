@@ -29,17 +29,28 @@ export function UserChannelListener() {
   useEffect(() => {
     if (!userId) return
 
+    // private 頻道授權靠 RLS(auth.uid());訂閱前必須先把使用者 JWT 交給 Realtime
+    // (realtime.setAuth),否則以匿名身分被擋(CHANNEL_ERROR: Unauthorized)收不到廣播。
     const supabase = createSupabaseBrowserClient()
-    const channel = supabase
-      .channel(`user:${userId}`, { config: { private: true } })
-      .on('broadcast', { event: 'messages_changed' }, () => {
-        utils.message.unreadCount.invalidate()
-        utils.message.list.invalidate()
-      })
-      .subscribe()
+    let channel: ReturnType<typeof supabase.channel> | null = null
+    let cancelled = false
+
+    ;(async () => {
+      const { data } = await supabase.auth.getSession()
+      await supabase.realtime.setAuth(data.session?.access_token)
+      if (cancelled) return
+      channel = supabase
+        .channel(`user:${userId}`, { config: { private: true } })
+        .on('broadcast', { event: 'messages_changed' }, () => {
+          utils.message.unreadCount.invalidate()
+          utils.message.list.invalidate()
+        })
+        .subscribe()
+    })()
 
     return () => {
-      supabase.removeChannel(channel)
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
     }
   }, [userId, utils])
 
