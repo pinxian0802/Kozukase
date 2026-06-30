@@ -4,6 +4,7 @@ import { router, publicProcedure, sellerProcedure } from '../trpc'
 import { httpUrl } from '@/lib/validators/common'
 import { createConnectionInput, updateConnectionInput } from '@/lib/validators/connection'
 import { checkUrlSafety } from '@/lib/utils/safe-browsing'
+import { normalizeSearchText } from '@/lib/utils/search'
 import { deleteR2Objects } from '@/lib/r2'
 
 export const connectionRouter = router({
@@ -259,15 +260,18 @@ export const connectionRouter = router({
         .eq('seller.is_suspended', false)
         .order('start_date', { ascending: true })
 
-      if (input.title_query) {
-        // PostgREST `.or()` 用逗號分隔條件、括號包子查詢；q 內若含這些字元會破壞 filter 語法。
-        // 先把它們替換成空白，避免噴錯;空字串則略過搜尋。
-        const safeQ = input.title_query.replace(/[(),]/g, ' ').trim()
-        if (safeQ) {
-          const pattern = `%${safeQ}%`
-          const orClause = `title.ilike.${pattern},description.ilike.${pattern},locations_text.ilike.${pattern}`
-          query = query.or(orClause)
+      if (input.title_query?.trim()) {
+        // 全站搜尋：比對「標題 / 描述 / 地點文字 / 連線掛的品牌」的聯集，並套用片假名→平假名
+        // 正規化（與 product / listing 搜尋一致）。由 RPC 在 DB 端處理，回傳符合的連線 id。
+        const normalized = normalizeSearchText(input.title_query)
+        const { data: matchingIds } = await ctx.db.rpc('search_connection_ids', {
+          search_query: normalized,
+        })
+        const ids: string[] = (matchingIds ?? []).map((r: { id: string }) => r.id)
+        if (ids.length === 0) {
+          return { items: [], total: 0, totalPages: 0 }
         }
+        query = query.in('id', ids)
       }
 
       if (input.region_id) {

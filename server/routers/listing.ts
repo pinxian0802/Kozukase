@@ -13,20 +13,23 @@ export const listingRouter = router({
   browse: publicProcedure
     .input(browseListingsInput)
     .query(async ({ ctx, input }) => {
-      let productIds: string[] | null = null
-
+      // 搜尋：代購獨立搜尋，比對「代購標題 OR 連結商品（名稱/別名）OR 品牌」的聯集，
+      // 與商品分頁的 search_product_ids 脫鉤。回傳的是符合的 listing id。
+      let searchListingIds: string[] | null = null
       if (input.query) {
         const normalized = normalizeSearchText(input.query)
-        const { data: matchingIds } = await ctx.db.rpc('search_product_ids', {
+        const { data: matchingIds } = await ctx.db.rpc('search_listing_ids', {
           search_query: normalized,
         })
         const ids: string[] = (matchingIds ?? []).map((r: { id: string }) => r.id)
         if (ids.length === 0) {
           return { items: [], total: 0, page: input.page, totalPages: 0 }
         }
-        productIds = ids
+        searchListingIds = ids
       }
 
+      // 篩選：類別 / 品牌作用在代購所屬的商品上（與搜尋彼此獨立，最終取 AND）。
+      let productIds: string[] | null = null
       if (input.category || input.brandId) {
         let productQuery = ctx.db
           .from('products')
@@ -34,7 +37,6 @@ export const listingRouter = router({
           .eq('is_removed', false)
         if (input.category) productQuery = productQuery.eq('category', input.category)
         if (input.brandId) productQuery = productQuery.eq('brand_id', input.brandId)
-        if (productIds !== null) productQuery = productQuery.in('id', productIds)
 
         const { data: filtered } = await productQuery
         const filteredIds: string[] = (filtered ?? []).map((p: { id: string }) => p.id)
@@ -54,6 +56,10 @@ export const listingRouter = router({
         )
         .eq('status', 'active')
         .eq('seller.is_suspended', false)
+
+      if (searchListingIds !== null) {
+        query = query.in('id', searchListingIds)
+      }
 
       if (productIds !== null) {
         query = query.in('product_id', productIds)
