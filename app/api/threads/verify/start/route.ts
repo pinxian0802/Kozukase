@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 清除此 seller 既有的未通過申請（pending / rejected），確保名單一人最多一筆未通過
+  // 清除此 seller 既有的未結案申請（created / pending / rejected），確保名單一人最多一筆未通過
   await db
     .from('threads_verification_requests')
     .delete()
@@ -49,16 +49,20 @@ export async function POST(request: NextRequest) {
 
   // 用 CSPRNG 產 4 位數碼（randomInt 上界不含，故 10000 → 1000~9999）
   const code = String(randomInt(1000, 10000))
+  // 與 IG 一致:產碼後 15 分鐘有效期(僅 created 階段;按我已傳送轉 pending 時清掉)
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
 
+  // created：僅產碼、尚未送審；要等使用者按「我已傳送」才轉 pending 進待審名單（與 IG 一致）
   const { data, error } = await db
     .from('threads_verification_requests')
     .insert({
       seller_id: user.id,
       threads_username: username,
       code,
-      status: 'pending',
+      status: 'created',
+      expires_at: expiresAt.toISOString(),
     })
-    .select('id, code')
+    .select('id, code, expires_at')
     .single()
 
   if (error) {

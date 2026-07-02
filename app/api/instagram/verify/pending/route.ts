@@ -12,7 +12,7 @@ export async function GET() {
   const db = getDb()
   const { data } = await db
     .from('ig_verification_codes')
-    .select('id, code, expires_at, status, reject_reason')
+    .select('id, code, ig_username, expires_at, status, reject_reason')
     .eq('seller_id', user.id)
     .in('status', ['created', 'sent', 'pending', 'rejected'])
     .order('created_at', { ascending: false })

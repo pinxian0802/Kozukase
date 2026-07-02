@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getDb } from '@/server/db/client'
 
-// 使用者按「我已傳送」：凍結過期、直接進管理員待審清單（由後台批次掃描比對）
+// 使用者按「我已傳送」：把 created 轉 pending，正式進管理員待審清單（與 IG 一致）
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -12,9 +12,9 @@ export async function POST(request: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const db = getDb()
-  // 防呆:碼若已過期就不讓送出(避免把死掉的碼送進審核);凍結過期,pending 後不再過期
+  // 防呆:碼若已過期就不讓送出(避免把死掉的碼送進審核);清掉有效期,pending 後不再過期
   const { data, error } = await db
-    .from('ig_verification_codes')
+    .from('threads_verification_requests')
     .update({ status: 'pending', expires_at: null })
     .eq('id', id)
     .eq('seller_id', user.id)

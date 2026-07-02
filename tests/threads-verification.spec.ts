@@ -17,6 +17,9 @@ function threadsRow(page: Page) {
 // Shared E2E seller account — start each test from a clean, unverified state.
 async function resetSeller(sellerId: string) {
   await dbAdmin().from('threads_verification_requests').delete().eq('seller_id', sellerId)
+  // 也清掉殘留的 IG 驗證碼:否則 IG 若有 pending，個人資料頁會卡在 IG 卡片而非列表，
+  // 害「回到最初列表」的斷言找不到 Threads 那一列。
+  await dbAdmin().from('ig_verification_codes').delete().eq('seller_id', sellerId)
   await dbAdmin()
     .from('sellers')
     .update({
@@ -25,6 +28,27 @@ async function resetSeller(sellerId: string) {
       is_social_verified: false,
     })
     .eq('id', sellerId)
+}
+
+// Drive the seller UI to the 傳送驗證碼 (waiting_send) screen, stopping BEFORE 我已傳送.
+async function sellerGenerateCode(sellerPage: Page, username: string) {
+  await sellerPage.goto('/dashboard/profile')
+  await sellerPage.getByRole('tab', { name: '社群帳號' }).click()
+  await threadsRow(sellerPage).getByRole('button', { name: '驗證' }).click()
+  await sellerPage.getByPlaceholder('帳號名稱').fill(username)
+  await sellerPage.getByRole('button', { name: '取得驗證碼' }).click()
+  await expect(sellerPage.getByRole('button', { name: '我已傳送' })).toBeVisible({ timeout: 15000 })
+}
+
+// Current DB status of this seller's Threads request (null if none).
+async function threadsReqStatus(sellerId: string, username: string): Promise<string | null> {
+  const { data } = await dbAdmin()
+    .from('threads_verification_requests')
+    .select('status')
+    .eq('seller_id', sellerId)
+    .eq('threads_username', username)
+    .maybeSingle()
+  return (data?.status as string | undefined) ?? null
 }
 
 // Drive the seller UI from the 社群帳號 tab through to the 審核中 screen.
@@ -175,6 +199,100 @@ test.describe('Thread 驗證人工審核（全程點 UI）', () => {
           return data
         }, { timeout: 20000 })
         .toMatchObject({ is_social_verified: true, ig_connected_at: null })
+    } finally {
+      await resetSeller(sellerId)
+    }
+  })
+
+  test('產碼後僅「尚未送審」（管理員看不到）→ 按「我已傳送」才進待審', async ({ sellerPage }) => {
+    test.slow()
+    const sellerId = await getSellerIdByEmail(process.env.E2E_SELLER_EMAIL!)
+    const username = `e2e_ui_${Date.now()}`
+    await resetSeller(sellerId)
+
+    try {
+      await sellerGenerateCode(sellerPage, username)
+
+      // 還沒按「我已傳送」:DB 應為 created（尚未送審，不在管理員待審名單）
+      await expect
+        .poll(() => threadsReqStatus(sellerId, username), { timeout: 15000 })
+        .toBe('created')
+
+      // 按「我已傳送」→ 轉 pending（正式進待審）
+      await sellerPage.getByRole('button', { name: '我已傳送' }).click()
+      await expect(sellerPage.getByText('審核中')).toBeVisible({ timeout: 15000 })
+      await expect
+        .poll(() => threadsReqStatus(sellerId, username), { timeout: 15000 })
+        .toBe('pending')
+    } finally {
+      await resetSeller(sellerId)
+    }
+  })
+
+  test('停在傳送驗證碼離開再回到個人資料頁 → 回到列表(那列顯示傳送驗證碼),碼保留可續傳', async ({ sellerPage }) => {
+    test.slow()
+    const sellerId = await getSellerIdByEmail(process.env.E2E_SELLER_EMAIL!)
+    const username = `e2e_ui_${Date.now()}`
+    await resetSeller(sellerId)
+
+    try {
+      await sellerGenerateCode(sellerPage, username)
+      await expect
+        .poll(() => threadsReqStatus(sellerId, username), { timeout: 15000 })
+        .toBe('created')
+
+      // 切到別頁再回來（重新載入會觸發「回頁面還原」的邏輯）
+      await sellerPage.goto('/')
+      await sellerPage.goto('/dashboard/profile')
+      await sellerPage.getByRole('tab', { name: '社群帳號' }).click()
+
+      // 回到列表:Threads 那一列顯示「傳送驗證碼」(而非自動彈出整頁傳送驗證碼卡片)
+      await expect(threadsRow(sellerPage).getByRole('button', { name: '傳送驗證碼' })).toBeVisible({ timeout: 15000 })
+      // 整頁卡片才有「我已傳送」,列表上不應出現
+      await expect(sellerPage.getByRole('button', { name: '我已傳送' })).toHaveCount(0)
+
+      // 未送審的碼仍保留(沒被作廢,狀態 created)
+      await expect
+        .poll(() => threadsReqStatus(sellerId, username), { timeout: 15000 })
+        .toBe('created')
+
+      // 點「傳送驗證碼」可回到傳送驗證碼畫面繼續(碼帶得回來)
+      await threadsRow(sellerPage).getByRole('button', { name: '傳送驗證碼' }).click()
+      await expect(sellerPage.getByRole('button', { name: '我已傳送' })).toBeVisible({ timeout: 15000 })
+    } finally {
+      await resetSeller(sellerId)
+    }
+  })
+
+  test('停在審核中離開再回到個人資料頁 → 回到社群列表(那列顯示審核中),審核保留', async ({ sellerPage }) => {
+    test.slow()
+    const sellerId = await getSellerIdByEmail(process.env.E2E_SELLER_EMAIL!)
+    const username = `e2e_ui_${Date.now()}`
+    await resetSeller(sellerId)
+
+    try {
+      // 走到審核中(按了「我已傳送」)
+      await sellerGenerateCode(sellerPage, username)
+      await sellerPage.getByRole('button', { name: '我已傳送' }).click()
+      await expect(sellerPage.getByText('審核中')).toBeVisible({ timeout: 15000 })
+      await expect
+        .poll(() => threadsReqStatus(sellerId, username), { timeout: 15000 })
+        .toBe('pending')
+
+      // 切到別頁再回來
+      await sellerPage.goto('/')
+      await sellerPage.goto('/dashboard/profile')
+      await sellerPage.getByRole('tab', { name: '社群帳號' }).click()
+
+      // 回到社群列表:Threads 那一列顯示「審核中」按鈕(而非自動彈出整頁審核中卡片)
+      await expect(threadsRow(sellerPage).getByRole('button', { name: '審核中' })).toBeVisible({ timeout: 15000 })
+      // 整頁審核中卡片才有「取消申請」,列表上不應出現
+      await expect(sellerPage.getByRole('button', { name: '取消申請' })).toHaveCount(0)
+
+      // 已送出的審核仍保留(沒被偷偷作廢)
+      await expect
+        .poll(() => threadsReqStatus(sellerId, username), { timeout: 15000 })
+        .toBe('pending')
     } finally {
       await resetSeller(sellerId)
     }

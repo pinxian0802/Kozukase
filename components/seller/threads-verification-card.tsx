@@ -4,15 +4,15 @@ import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { FormFieldError } from '@/components/shared/form-field-error'
 import { Button } from '@/components/ui/button'
-import { useIgVerification } from '@/lib/hooks/use-ig-verification'
+import { useThreadsVerification } from '@/lib/hooks/use-threads-verification'
 
 type Props = {
-  vm: ReturnType<typeof useIgVerification>
+  vm: ReturnType<typeof useThreadsVerification>
   adminHandle: string
 }
 
-// IG 驗證卡片：承載 entering_username ~ success 各步驟 UI。idle 由父層決定顯示。
-export function IgVerificationCard({ vm, adminHandle }: Props) {
+// Threads 驗證卡片：承載 entering_username ~ rejected 各步驟 UI。idle 由父層決定顯示。
+export function ThreadsVerificationCard({ vm, adminHandle }: Props) {
   const {
     state, setState, usernameInput, setUsernameInput, inputError, setInputError,
     countdown, sendExpired, start, confirmSent, cancel,
@@ -24,10 +24,10 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
         <div className="flex flex-col gap-7">
           <div className="flex flex-col items-center gap-3.5 text-center">
             <div className="w-14 h-14 rounded-2xl overflow-hidden">
-              <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
+              <Image src="/images/threads.png" alt="Threads" width={56} height={56} />
             </div>
             <div>
-              <p className="font-semibold text-[15px] text-text-strong">驗證 Instagram</p>
+              <p className="font-semibold text-[15px] text-text-strong">驗證 Threads</p>
               <p className="text-[13px] text-text-muted mt-1 leading-relaxed">輸入你的帳號名稱</p>
             </div>
           </div>
@@ -67,8 +67,8 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
           <div className="text-center space-y-1">
             <p className="font-semibold text-[15px] text-text-strong">傳送驗證碼</p>
             <p className="text-[13px] text-text-muted leading-relaxed">
-              用 Instagram 私訊以下數字給{' '}
-              <a href={`https://www.instagram.com/${adminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-text-strong hover:underline">
+              用 Threads 私訊以下數字給{' '}
+              <a href={`https://www.threads.net/@${adminHandle}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-text-strong hover:underline">
                 @{adminHandle}
               </a>
             </p>
@@ -96,7 +96,7 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
       {state.step === 'waiting_send' && sendExpired && (
         <div className="flex flex-col items-center gap-6 py-6 text-center">
           <div className="w-14 h-14 rounded-2xl overflow-hidden opacity-60">
-            <Image src="/images/instagram.png" alt="Instagram" width={56} height={56} />
+            <Image src="/images/threads.png" alt="Threads" width={56} height={56} />
           </div>
           <div className="space-y-1.5">
             <p className="font-semibold text-[16px] text-text-strong">驗證碼已過期</p>
@@ -116,7 +116,7 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
       {state.step === 'reviewing' && (
         <div className="flex flex-col items-center gap-6 py-6 text-center">
           <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden">
-            <Image src="/images/instagram.png" alt="Instagram" width={72} height={72} />
+            <Image src="/images/threads.png" alt="Threads" width={72} height={72} />
           </div>
           <div className="space-y-1.5">
             <p className="font-semibold text-[16px] text-text-strong">審核中</p>
@@ -127,7 +127,7 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
               返回
             </Button>
             <Button variant="ghost" className="px-10" onClick={cancel}>
-              取消驗證
+              取消申請
             </Button>
           </div>
         </div>
@@ -137,7 +137,7 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
         <div className="flex flex-col items-center gap-6 py-6 text-center">
           <div className="relative">
             <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden">
-              <Image src="/images/instagram.png" alt="Instagram" width={72} height={72} />
+              <Image src="/images/threads.png" alt="Threads" width={72} height={72} />
             </div>
             <div className="absolute -bottom-1 -right-1 w-[22px] h-[22px] rounded-full bg-red-500 border-2 border-white flex items-center justify-center">
               <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={3.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -149,26 +149,6 @@ export function IgVerificationCard({ vm, adminHandle }: Props) {
           </div>
           <Button variant="cta-outline" className="px-10" onClick={() => { setState({ step: 'entering_username' }); setUsernameInput('') }}>
             重新驗證
-          </Button>
-        </div>
-      )}
-
-      {state.step === 'success' && (
-        <div className="flex flex-col items-center gap-6 py-6 text-center">
-          <div className="relative">
-            <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden">
-              <Image src="/images/instagram.png" alt="Instagram" width={72} height={72} />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-[22px] h-[22px] rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <p className="font-semibold text-[16px] text-text-strong">驗證完成</p>
-            <p className="text-[13px] text-text-muted">@{usernameInput} 已成功連結至賣家頁面</p>
-          </div>
-          <Button variant="cta-outline" className="px-10" onClick={() => setState({ step: 'idle' })}>
-            完成
           </Button>
         </div>
       )}
